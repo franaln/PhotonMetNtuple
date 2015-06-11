@@ -1,0 +1,107 @@
+#ifndef MyAnalysis_xAODAnalysis_H
+#define MyAnalysis_xAODAnalysis_H
+
+#include <EventLoop/Algorithm.h>
+
+// Infrastructure include(s):
+#include "xAODRootAccess/Init.h"
+#include "xAODRootAccess/TEvent.h"
+#include "xAODRootAccess/TStore.h"
+
+#include <TH1.h>
+#include <TTree.h>
+#include "PATInterfaces/SystematicCode.h"
+#include "PATInterfaces/SystematicSet.h"
+#include "PATInterfaces/SystematicRegistry.h"
+#include "PATInterfaces/SystematicVariation.h"
+//#include "boost/unordered_map.hpp"
+#include <SUSYTools/SUSYCrossSection.h>
+#include <PhotonMetNtuple/OutTree.h>
+#include "SUSYTools/ISUSYObjDef_xAODTool.h"
+
+// GRL
+class GoodRunsListSelectionTool;
+namespace CP{
+  class PileupReweightingTool;
+}
+using namespace CP;
+class JetCleaningTool;
+
+namespace ST{
+  class SUSYObjDef_xAOD;
+}
+using namespace ST;
+
+class JetVertexTagger;
+
+class xAODAnalysis : public EL::Algorithm
+{
+  
+  SUSY::CrossSectionDB *my_XsecDB;  //!
+
+  #ifndef __CINT__
+   GoodRunsListSelectionTool *m_grl; //!
+   PileupReweightingTool *m_pileupReweightingTool; //!
+   SUSYObjDef_xAOD *objTool; //!
+   OutTree *mem_leaker; //!
+  #endif // not __CINT__
+
+private:
+  int EventNumber; //!
+  int RunNumber; //!
+
+  double m_xsec; //!
+  bool isDerived; //!
+
+  float weight_events; //!
+  float weight_events_pu; //!
+
+  Int_t tAvgMu; //!
+  Int_t tbcid; //!
+  Int_t tLB; //!
+  Double_t tEventWeight; //!
+  Int_t tChannelNumber; //!
+  Int_t tDetError; //!
+
+  // put your configuration variables here as public variables.
+  // that way they can be set directly from CINT and python.
+public:
+
+  bool isData;
+  bool isAtlfast;
+  bool doSyst;
+
+  //  std::vector<CP::SystematicSet> sysList; //!
+
+  // variables that don't get filled at submission time should be
+  // protected from being send from the submission node to the worker
+  // node (done by the //!)
+public:
+  OutTree *outtree; //!
+
+  TH1 *number_events; //!
+
+  xAOD::TEvent *m_event;  //!
+
+  float  m_initialSumOfWeights; //!
+  std::vector<ST::SystInfo> systInfoList; //!
+
+  // this is a standard constructor
+  xAODAnalysis ();
+
+  // these are the functions inherited from Algorithm
+  virtual EL::StatusCode setupJob (EL::Job& job);
+  virtual EL::StatusCode fileExecute ();
+  virtual EL::StatusCode histInitialize ();
+  virtual EL::StatusCode changeInput (bool firstFile);
+  virtual EL::StatusCode initialize ();
+  virtual EL::StatusCode execute ();
+  virtual EL::StatusCode postExecute ();
+  virtual EL::StatusCode finalize ();
+  virtual EL::StatusCode histFinalize ();
+
+  // this is needed to distribute the algorithm to the workers
+  ClassDef(xAODAnalysis, 1);
+};
+
+#endif
