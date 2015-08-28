@@ -47,16 +47,17 @@ class xAODAnalysis : public EL::Algorithm
   #endif // not __CINT__
 
 private:
-  int EventNumber; //!
-  int RunNumber; //!
+
+  int event_number; //!
+  int run_number; //!
 
   double m_xsec; //!
   bool isDerived; //!
 
-  float weight_events; //!
-  float weight_events_pu; //!
+  float weight_mc; //!
+  float weight_pu; //!
 
-  Int_t tAvgMu; //!
+  Int_t avg_mu; //!
   Int_t tbcid; //!
   Int_t tLB; //!
   Double_t tEventWeight; //!
@@ -79,7 +80,8 @@ public:
 public:
   OutTree *outtree; //!
 
-  TH1 *number_events; //!
+  TH1D *h_events; //!
+  TH1D *h_cutflow; //!
 
   xAOD::TEvent *m_event;  //!
 

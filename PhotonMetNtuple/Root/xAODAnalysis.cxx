@@ -1,3 +1,5 @@
+#include <TSystem.h>
+
 #include <EventLoop/Job.h>
 #include <EventLoop/StatusCode.h>
 #include <EventLoop/Worker.h>
@@ -44,7 +46,7 @@
 ClassImp(xAODAnalysis)
 
 xAODAnalysis::xAODAnalysis() : 
-my_XsecDB(0), m_grl(0), m_pileupReweightingTool(0), objTool(0)
+my_XsecDB(0), m_grl(0), objTool(0)
 {
   // Here you put any code for the base initialization of variables,
   // e.g. initialize all pointers to 0.  Note that you should only put
@@ -82,8 +84,22 @@ EL::StatusCode xAODAnalysis::histInitialize()
   // trees.  This method gets called before any input files are
   // connected.
   
-  number_events = new TH1F("number_events", "Number Events", 2, 0, 1);
-  //wk()->addOutput(NumberEvents);
+  h_events = new TH1D("events", "Events", 6, 0.5, 6.5);
+  h_events->GetXaxis()->SetBinLabel(1, "# events initial");
+  h_events->GetXaxis()->SetBinLabel(2, "# events selected");
+  h_events->GetXaxis()->SetBinLabel(3, "sumw initial");
+  h_events->GetXaxis()->SetBinLabel(4, "sumw selected");
+  h_events->GetXaxis()->SetBinLabel(5, "sumw2 initial");
+  h_events->GetXaxis()->SetBinLabel(6, "sumw2 selected");
+
+  h_cutflow = new TH1D("cutflow", "Cutflow", 7, 0.5, 7.5);
+  h_cutflow->GetXaxis()->SetBinLabel(1, "All");
+  h_cutflow->GetXaxis()->SetBinLabel(2, "GRL");
+  h_cutflow->GetXaxis()->SetBinLabel(3, "DQ");
+  h_cutflow->GetXaxis()->SetBinLabel(4, "Trigger");
+  h_cutflow->GetXaxis()->SetBinLabel(5, "Good Vertex");
+  h_cutflow->GetXaxis()->SetBinLabel(6, "Cosmic Muon");
+  h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet");
   
   return EL::StatusCode::SUCCESS;
 }
@@ -108,46 +124,101 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
   m_event = wk()->xaodEvent(); 
   
   TTree *metadata = dynamic_cast<TTree*>(wk()->inputFile()->Get("MetaData"));
-  if (metadata) {
-    TTreeFormula* streamAOD = new TTreeFormula("StreamAOD", "StreamAOD", metadata);
-    streamAOD->UpdateFormulaLeaves();
-    if(streamAOD->GetNcodes() < 1 ) {
-      // This is not an xAOD, that's a derivation!
-      isDerived = true;
-      Info(APP_NAME, "This file is a derivation");
-    }
-    else {
-      Info(APP_NAME, "This file is NOT a derivation");
-    }
-    delete streamAOD;
+  if (!metadata) {
+    Error(APP_NAME, "MetaData tree not found! Exiting.");
+    return EL::StatusCode::FAILURE;
   }
-  delete metadata;   
+  metadata->LoadTree(0);
 
-  //Read the CutBookkeeper container
-  const xAOD::CutBookkeeperContainer* completeCBC = 0;
-  if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
-    Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
-  }
+  //check if file is from a DxAOD
+  bool is_derivation = !metadata->GetBranch("StreamAOD");
 
-  // First, let's find the smallest cycle number,
-  // i.e., the original first processing step/cycle
-  int minCycle = 10000;
-  for (auto cbk : *completeCBC) {
-    if (minCycle > cbk->cycle()) { minCycle = cbk->cycle(); }
-  }
-  // Now, let's actually find the right one that contains all the needed info...
-  const xAOD::CutBookkeeper* allEventsCBK = 0;
-  for (auto cbk :  *completeCBC) {
-    if (minCycle == cbk->cycle() && cbk->name() == "AllExecutedEvents") {
-      allEventsCBK = cbk;
-      break;
+  //    TTreeFormula* streamAOD = new TTreeFormula("StreamAOD", "StreamAOD", metadata);
+  //streamAOD->UpdateFormulaLeaves();
+  //   if(streamAOD->GetNcodes() < 1 ) {
+  //     // This is not an xAOD, that's a derivation!
+  //     isDerived = true;
+  //     Info(APP_NAME, "This file is a derivation");
+  //   }
+  //   else {
+  //     Info(APP_NAME, "This file is NOT a derivation");
+  //   }
+  //   delete streamAOD;
+  //}
+  //delete metadata;   
+
+  uint64_t m_initial_events = 0;
+  double m_initial_sumw = 0.;
+  double m_initial_sumw2 = 0.;
+
+  uint64_t m_final_events = 0;
+  double m_final_sumw = 0.;
+  double m_final_sumw2 = 0.;
+
+  if (is_derivation) {
+
+    // // check for corruption
+    // const xAOD::CutBookkeeperContainer* incompleteCBC = nullptr;
+    // if(!m_event->retrieveMetaInput(incompleteCBC, "IncompleteCutBookkeepers").isSuccess()){
+    //   Error("initializeEvent()","Failed to retrieve IncompleteCutBookkeepers from MetaData! Exiting.");
+    //   return EL::StatusCode::FAILURE;
+    // }
+    // if ( incompleteCBC->size() != 0 ) {
+    //   Error("initializeEvent()","Found incomplete Bookkeepers! Check file for corruption.");
+    //   return EL::StatusCode::FAILURE;
+    // }
+    
+    //Read the CutBookkeeper container
+    const xAOD::CutBookkeeperContainer* completeCBC = 0;
+    if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
+      Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
+      return EL::StatusCode::FAILURE;
     }
+
+    // First, let's find the smallest cycle number,
+    // i.e., the original first processing step/cycle
+    int minCycle = 10000;
+    for (auto cbk : *completeCBC) {
+      if (minCycle > cbk->cycle()) { minCycle = cbk->cycle(); }
+    }
+    // Now, let's actually find the right one that contains all the needed info...
+    const xAOD::CutBookkeeper* all_events_cbk = 0;
+    const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
+
+    for (auto cbk :  *completeCBC) {
+      if (minCycle == cbk->cycle() && cbk->name() == "AllExecutedEvents") {
+        all_events_cbk = cbk;
+      }
+      if ( cbk->name() == "SUSY1Kernel" ) {
+        dxaod_events_cbk = cbk;
+      }
+    }
+    
+    m_initial_events = all_events_cbk->nAcceptedEvents();
+    m_initial_sumw   = all_events_cbk->sumOfEventWeights();
+    m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
+    //Info(APP_NAME, "CutBookkeepers Accepted %d SumWei %f sumWei2 %f ", nEventsProcessed, sumOfWeights, sumOfWeightsSquared);
+    
+    m_final_events  = dxaod_events_cbk->nAcceptedEvents();
+    m_final_sumw    = dxaod_events_cbk->sumOfEventWeights();
+    m_final_sumw2   = dxaod_events_cbk->sumOfEventWeightsSquared();
+
+  }
+  else {
+    
+    TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
+
+    m_final_events  = CollectionTree->GetEntries(); 
+    m_final_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
+    m_final_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
   }
 
-  int nEventsProcessed = allEventsCBK->nAcceptedEvents();
-  double sumOfWeights = allEventsCBK->sumOfEventWeights();
-  double sumOfWeightsSquared = allEventsCBK->sumOfEventWeightsSquared();
-  Info(APP_NAME, "CutBookkeepers Accepted %d SumWei %f sumWei2 %f ", nEventsProcessed, sumOfWeights, sumOfWeightsSquared);
+  h_events->Fill(1, m_initial_events);
+  h_events->Fill(2, m_final_events);
+  h_events->Fill(3, m_initial_sumw);
+  h_events->Fill(4, m_final_sumw);
+  h_events->Fill(5, m_initial_sumw2);
+  h_events->Fill(6, m_final_sumw2);
 
   return EL::StatusCode::SUCCESS;
 }
@@ -162,30 +233,40 @@ EL::StatusCode xAODAnalysis::initialize()
   // doesn't get called if no events are processed.  So any objects
   // you create here won't be available in the output if you have no
   // input events.
-  
+
+  const char *APP_NAME = "xAODAnalysis::initialize()";
+
+  m_event = wk()->xaodEvent();
+
+  // ST Options
   ST::SettingDataSource datasource = isData ? ST::Data : (isAtlfast ? ST::AtlfastII : ST::FullSim);
   
-  const char *APP_NAME = "xAODAnalysis::initialize()";
-  m_event = wk()->xaodEvent();
   objTool = new ST::SUSYObjDef_xAOD("SUSYObjDef_xAOD");
   objTool->msg().setLevel(MSG::FATAL);
 
-  // Configure the SUSYObjDef instance
   CHECK(objTool->setProperty("DataSource", datasource)); 
-  CHECK(objTool->setProperty("EleId", "MediumLLH"));
-  CHECK(objTool->setProperty("EleIdBaseline", "LooseLLH"));
-  CHECK(objTool->setProperty("TauId", "Tight"));  
-  CHECK(objTool->setProperty("IsoWP", "GradientLoose"));
-  
-  // Set to true for DxAOD, false for primary xAOD
-  CHECK(objTool->setProperty("DoJetAreaCalib", true));
+  CHECK(objTool->setProperty("JetInputType", xAOD::JetInput::EMTopo) );  
+  CHECK(objTool->setProperty("EleId", "TightLH"));
 
-  // Set to false if not doing JetAreaCalib
-  CHECK(objTool->setProperty("DoJetGSCCalib", true));
+  //photons
+  CHECK(objTool->setProperty("PhotonIsoWP", "Cone20"));
+
+  //CHECK(objTool->setProperty("EleIdBaseline", "Tight"));
+  // CHECK(objTool->setProperty("TauId", "Tight"));  
+  // CHECK(objTool->setProperty("EleIsoWP", "GradientLoose"));
+ 
+  // // Set to true for DxAOD, false for primary xAOD
+  // CHECK(objTool->setProperty("DoJetAreaCalib", true));
+
+  // // Set to false if not doing JetAreaCalib
+  // CHECK(objTool->setProperty("DoJetGSCCalib", true));
   
   // Set 0 for 14NP, 1,2,3 for 3NP sets
   CHECK(objTool->setProperty("JESNuisanceParameterSet", 1));
   
+  CHECK(objTool->setProperty("Is25ns", false));
+ 
+ 
   if (objTool->SUSYToolsInit().isFailure()) {
     Error(APP_NAME, "Failed to initialise tools in SUSYToolsInit()...");
     Error(APP_NAME, "Exiting...");
@@ -209,7 +290,8 @@ EL::StatusCode xAODAnalysis::initialize()
   // GRL
   m_grl = new GoodRunsListSelectionTool("GoodRunsListSelectionTool");
   std::vector<std::string> vecStringGRL;
-  vecStringGRL.push_back(gSystem->ExpandPathName("$ROOTCOREBIN/data/SUSYTools/GRL/Summer2013/data12_8TeV.periodAllYear_DetStatus-v61-pro14-02_DQDefects-00-01-00_PHYS_StandardGRL_All_Good.xml"));
+  std::cout << "---" << gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/grl.xml") << std::endl;
+  vecStringGRL.push_back(gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/grl.xml"));
   CHECK(m_grl->setProperty("GoodRunsListVec", vecStringGRL));
   CHECK(m_grl->setProperty("PassThrough", false) ); // if true (default) will ignore result of GRL and will just pass all events
   if (!m_grl->initialize().isSuccess()) { // check this isSuccess
@@ -217,19 +299,20 @@ EL::StatusCode xAODAnalysis::initialize()
     return EL::StatusCode::FAILURE;
   }
   
+  
   // Pile Up Reweighting
-  m_pileupReweightingTool = new PileupReweightingTool("PileupReweightingTool");
-  CHECK( m_pileupReweightingTool->setProperty("Input", "EventInfo") );
-  std::vector<std::string> prwFiles;
-  prwFiles.push_back("PileupReweighting/mc14v1_defaults.prw.root");
-  CHECK( m_pileupReweightingTool->setProperty("ConfigFiles", prwFiles) );
-  std::vector<std::string> lumicalcFiles;
-  lumicalcFiles.push_back("SUSYTools/susy_data12_avgintperbx.root");
-  CHECK( m_pileupReweightingTool->setProperty("LumiCalcFiles", lumicalcFiles) );
-  if (!m_pileupReweightingTool->initialize().isSuccess()) {
-    Error(APP_NAME, "Failed to properly initialize the Pile Up Reweighting. Exiting." );
-    return EL::StatusCode::FAILURE;
-  }
+  //m_pileupReweightingTool = new PileupReweightingTool("PileupReweightingTool");
+  //CHECK( m_pileupReweightingTool->setProperty("Input", "EventInfo") );
+  // std::vector<std::string> prwFiles;
+  // prwFiles.push_back("PileupReweighting/mc14v1_defaults.prw.root");
+  // CHECK( objTool->setProperty("PRWConfigFiles", prwFiles) );
+  // std::vector<std::string> lumicalcFiles;
+  // lumicalcFiles.push_back("SUSYTools/susy_data12_avgintperbx.root");
+  // CHECK(objTool->setProperty("PRWLumiCalcFiles", lumicalcFiles));
+  // if (!m_pileupReweightingTool->initialize().isSuccess()) {
+  //   Error(APP_NAME, "Failed to properly initialize the Pile Up Reweighting. Exiting." );
+  //   return EL::StatusCode::FAILURE;
+  // }
   
   // Now we can look at systematics:    
   if (!doSyst) {
@@ -251,9 +334,10 @@ EL::StatusCode xAODAnalysis::initialize()
   CHECK(outtree->setProperty("SystematicList", systInfoList) ) ;
   CHECK(outtree->setProperty("OutFile", out_dir) );
   CHECK(outtree->initialize());
-  
-  number_events->SetDirectory(out_dir);
-  
+
+  h_events->SetDirectory(out_dir);
+  h_cutflow->SetDirectory(out_dir);
+    
   return EL::StatusCode::SUCCESS;
 }
 
@@ -274,52 +358,60 @@ EL::StatusCode xAODAnalysis :: execute ()
     return EL::StatusCode::FAILURE;
   }
 
-  EventNumber = eventInfo->eventNumber();
-  RunNumber   = eventInfo->runNumber();
-  tAvgMu      = eventInfo->averageInteractionsPerCrossing();
+  event_number = eventInfo->eventNumber();
+  run_number   = eventInfo->runNumber();
+  avg_mu       = eventInfo->averageInteractionsPerCrossing();
   
   // check if the event is data or MC
-  bool isMC = false;
-  bool mc14_13TeV = false;
+  bool is_mc = false;
   if (eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION)) {
-    isMC = true;
-	
+    is_mc = true;
+
 	m_xsec = my_XsecDB->xsectTimesEff(eventInfo->mcChannelNumber());
-    weight_events = (eventInfo->mcEventWeights()).at(0);
-    weight_events_pu = 1.;
-    
-    // Check if input file is mc14_13TeV to skip pileup reweighting
-    if (RunNumber == 222222 || RunNumber == 222525 || RunNumber == 222510) mc14_13TeV = true;
-    if (!mc14_13TeV) { // Only reweight 8 TeV MC
-      CHECK(m_pileupReweightingTool->execute());
-      weight_events_pu = eventInfo->auxdata<double>("PileupWeight");
-    }
+    weight_mc = (eventInfo->mcEventWeights()).at(0);
+    weight_pu = 1.;
   }
   else {
-    weight_events = 1.;
-    weight_events_pu = 1.;
+    weight_mc = 1.;
+    weight_pu = 1.;
 	m_xsec = 1.;
   }
   
   //--------------------
   // CLEANING CUTS HERE
   //--------------------
-  if (!isMC && !m_grl->passRunLB(*eventInfo)) {
+  h_cutflow->Fill(1);
+
+  if (!is_mc && !m_grl->passRunLB(*eventInfo)) {
     return EL::StatusCode::SUCCESS; // go to next event
   }
+  h_cutflow->Fill(2);
 
-  if (!isMC &&
+  if (!is_mc &&
       ((eventInfo->errorState(xAOD::EventInfo::LAr) == xAOD::EventInfo::Error ) ||
        (eventInfo->errorState(xAOD::EventInfo::Tile) == xAOD::EventInfo::Error ) ||
        (eventInfo->isEventFlagBitSet(xAOD::EventInfo::Core, 18)))) {
     return EL::StatusCode::SUCCESS; // go to next event
   }
+  h_cutflow->Fill(3);
   
+
+  // Trigger
+  std::string trigitem = "HLT_g140_loose";
+  bool passed = objTool->IsTrigPassed(trigitem);
+  //float prescale = objTool->GetTrigPrescale(trigitem);
+  //Info(APP_NAME, "passing %s trigger? %d, prescale %f", trigitem.c_str(), (int)passed, prescale);
+  if (!is_mc && !passed)
+    return EL::StatusCode::SUCCESS;
+  h_cutflow->Fill(4);
+
+
   //Get the event Vertex
-  const xAOD::Vertex* prim_vx = 0;
+  const xAOD::Vertex *prim_vx = 0;
   prim_vx = objTool->GetPrimVtx();
   if (!prim_vx) 
     return EL::StatusCode::SUCCESS;
+  h_cutflow->Fill(5);
     
   //---------------------------------
   // RETRIEVE THE NOMINAL CONTAINERS
@@ -450,14 +542,14 @@ EL::StatusCode xAODAnalysis :: execute ()
         met_aux = met_syst_aux;
         
         for (const auto& el : *electrons) {
-          objTool->IsSignalElectronExp(*el) ;	    
+          objTool->IsSignalElectron(*el) ;	    
           if (el->auxdata<char>("passOR") != 0 ) 
             weight_sf *= objTool->GetSignalElecSF(*el);
         }
         
         bool skip = false;
         for (const auto& mu : *muons) {
-          objTool->IsSignalMuonExp(*mu) ;
+          objTool->IsSignalMuon(*mu) ;
           objTool->IsCosmicMuon(*mu);
           objTool->IsBadMuon(*mu);
           if (mu->auxdata< char >("passOR") != 0) 
@@ -468,6 +560,8 @@ EL::StatusCode xAODAnalysis :: execute ()
         
         for (const auto& jet : *jets) {
           objTool->IsBJet(*jet);  
+          objTool->IsSignalJet( *jet);
+          objTool->IsBJet( *jet); 
           if ((int)jet->auxdata<char>("bad")) 
             skip = true;
         }
@@ -476,10 +570,10 @@ EL::StatusCode xAODAnalysis :: execute ()
         
         if (!skip) {
           AnalysisCollections collections;
-          collections.EventNumber = EventNumber;
-          collections.PUweight = weight_events_pu;
-          collections.Eventweight = weight_events;
-          collections.SFweight = weight_sf;	
+          collections.event_number = event_number;
+          collections.weight_pu = weight_pu;
+          collections.weight_mc = weight_mc;
+          //collections.SFweight = weight_sf;	
           collections.photons = photons;
           collections.electrons = electrons;
           collections.muons = muons;
@@ -530,33 +624,47 @@ EL::StatusCode xAODAnalysis :: execute ()
   CHECK(objTool->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
   CHECK(objTool->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   
+  // electrons
   for (const auto& el : *electrons_nominal) {
-    objTool->IsSignalElectronExp( *el ) ;      
-    if (el->auxdata< char >("passOR") != 0) 
-      weight_sf *= objTool->GetSignalElecSF(*el);
+    objTool->IsSignalElectron(*el) ;      
+    if (el->auxdata<char>("passOR") != 0 && el->auxdata<char>("signal") != 0) 
+      objTool->GetSignalElecSF(*el);
   }
   
+  // photons
+  for (const auto& ph : *photons_nominal) {
+    objTool->IsSignalPhoton(*ph, 75000.);
+    // if (ph->auxdata<char>("passOR") != 0 && ph->auxdata<char>("signal") != 0)
+    //   objTool->GetSignalPhotonSF(*ph);
+  }
+
   bool skip = false;
+  // muons
   for (const auto& mu : *muons_nominal) {
-    objTool->IsSignalMuonExp(*mu) ;
+    objTool->IsSignalMuon(*mu) ;
     objTool->IsCosmicMuon(*mu);
-    if (mu->auxdata<char>("passOR") != 0) 
-      weight_sf *= objTool->GetSignalMuonSF(*mu);
+    if (mu->auxdata<char>("passOR") != 0 && mu->auxdata<char>("signal") != 0)
+      objTool->GetSignalMuonSF(*mu);
     if ((int)mu->auxdata<char>("cosmic") == 1) 
       skip = true;
   }
-  
+  if (!skip)
+    h_cutflow->Fill(6);
+
+  // jets
   for (const auto& jet : *jets_nominal) {  
     if ((int)jet->auxdata<char>("bad")) 
       skip = true;
   }
   
   if (!skip) {
+    h_cutflow->Fill(7);
+
     AnalysisCollections collections;
-    collections.EventNumber = EventNumber;
-    collections.PUweight = weight_events_pu;
-    collections.Eventweight = weight_events;
-    collections.SFweight = weight_sf;	    
+    collections.event_number = event_number;
+    collections.weight_pu = weight_pu;
+    collections.weight_mc = weight_mc;
+
     collections.photons = photons_nominal;
     collections.electrons = electrons_nominal;
     collections.muons = muons_nominal;
@@ -571,9 +679,10 @@ EL::StatusCode xAODAnalysis :: execute ()
     ret += outtree->process(collections, "Nominal");
   }
   
-  if (ret > 0) 
+  if (ret > 0) {
     CHECK(outtree->FillTree());
-  
+  }
+
   delete jets_nominal;
   delete jets_nominal_aux;
   delete taus_nominal;
@@ -617,10 +726,10 @@ EL::StatusCode xAODAnalysis::finalize()
   }
   
   // Pileup_Reweighting
-  if (m_pileupReweightingTool) {
-    delete m_pileupReweightingTool;
-    m_pileupReweightingTool = 0;
-  }
+  // if (m_pileupReweightingTool) {
+  //   delete m_pileupReweightingTool;
+  //   m_pileupReweightingTool = 0;
+  // }
   
   if (my_XsecDB) {
     delete my_XsecDB;

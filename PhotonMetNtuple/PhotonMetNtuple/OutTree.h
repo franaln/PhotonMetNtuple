@@ -19,14 +19,15 @@
 #include "SUSYTools/ISUSYObjDef_xAODTool.h"
 
 struct AnalysisCollections {
-  Int_t EventNumber;
-  Float_t PUweight;
-  Float_t Eventweight;
-  Float_t SFweight;
-  Float_t bTagweight;
-  Float_t CrossSection;
-  Float_t primVx_z;
-  Float_t AverageInteractionsPerCrossing; 
+
+  Int_t event_number;
+
+  Float_t weight_pu;
+  Float_t weight_mc;
+  Float_t weight_btag;
+  Float_t cross_section;
+  Float_t primvx_z;
+  Float_t average_interactions_per_crossing; 
 
   // Containers
   xAOD::PhotonContainer* photons;
@@ -34,7 +35,7 @@ struct AnalysisCollections {
   xAOD::MuonContainer* muons;
   xAOD::JetContainer* jets;
   xAOD::MissingETContainer* met;
-  //xAOD::MissingETContainer* metTST;
+  xAOD::MissingETContainer* met_tst;
 
   // Aux containers too
   xAOD::ShallowAuxContainer* photons_aux;
@@ -42,12 +43,12 @@ struct AnalysisCollections {
   xAOD::ShallowAuxContainer* muons_aux;
   xAOD::ShallowAuxContainer* jets_aux;
   xAOD::MissingETAuxContainer* met_aux;
-  //xAOD::MissingETAuxContainer* metTST_aux;
+  xAOD::MissingETAuxContainer* met_tst_aux;
 
   //Truth containers
-  xAOD::TruthParticleContainer* truthP;
-  xAOD::JetContainer* truthjets; 
-  TLorentzVector truthmet;
+  xAOD::TruthParticleContainer* truth_p;
+  xAOD::JetContainer* truth_jets; 
+  TLorentzVector truth_met;
 };
 
 class OutTree : public asg::AsgMetadataTool {
@@ -102,8 +103,8 @@ class OutTree : public asg::AsgMetadataTool {
   std::map<const std::string, float> dphi_gamjet_map;
   std::map<const std::string, float> dphi_gammet_map;
   
-  std::map<const std::string, float> SFwei_map;
-  std::map<const std::string, float> bTagSF_map;
+  // std::map<const std::string, float> SFwei_map;
+  // std::map<const std::string, float> bTagSF_map;
 
 protected:
   TDirectory *m_outfile;    
@@ -113,7 +114,6 @@ protected:
   std::vector<float> *ph_eta;
   std::vector<float> *ph_phi;
   std::vector<float> *ph_w;
-  //std::vector<bool>  *ph_passOR;
 
   std::vector<float> *jet_pt; 
   std::vector<float> *jet_eta;
@@ -121,26 +121,22 @@ protected:
   std::vector<float> *jet_e;
   std::vector<float> *jet_w;
   std::vector<bool>  *jet_isb;
-  //  std::vector<bool>  *jet_passOR;
   
   std::vector<float> *el_pt; 
   std::vector<float> *el_eta;
   std::vector<float> *el_phi;
   std::vector<int>   *el_ch;
   std::vector<float> *el_w;
-  //  std::vector<bool>  *el_passOR;
   
   std::vector<float> *mu_pt; 
   std::vector<float> *mu_eta;
   std::vector<float> *mu_phi;
   std::vector<int>   *mu_ch;
   std::vector<float> *mu_w;
-  //std::vector<bool>  *mu_passOR;
   
-  int m_EventNumber;
-  float m_WeightEvents;
-  float m_WeightPU;
-  float m_mu_av;
+  int event_number;
+  float weight_mc;
+  float weight_pu;
 };
 
 #endif

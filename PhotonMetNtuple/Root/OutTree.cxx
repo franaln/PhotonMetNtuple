@@ -25,14 +25,12 @@ OutTree::~OutTree()
       delete ph_eta_map[sys_name];
       delete ph_phi_map[sys_name];
       delete ph_w_map[sys_name];
-      //delete ph_passOR_map[sys_name];
       
       delete jet_pt_map[sys_name];
       delete jet_eta_map[sys_name];
       delete jet_phi_map[sys_name];
       delete jet_e_map[sys_name];
       delete jet_isb_map[sys_name];
-      //delete jet_passOR_map[sys_name];
       delete jet_w_map[sys_name];
       
       delete el_pt_map[sys_name];
@@ -40,14 +38,12 @@ OutTree::~OutTree()
       delete el_phi_map[sys_name];
       delete el_ch_map[sys_name];
       delete el_w_map[sys_name];
-      //delete el_passOR_map[sys_name];
 
       delete mu_pt_map[sys_name];
       delete mu_eta_map[sys_name];
       delete mu_phi_map[sys_name];
       delete mu_ch_map[sys_name];
       delete mu_w_map[sys_name];
-      //delete mu_passOR_map[sys_name];
     }
   }
      
@@ -55,7 +51,6 @@ OutTree::~OutTree()
   delete ph_eta_map["Nominal"];
   delete ph_phi_map["Nominal"];
   delete ph_w_map["Nominal"];
-  //delete ph_passOR_map["Nominal"];
 
   delete jet_pt_map["Nominal"];
   delete jet_eta_map["Nominal"];
@@ -63,21 +58,18 @@ OutTree::~OutTree()
   delete jet_e_map["Nominal"];
   delete jet_isb_map["Nominal"];
   delete jet_w_map["Nominal"];
-  //  delete jet_passOR_map["Nominal"];
 
   delete el_pt_map["Nominal"];
   delete el_eta_map["Nominal"];
   delete el_phi_map["Nominal"];
   delete el_ch_map["Nominal"];
   delete el_w_map["Nominal"];
-  //delete el_passOR_map["Nominal"];
 
   delete mu_pt_map["Nominal"];
   delete mu_eta_map["Nominal"];
   delete mu_phi_map["Nominal"];
   delete mu_ch_map["Nominal"];
   delete mu_w_map["Nominal"];
-  //delete mu_passOR_map["Nominal"];
 }
 
 TString OutTree::BookName(TString branch, TString sys_name) 
@@ -119,11 +111,9 @@ StatusCode OutTree::initialize()
   tree = new TTree(tree_name, tree_name);
   tree->SetDirectory(m_outfile);	 
 
-  tree->Branch("EventNumber", &m_EventNumber, "EventNumber/I");
-  tree->Branch("weight_events", &m_WeightEvents);
-  tree->Branch("weight_events_pu", &m_WeightPU);
-  tree->Branch("weight_events_sf", &SFwei_map["Nominal"] );
-  tree->Branch("weight_events_btag", &bTagSF_map["Nominal"]);
+  tree->Branch("event_number", &event_number, "event_number/I");
+  tree->Branch("weight_mc", &weight_mc);
+  tree->Branch("weight_pu", &weight_pu);
            
   tree->Branch("ph_n", &ph_n_map["Nominal"], "ph_n/I");
   tree->Branch("ph_eta", ph_eta);
@@ -167,8 +157,8 @@ StatusCode OutTree::initialize()
 
   std::string sys_name = "Nominal"; 
    
-  SFwei_map.insert (std::pair<std::string, float>(sys_name, 1.));
-  bTagSF_map.insert (std::pair<std::string, float>(sys_name, 1.));
+  //  SFwei_map.insert (std::pair<std::string, float>(sys_name, 1.));
+  //bTagSF_map.insert (std::pair<std::string, float>(sys_name, 1.));
   
   ph_n_map.insert (std::pair<std::string, int>(sys_name, 0));
   ph_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_pt));
@@ -196,7 +186,6 @@ StatusCode OutTree::initialize()
   mu_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_eta));
   mu_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_phi));
   mu_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, mu_ch));
-  //mu_passOR_map.insert(std::pair<std::string, std::vector<bool>*>(sys_name, mu_passOR));
   mu_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_w));
   
   met_et_map.insert(std::pair<std::string, float>(sys_name, 0.));
@@ -228,7 +217,6 @@ StatusCode OutTree::initialize()
       ph_pt = new std::vector<float>(); 
       ph_eta = new std::vector<float>();
       ph_phi = new std::vector<float>();
-      //ph_passOR = new std::vector<bool>();
       ph_w = new std::vector<float>();
 
       jet_pt = new std::vector<float>(); 
@@ -236,21 +224,18 @@ StatusCode OutTree::initialize()
       jet_phi = new std::vector<float>();
       jet_e = new std::vector<float>();
       jet_isb = new std::vector<bool>();
-      //jet_passOR = new std::vector<bool>();
       jet_w = new std::vector<float>();
 
       el_pt = new std::vector<float>(); 
       el_eta = new std::vector<float>();
       el_phi = new std::vector<float>();
       el_ch = new std::vector<int>();
-      //el_passOR = new std::vector<bool>();
       el_w = new std::vector<float>();
 
       mu_pt = new std::vector<float>(); 
       mu_eta = new std::vector<float>();
       mu_phi = new std::vector<float>();
       mu_ch = new std::vector<int>();
-      //mu_passOR = new std::vector<bool>();
       mu_w = new std::vector<float>();
 
       const CP::SystematicSet& sysSet = sys.systset;
@@ -272,14 +257,6 @@ StatusCode OutTree::initialize()
         }
       }
       
-      // if (syst_affectsJets || syst_affectsElectrons || syst_affectsPhotons) {
-      //   tree->Branch(BookName("mu_passOR", sys_name), mu_passOR);
-      // }
-
-      // if (syst_affectsElectrons || syst_affectsPhotons) {
-      //   tree->Branch(BookName("jet_passOR", sys_name), jet_passOR);
-      // }
-
 
       if (syst_affectsPhotons) {
         if (sys.affectsWeights) {
@@ -289,7 +266,6 @@ StatusCode OutTree::initialize()
           tree->Branch(BookName("ph_pt", sys_name) , ph_pt);
           tree->Branch(BookName("ph_eta", sys_name), ph_eta);
           tree->Branch(BookName("ph_phi", sys_name), ph_phi);
-          //tree->Branch(BookName("jet_passOR", sys_name), jet_passOR);	
 	  	}
       }
       
@@ -302,7 +278,6 @@ StatusCode OutTree::initialize()
           tree->Branch(BookName("el_eta", sys_name), el_eta);
           tree->Branch(BookName("el_phi", sys_name), el_phi);
           tree->Branch(BookName("el_ch", sys_name), el_ch);
-          //          tree->Branch(BookName("jet_passOR", sys_name), jet_passOR);	
 	  	}
       }
 
@@ -315,7 +290,6 @@ StatusCode OutTree::initialize()
           tree->Branch(BookName("mu_eta", sys_name), mu_eta);
           tree->Branch(BookName("mu_phi", sys_name), mu_phi);
           tree->Branch(BookName("mu_ch", sys_name) , mu_ch);
-          //tree->Branch(BookName("jet_passOR", sys_name), jet_passOR);	
 	  	}
       }
       
@@ -328,7 +302,6 @@ StatusCode OutTree::initialize()
       ph_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_pt));
       ph_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_eta));
       ph_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_phi));
-      //ph_passOR_map.insert(std::pair<std::string, std::vector<bool>*>(sys_name, ph_passOR));
       ph_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_w));
 
       jet_pt_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_pt));
@@ -336,21 +309,18 @@ StatusCode OutTree::initialize()
       jet_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_phi));
       jet_e_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_e));
       jet_isb_map.insert(std::pair<std::string, std::vector<bool>*>(sys_name, jet_isb));
-      //jet_passOR_map.insert(std::pair<std::string, std::vector<bool>*>(sys_name, jet_passOR));
       jet_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_w));
 
       el_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_pt));
       el_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_eta));
       el_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_phi));
       el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
-      //el_passOR_map.insert(std::pair<std::string, std::vector<bool>*>(sys_name, el_passOR));
       el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
 
       mu_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, mu_pt));
       mu_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_eta));
       mu_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_phi));
       mu_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, mu_ch));
-      //mu_passOR_map.insert(std::pair<std::string, std::vector<bool>*>(sys_name, mu_passOR));
       mu_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_w));
 
       met_et_map.insert(std::pair<std::string, float>(sys_name, 0.));
@@ -392,7 +362,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   mu_w_map[sysname]->clear();
   
   //Setting up some basic filtering rule
-  m_EventNumber = collections.EventNumber;
+  event_number = collections.event_number;
   collections.photons->setStore(collections.photons_aux);
   collections.electrons->setStore(collections.electrons_aux);
   collections.muons->setStore(collections.muons_aux);
@@ -405,17 +375,15 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
     
     if (el_itr->auxdata<char>("passOR") == 1 &&
         el_itr->auxdata<char>("signal") == 1 &&
-        el_itr->pt() > 10000. && (fabs( el_itr->eta()) < 2.47) ){
+        el_itr->pt() > 25000. && 
+        (fabs( el_itr->eta()) < 2.47) ){
       
       el_n += 1;
-      el_pt_map[sysname] ->push_back(el_itr->pt()*IGEV);
+      el_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
       el_eta_map[sysname]->push_back(el_itr->eta());
       el_phi_map[sysname]->push_back(el_itr->phi());
-      el_ch_map[sysname] ->push_back(el_itr->trackParticle()->charge());
-      
-      el_w_map[sysname]->push_back( el_itr->auxdata< float >("effscalefact") );
-      
-      //el_passOR_map[sysname]->push_back(el_itr->auxdata< char >("passOR") == 1 && el_itr->auxdata< char >("signal") == 1);
+      el_ch_map[sysname]->push_back(el_itr->trackParticle()->charge());
+      el_w_map[sysname]->push_back( el_itr->auxdata<double>("effscalefact") );
     }
   }
   el_n_map[sysname] = el_n;
@@ -426,14 +394,15 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
     
     if (mu_itr->auxdata<char>("passOR") == 1 &&
         mu_itr->auxdata<char>("signal") == 1 &&
-        mu_itr->pt() > 10000. && (fabs( mu_itr->eta()) < 2.4)) {
+        mu_itr->pt() > 25000. && 
+        (fabs(mu_itr->eta()) < 2.4)) {
 
       mu_n += 1;      
       mu_pt_map[sysname] ->push_back(mu_itr->pt()*IGEV);
       mu_eta_map[sysname]->push_back(mu_itr->eta());
       mu_phi_map[sysname]->push_back(mu_itr->phi());
       mu_ch_map[sysname] ->push_back(mu_itr->primaryTrackParticle()->charge());
-      mu_w_map[sysname]->push_back(mu_itr->auxdata< float >("effscalefact"));
+      mu_w_map[sysname]->push_back(mu_itr->auxdata<double>("effscalefact"));
     }
   }
   mu_n_map[sysname] = mu_n;
@@ -443,16 +412,17 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   for (const auto& jet_itr : *collections.jets) {     
     if (jet_itr->auxdata<char>("baseline") == 1  &&
         jet_itr->auxdata<char>("passOR") == 1  &&
-        jet_itr->pt() > 20000. && fabs(jet_itr->eta()) < 2.5) {  
+        jet_itr->pt() > 20000. && 
+        fabs(jet_itr->eta()) < 2.5) {  
 
       jet_n += 1;      
       jet_pt_map[sysname]->push_back(jet_itr->pt()*IGEV);
       jet_eta_map[sysname]->push_back(jet_itr->eta());
       jet_phi_map[sysname]->push_back(jet_itr->phi());
       jet_e_map[sysname]->push_back(jet_itr->e()*IGEV);
-      jet_w_map[sysname]->push_back(jet_itr->auxdata< float >("effscalefact"));
-      jet_isb_map[sysname]->push_back(jet_itr->auxdata< char >("bjet")==1);
-    } 
+      jet_w_map[sysname]->push_back(jet_itr->auxdata<double>("effscalefact"));
+      jet_isb_map[sysname]->push_back(jet_itr->auxdata<char>("bjet")==1);
+    }
   }
   jet_n_map[sysname] = jet_n;
 
@@ -460,9 +430,9 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   int ph_n = 0;
   for (const auto& ph_itr : *collections.photons) {
    
-    if (ph_itr->auxdata<char>("baseline") == 1  &&
+    if (ph_itr->auxdata<char>("signal") == 1  &&
         ph_itr->auxdata<char>("passOR") == 1  &&
-        ph_itr->pt() > 20000. && fabs(ph_itr->eta()) < 2.37) {  
+        ph_itr->pt() > 75000. && fabs(ph_itr->eta()) < 2.37) {  
        
       ph_n += 1;
 
@@ -470,7 +440,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
       ph_eta_map[sysname]->push_back(ph_itr->eta());
       ph_phi_map[sysname]->push_back(ph_itr->phi());
       
-      ph_w_map[sysname]->push_back(ph_itr->auxdata<float>("effscalefact") );
+      ph_w_map[sysname]->push_back(ph_itr->auxdata<double>("effscalefact") );
     }
   }
   ph_n_map[sysname] = ph_n;
@@ -522,7 +492,6 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
   rt4_map[sysname] = sum_jet4_pt/sum_jet_pt;
   
-  
   // Delta phi between met and closest jet
   Double_t dphi1 = 4.;
   Double_t dphi2 = 4.;
@@ -539,7 +508,10 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   // dphi beteen leading photon and MET
   if (ph_n > 0)
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], met.Phi());
-  
+
+  // weigths
+  weight_mc = collections.weight_mc;
+  weight_pu = collections.weight_pu;
   
   //Apply your custom filter here
   return true; 
