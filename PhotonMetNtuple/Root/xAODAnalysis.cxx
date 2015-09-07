@@ -98,7 +98,7 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow->GetXaxis()->SetBinLabel(3, "DQ");
   h_cutflow->GetXaxis()->SetBinLabel(4, "Trigger");
   h_cutflow->GetXaxis()->SetBinLabel(5, "Good Vertex");
-  h_cutflow->GetXaxis()->SetBinLabel(6, "Cosmic Muon");
+  h_cutflow->GetXaxis()->SetBinLabel(6, "Cosmic Muon (not applied)");
   h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet");
   
   return EL::StatusCode::SUCCESS;
@@ -197,7 +197,6 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
     m_initial_events = all_events_cbk->nAcceptedEvents();
     m_initial_sumw   = all_events_cbk->sumOfEventWeights();
     m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
-    //Info(APP_NAME, "CutBookkeepers Accepted %d SumWei %f sumWei2 %f ", nEventsProcessed, sumOfWeights, sumOfWeightsSquared);
     
     m_final_events  = dxaod_events_cbk->nAcceptedEvents();
     m_final_sumw    = dxaod_events_cbk->sumOfEventWeights();
@@ -208,9 +207,14 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
     
     TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
 
-    m_final_events  = CollectionTree->GetEntries(); 
-    m_final_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
-    m_final_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
+    m_initial_events  = CollectionTree->GetEntries(); 
+    m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
+    m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
+
+    m_final_events  = m_initial_events;
+    m_final_sumw    = m_initial_sumw;
+    m_final_sumw2   = m_initial_sumw2; 
+
   }
 
   h_events->Fill(1, m_initial_events);
@@ -438,9 +442,9 @@ EL::StatusCode xAODAnalysis :: execute ()
   CHECK(objTool->GetJets(jets_nominal, jets_nominal_aux));
   
   // Taus
-  xAOD::TauJetContainer* taus_nominal(0);
-  xAOD::ShallowAuxContainer* taus_nominal_aux(0);
-  CHECK(objTool->GetTaus(taus_nominal, taus_nominal_aux));
+  // xAOD::TauJetContainer* taus_nominal(0);
+  // xAOD::ShallowAuxContainer* taus_nominal_aux(0);
+  // CHECK(objTool->GetTaus(taus_nominal, taus_nominal_aux));
   
   // MET (remember,you can pick either CST or TST)
   xAOD::MissingETContainer* met_nominal = new xAOD::MissingETContainer;
@@ -452,168 +456,168 @@ EL::StatusCode xAODAnalysis :: execute ()
   //--------------------
  
   int ret = 0;
-  for (const auto& sysInfo : systInfoList) {
+  // for (const auto& sysInfo : systInfoList) {
       
-    if (sysInfo.affectsKinematics || sysInfo.affectsWeights) {
-      const CP::SystematicSet& sys = sysInfo.systset;
-      if (objTool->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
-        Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
-      }
-      else {
-        Info(APP_NAME, "SUSYTools configured for systematic var. %s", (sys.name()).c_str() );
-        // Generic pointers for either nominal or systematics copy
-        xAOD::ElectronContainer* electrons(electrons_nominal);
-        xAOD::PhotonContainer* photons(photons_nominal);
-        xAOD::MuonContainer* muons(muons_nominal);
-        xAOD::JetContainer* jets(jets_nominal);
-        xAOD::TauJetContainer* taus(taus_nominal);
-        xAOD::MissingETContainer* met(met_nominal);
+  //   if (sysInfo.affectsKinematics || sysInfo.affectsWeights) {
+  //     const CP::SystematicSet& sys = sysInfo.systset;
+  //     if (objTool->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
+  //       Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
+  //     }
+  //     else {
+  //       Info(APP_NAME, "SUSYTools configured for systematic var. %s", (sys.name()).c_str() );
+  //       // Generic pointers for either nominal or systematics copy
+  //       xAOD::ElectronContainer* electrons(electrons_nominal);
+  //       xAOD::PhotonContainer* photons(photons_nominal);
+  //       xAOD::MuonContainer* muons(muons_nominal);
+  //       xAOD::JetContainer* jets(jets_nominal);
+  //       //xAOD::TauJetContainer* taus(taus_nominal);
+  //       xAOD::MissingETContainer* met(met_nominal);
         
-        // Aux containers too
-        xAOD::ShallowAuxContainer* electrons_aux(electrons_nominal_aux);
-        xAOD::ShallowAuxContainer* photons_aux(photons_nominal_aux);
-        xAOD::ShallowAuxContainer* muons_aux(muons_nominal_aux);
-        xAOD::ShallowAuxContainer* jets_aux(jets_nominal_aux);
-        xAOD::ShallowAuxContainer* taus_aux(taus_nominal_aux);
-        xAOD::MissingETAuxContainer* met_aux(met_nominal_aux);
+  //       // Aux containers too
+  //       xAOD::ShallowAuxContainer* electrons_aux(electrons_nominal_aux);
+  //       xAOD::ShallowAuxContainer* photons_aux(photons_nominal_aux);
+  //       xAOD::ShallowAuxContainer* muons_aux(muons_nominal_aux);
+  //       xAOD::ShallowAuxContainer* jets_aux(jets_nominal_aux);
+  //       //xAOD::ShallowAuxContainer* taus_aux(taus_nominal_aux);
+  //       xAOD::MissingETAuxContainer* met_aux(met_nominal_aux);
         
-        // If necessary (kinematics affected), make a shallow copy with the variation applied
-        bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sysInfo.affectsType);
-        bool syst_affectsMuons = ST::testAffectsObject(xAOD::Type::Muon, sysInfo.affectsType);
-        bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sysInfo.affectsType);
-        bool syst_affectsPhotons = ST::testAffectsObject(xAOD::Type::Photon, sysInfo.affectsType);
-        bool syst_affectsJets = ST::testAffectsObject(xAOD::Type::Jet, sysInfo.affectsType);
-        bool syst_affectsBTag = ST::testAffectsObject(xAOD::Type::BTag, sysInfo.affectsType);
+  //       // If necessary (kinematics affected), make a shallow copy with the variation applied
+  //       bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sysInfo.affectsType);
+  //       bool syst_affectsMuons = ST::testAffectsObject(xAOD::Type::Muon, sysInfo.affectsType);
+  //       bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sysInfo.affectsType);
+  //       bool syst_affectsPhotons = ST::testAffectsObject(xAOD::Type::Photon, sysInfo.affectsType);
+  //       bool syst_affectsJets = ST::testAffectsObject(xAOD::Type::Jet, sysInfo.affectsType);
+  //       bool syst_affectsBTag = ST::testAffectsObject(xAOD::Type::BTag, sysInfo.affectsType);
         
-        if (syst_affectsTaus) 
-          continue;
+  //       if (syst_affectsTaus) 
+  //         continue;
         
-        if (syst_affectsElectrons) {
-          xAOD::ElectronContainer* electrons_syst(0);
-          xAOD::ShallowAuxContainer* electrons_syst_aux(0);
-          CHECK(objTool->GetElectrons(electrons_syst,electrons_syst_aux));
-          electrons = electrons_syst;
-          electrons_aux = electrons_syst_aux;
-        }
+  //       if (syst_affectsElectrons) {
+  //         xAOD::ElectronContainer* electrons_syst(0);
+  //         xAOD::ShallowAuxContainer* electrons_syst_aux(0);
+  //         CHECK(objTool->GetElectrons(electrons_syst,electrons_syst_aux));
+  //         electrons = electrons_syst;
+  //         electrons_aux = electrons_syst_aux;
+  //       }
 		
-        if (syst_affectsMuons) {
-          xAOD::MuonContainer* muons_syst(0);
-          xAOD::ShallowAuxContainer* muons_syst_aux(0);
-          CHECK(objTool->GetMuons(muons_syst,muons_syst_aux));
-          muons = muons_syst;
-          muons_aux = muons_syst_aux;
-        }
+  //       if (syst_affectsMuons) {
+  //         xAOD::MuonContainer* muons_syst(0);
+  //         xAOD::ShallowAuxContainer* muons_syst_aux(0);
+  //         CHECK(objTool->GetMuons(muons_syst,muons_syst_aux));
+  //         muons = muons_syst;
+  //         muons_aux = muons_syst_aux;
+  //       }
 		
-        if (syst_affectsTaus) {
-          xAOD::TauJetContainer* taus_syst(0);
-          xAOD::ShallowAuxContainer* taus_syst_aux(0);
-          CHECK(objTool->GetTaus(taus_syst,taus_syst_aux));
-          taus = taus_syst;
-          taus_aux = taus_syst_aux;
-        }
+  //       // if (syst_affectsTaus) {
+  //       //   xAOD::TauJetContainer* taus_syst(0);
+  //       //   xAOD::ShallowAuxContainer* taus_syst_aux(0);
+  //       //   CHECK(objTool->GetTaus(taus_syst,taus_syst_aux));
+  //       //   taus = taus_syst;
+  //       //   taus_aux = taus_syst_aux;
+  //       // }
         
-        if (syst_affectsPhotons) {
-          xAOD::PhotonContainer* photons_syst(0);
-          xAOD::ShallowAuxContainer* photons_syst_aux(0);
-          CHECK(objTool->GetPhotons(photons_syst,photons_syst_aux));
-          photons = photons_syst;
-          photons_aux = photons_syst_aux;
-        }
+  //       if (syst_affectsPhotons) {
+  //         xAOD::PhotonContainer* photons_syst(0);
+  //         xAOD::ShallowAuxContainer* photons_syst_aux(0);
+  //         CHECK(objTool->GetPhotons(photons_syst,photons_syst_aux));
+  //         photons = photons_syst;
+  //         photons_aux = photons_syst_aux;
+  //       }
 		
-        if (syst_affectsJets || syst_affectsBTag) {
-          xAOD::JetContainer* jets_syst(0);
-          xAOD::ShallowAuxContainer* jets_syst_aux(0);
-          CHECK(objTool->GetJets(jets_syst,jets_syst_aux));
-          jets = jets_syst;
-          jets_aux = jets_syst_aux;
-        }
+  //       if (syst_affectsJets || syst_affectsBTag) {
+  //         xAOD::JetContainer* jets_syst(0);
+  //         xAOD::ShallowAuxContainer* jets_syst_aux(0);
+  //         CHECK(objTool->GetJets(jets_syst,jets_syst_aux));
+  //         jets = jets_syst;
+  //         jets_aux = jets_syst_aux;
+  //       }
         
-        //-----------------
-        // OVERLAP REMOVAL
-        //-----------------
-        float weight_sf = 1.;
-        CHECK(objTool->OverlapRemoval(electrons, muons, jets, photons));
+  //       //-----------------
+  //       // OVERLAP REMOVAL
+  //       //-----------------
+  //       float weight_sf = 1.;
+  //       CHECK(objTool->OverlapRemoval(electrons, muons, jets, photons));
         
-        xAOD::MissingETContainer*    met_syst = new xAOD::MissingETContainer;
-        xAOD::MissingETAuxContainer* met_syst_aux = new xAOD::MissingETAuxContainer;
-        met_syst->setStore(met_syst_aux);
-        CHECK(objTool->GetMET(*met_syst,jets,electrons,muons));
-        met = met_syst;
-        met_aux = met_syst_aux;
+  //       xAOD::MissingETContainer*    met_syst = new xAOD::MissingETContainer;
+  //       xAOD::MissingETAuxContainer* met_syst_aux = new xAOD::MissingETAuxContainer;
+  //       met_syst->setStore(met_syst_aux);
+  //       CHECK(objTool->GetMET(*met_syst,jets,electrons,muons));
+  //       met = met_syst;
+  //       met_aux = met_syst_aux;
         
-        for (const auto& el : *electrons) {
-          objTool->IsSignalElectron(*el) ;	    
-          if (el->auxdata<char>("passOR") != 0 ) 
-            weight_sf *= objTool->GetSignalElecSF(*el);
-        }
+  //       for (const auto& el : *electrons) {
+  //         objTool->IsSignalElectron(*el) ;	    
+  //         if (el->auxdata<char>("passOR") != 0 ) 
+  //           weight_sf *= objTool->GetSignalElecSF(*el);
+  //       }
         
-        bool skip = false;
-        for (const auto& mu : *muons) {
-          objTool->IsSignalMuon(*mu) ;
-          objTool->IsCosmicMuon(*mu);
-          objTool->IsBadMuon(*mu);
-          if (mu->auxdata< char >("passOR") != 0) 
-            weight_sf *= objTool->GetSignalMuonSF(*mu);
-          if ((int)mu->auxdata<char>("cosmic") == 1) 
-            skip = true;
-        }
+  //       bool skip = false;
+  //       for (const auto& mu : *muons) {
+  //         //objTool->IsSignalMuon(*mu) ;
+  //         //objTool->IsCosmicMuon(*mu);
+  //         //objTool->IsBadMuon(*mu);
+  //         // if (mu->auxdata< char >("passOR") != 0) 
+  //         //   weight_sf *= objTool->GetSignalMuonSF(*mu);
+  //         if ((int)mu->auxdata<char>("cosmic") == 1) 
+  //           skip = true;
+  //       }
         
-        for (const auto& jet : *jets) {
-          objTool->IsBJet(*jet);  
-          objTool->IsSignalJet( *jet);
-          objTool->IsBJet( *jet); 
-          if ((int)jet->auxdata<char>("bad")) 
-            skip = true;
-        }
+  //       for (const auto& jet : *jets) {
+  //         objTool->IsBJet(*jet);  
+  //         objTool->IsSignalJet( *jet);
+  //         objTool->IsBJet( *jet); 
+  //         if ((int)jet->auxdata<char>("bad")) 
+  //           skip = true;
+  //       }
         
-        float weight_btag = objTool->BtagSF(jets);
+  //       float weight_btag = objTool->BtagSF(jets);
         
-        if (!skip) {
-          AnalysisCollections collections;
-          collections.event_number = event_number;
-          collections.weight_pu = weight_pu;
-          collections.weight_mc = weight_mc;
-          //collections.SFweight = weight_sf;	
-          collections.photons = photons;
-          collections.electrons = electrons;
-          collections.muons = muons;
-          collections.jets = jets;
-          collections.met = met;
-          collections.photons_aux = photons_aux;
-          collections.electrons_aux = electrons_aux;
-          collections.muons_aux = muons_aux;   
-          collections.jets_aux = jets_aux;
-          collections.met_aux = met_aux;
+  //       if (!skip) {
+  //         AnalysisCollections collections;
+  //         collections.event_number = event_number;
+  //         collections.weight_pu = weight_pu;
+  //         collections.weight_mc = weight_mc;
+  //         //collections.SFweight = weight_sf;	
+  //         collections.photons = photons;
+  //         collections.electrons = electrons;
+  //         collections.muons = muons;
+  //         collections.jets = jets;
+  //         collections.met = met;
+  //         collections.photons_aux = photons_aux;
+  //         collections.electrons_aux = electrons_aux;
+  //         collections.muons_aux = muons_aux;   
+  //         collections.jets_aux = jets_aux;
+  //         collections.met_aux = met_aux;
           
-          ret += outtree->process(collections, (sys.name()).c_str());
-	  }
+  //         ret += outtree->process(collections, (sys.name()).c_str());
+  //     }
 	  
-	  if (syst_affectsElectrons) {
-	    delete electrons;
-	    delete electrons_aux;
-	  }
-	  if (syst_affectsMuons) {
-	    delete muons;
-	    delete muons_aux;
-	  }
-	  if (syst_affectsTaus) {
-	    delete taus;
-	    delete taus_aux;
-	  }
-	  if (syst_affectsPhotons) {
-	    delete photons;
-	    delete photons_aux;
-	  }
-	  if (syst_affectsJets || syst_affectsBTag ) {
-	    delete jets;
-	    delete jets_aux;
-	  } 
-  	  delete met;
-  	  delete met_aux;
+  //     if (syst_affectsElectrons) {
+  //       delete electrons;
+  //       delete electrons_aux;
+  //     }
+  //     if (syst_affectsMuons) {
+  //       delete muons;
+  //       delete muons_aux;
+  //     }
+  //     // if (syst_affectsTaus) {
+  //     //   delete taus;
+  //     //   delete taus_aux;
+  //     // }
+  //     if (syst_affectsPhotons) {
+  //       delete photons;
+  //       delete photons_aux;
+  //     }
+  //     if (syst_affectsJets || syst_affectsBTag ) {
+  //       delete jets;
+  //       delete jets_aux;
+  //     } 
+  // 	  delete met;
+  // 	  delete met_aux;
 	  
-      }
-    }//end loop over systematics affecting kinematics or weights
-  }
+  //     }
+  //   }//end loop over systematics affecting kinematics or weights
+  // }
 
   //-------------------------
   // NOMINAL TREE PROCESSING
@@ -627,8 +631,8 @@ EL::StatusCode xAODAnalysis :: execute ()
   // electrons
   for (const auto& el : *electrons_nominal) {
     objTool->IsSignalElectron(*el) ;      
-    if (el->auxdata<char>("passOR") != 0 && el->auxdata<char>("signal") != 0) 
-      objTool->GetSignalElecSF(*el);
+    //if (el->auxdata<char>("passOR") != 0 && el->auxdata<char>("signal") != 0) 
+    //objTool->GetSignalElecSF(*el);
   }
   
   // photons
@@ -642,14 +646,16 @@ EL::StatusCode xAODAnalysis :: execute ()
   // muons
   for (const auto& mu : *muons_nominal) {
     objTool->IsSignalMuon(*mu) ;
-    objTool->IsCosmicMuon(*mu);
-    if (mu->auxdata<char>("passOR") != 0 && mu->auxdata<char>("signal") != 0)
-      objTool->GetSignalMuonSF(*mu);
-    if ((int)mu->auxdata<char>("cosmic") == 1) 
-      skip = true;
+    //objTool->IsCosmicMuon(*mu);
+    // if (mu->auxdata<char>("passOR") != 0 && mu->auxdata<char>("signal") != 0)
+    //   objTool->GetSignalMuonSF(*mu);
+    // if ((int)mu->auxdata<char>("cosmic") == 1)  {
+    //   std::cout << "cosmic muon" << std::endl;
+    //   skip = true;
+    // }
   }
-  if (!skip)
-    h_cutflow->Fill(6);
+  // if (!skip)
+  //   h_cutflow->Fill(6);
 
   // jets
   for (const auto& jet : *jets_nominal) {  
@@ -685,8 +691,6 @@ EL::StatusCode xAODAnalysis :: execute ()
 
   delete jets_nominal;
   delete jets_nominal_aux;
-  delete taus_nominal;
-  delete taus_nominal_aux;
   delete muons_nominal;
   delete muons_nominal_aux;
   delete electrons_nominal;

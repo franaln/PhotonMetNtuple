@@ -336,7 +336,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
 {
   const char *APP_NAME = "process()";
   
-  //Setting up a barebone output tree
+  // Setting up a barebone output tree
   ph_pt_map[sysname]->clear();
   ph_eta_map[sysname]->clear();
   ph_phi_map[sysname]->clear();
@@ -361,7 +361,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   mu_ch_map[sysname]->clear();
   mu_w_map[sysname]->clear();
   
-  //Setting up some basic filtering rule
+  // Setting up some basic filtering rule
   event_number = collections.event_number;
   collections.photons->setStore(collections.photons_aux);
   collections.electrons->setStore(collections.electrons_aux);
@@ -445,7 +445,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   }
   ph_n_map[sysname] = ph_n;
   
-  
+  // met
   float etmiss_etx = 0.;
   float etmiss_ety = 0.;
   float etmiss_et = 0.;
@@ -481,14 +481,14 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
     sum_jet_pt += pt;
   }
   
-  /// Ht
+  // Ht
   Double_t ht = sum_jet_pt;
   if (ph_n > 0)
     ht += (*ph_pt_map[sysname])[0];
   
   ht_map[sysname] = ht;
   
-  /// Rt
+  // Rt
   rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
   rt4_map[sysname] = sum_jet4_pt/sum_jet_pt;
   

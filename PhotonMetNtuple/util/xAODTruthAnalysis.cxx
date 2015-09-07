@@ -239,8 +239,8 @@ int main(int argc, char *argv[])
       
       b_jets.push_back(TruthParticle(*jet_itr));
 
-      if (pt < 40)
-        continue;
+      // if (pt < 40)
+      //   continue;
         
       jets.push_back(TruthParticle(*jet_itr));
 
