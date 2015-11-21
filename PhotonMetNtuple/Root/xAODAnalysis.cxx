@@ -24,9 +24,11 @@
 #include "xAODMissingET/MissingETAuxContainer.h"
 #include "xAODBTaggingEfficiency/BTaggingEfficiencyTool.h"
 #include "xAODBTagging/BTagging.h"
+#include "FourMomUtils/xAODP4Helpers.h"
 
 // GRL
 #include "GoodRunsLists/GoodRunsListSelectionTool.h"
+
 //PU Reweighting
 #include "PileupReweighting/PileupReweightingTool.h"
 
@@ -133,27 +135,13 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
   //check if file is from a DxAOD
   bool is_derivation = !metadata->GetBranch("StreamAOD");
 
-  //    TTreeFormula* streamAOD = new TTreeFormula("StreamAOD", "StreamAOD", metadata);
-  //streamAOD->UpdateFormulaLeaves();
-  //   if(streamAOD->GetNcodes() < 1 ) {
-  //     // This is not an xAOD, that's a derivation!
-  //     isDerived = true;
-  //     Info(APP_NAME, "This file is a derivation");
-  //   }
-  //   else {
-  //     Info(APP_NAME, "This file is NOT a derivation");
-  //   }
-  //   delete streamAOD;
-  //}
-  //delete metadata;   
-
   uint64_t m_initial_events = 0;
   double m_initial_sumw = 0.;
   double m_initial_sumw2 = 0.;
 
-  uint64_t m_final_events = 0;
-  double m_final_sumw = 0.;
-  double m_final_sumw2 = 0.;
+  // uint64_t m_final_events = 0;
+  // double m_final_sumw = 0.;
+  // double m_final_sumw2 = 0.;
 
   if (is_derivation) {
 
@@ -175,32 +163,29 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
       return EL::StatusCode::FAILURE;
     }
 
-    // First, let's find the smallest cycle number,
-    // i.e., the original first processing step/cycle
-    int minCycle = 10000;
-    for (auto cbk : *completeCBC) {
-      if (minCycle > cbk->cycle()) { minCycle = cbk->cycle(); }
-    }
     // Now, let's actually find the right one that contains all the needed info...
     const xAOD::CutBookkeeper* all_events_cbk = 0;
     const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
 
-    for (auto cbk :  *completeCBC) {
-      if (minCycle == cbk->cycle() && cbk->name() == "AllExecutedEvents") {
+    int maxCycle = -1;
+    for (const auto& cbk :  *completeCBC) {
+      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
         all_events_cbk = cbk;
+        maxCycle = cbk->cycle();
       }
-      if ( cbk->name() == "SUSY1Kernel" ) {
-        dxaod_events_cbk = cbk;
-      }
+
+      // if (cbk->name() == "SUSY1KernelSkim" ) {
+      //   dxaod_events_cbk = cbk;
+      // }
     }
     
     m_initial_events = all_events_cbk->nAcceptedEvents();
     m_initial_sumw   = all_events_cbk->sumOfEventWeights();
     m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
     
-    m_final_events  = dxaod_events_cbk->nAcceptedEvents();
-    m_final_sumw    = dxaod_events_cbk->sumOfEventWeights();
-    m_final_sumw2   = dxaod_events_cbk->sumOfEventWeightsSquared();
+    // m_final_events  = dxaod_events_cbk->nAcceptedEvents();
+    // m_final_sumw    = dxaod_events_cbk->sumOfEventWeights();
+    // m_final_sumw2   = dxaod_events_cbk->sumOfEventWeightsSquared();
 
   }
   else {
@@ -211,18 +196,18 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
     m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
     m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
 
-    m_final_events  = m_initial_events;
-    m_final_sumw    = m_initial_sumw;
-    m_final_sumw2   = m_initial_sumw2; 
+    // m_final_events  = m_initial_events;
+    // m_final_sumw    = m_initial_sumw;
+    // m_final_sumw2   = m_initial_sumw2; 
 
   }
 
   h_events->Fill(1, m_initial_events);
-  h_events->Fill(2, m_final_events);
+  //h_events->Fill(2, m_final_events);
   h_events->Fill(3, m_initial_sumw);
-  h_events->Fill(4, m_final_sumw);
+  //h_events->Fill(4, m_final_sumw);
   h_events->Fill(5, m_initial_sumw2);
-  h_events->Fill(6, m_final_sumw2);
+  //h_events->Fill(6, m_final_sumw2);
 
   return EL::StatusCode::SUCCESS;
 }
@@ -249,27 +234,35 @@ EL::StatusCode xAODAnalysis::initialize()
   objTool->msg().setLevel(MSG::FATAL);
 
   CHECK(objTool->setProperty("DataSource", datasource)); 
-  CHECK(objTool->setProperty("JetInputType", xAOD::JetInput::EMTopo) );  
-  CHECK(objTool->setProperty("EleId", "TightLH"));
+  CHECK(objTool->setProperty("Is25ns", true));
 
-  //photons
-  CHECK(objTool->setProperty("PhotonIsoWP", "Cone20"));
-
-  //CHECK(objTool->setProperty("EleIdBaseline", "Tight"));
-  // CHECK(objTool->setProperty("TauId", "Tight"));  
-  // CHECK(objTool->setProperty("EleIsoWP", "GradientLoose"));
+  CHECK(objTool->setProperty("PhotonIsoWP", "FixedCutTightCaloOnly"));
+  CHECK(objTool->setProperty("DoPhotonOR", true));
  
-  // // Set to true for DxAOD, false for primary xAOD
-  // CHECK(objTool->setProperty("DoJetAreaCalib", true));
+  // Set to true for DxAOD, false for primary xAOD
+  //CHECK(objTool->setProperty("DoJetAreaCalib", true));
 
-  // // Set to false if not doing JetAreaCalib
+  // Set to false if not doing JetAreaCalib
   // CHECK(objTool->setProperty("DoJetGSCCalib", true));
   
   // Set 0 for 14NP, 1,2,3 for 3NP sets
-  CHECK(objTool->setProperty("JESNuisanceParameterSet", 1));
+  //CHECK(objTool->setProperty("JESNuisanceParameterSet", 1));
   
-  CHECK(objTool->setProperty("Is25ns", false));
- 
+
+  // Data dir
+  std::string data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
+  
+  // Pile Up Reweighting
+  std::vector<std::string> prwFiles;
+  prwFiles.push_back(data_dir+"signal_prw.root"); 
+  prwFiles.push_back(data_dir+"signal_ewk_prw.root"); 
+  prwFiles.push_back(data_dir+"merged_prw.root"); 
+  prwFiles.push_back(data_dir+"ttgam_prw.root"); 
+  CHECK( objTool->setProperty("PRWConfigFiles", prwFiles) );
+
+  std::vector<std::string> lumicalcFiles;
+  lumicalcFiles.push_back(data_dir+"ilumicalc_histograms_None_276262-282712.root");
+  CHECK(objTool->setProperty("PRWLumiCalcFiles", lumicalcFiles));
  
   if (objTool->SUSYToolsInit().isFailure()) {
     Error(APP_NAME, "Failed to initialise tools in SUSYToolsInit()...");
@@ -294,8 +287,7 @@ EL::StatusCode xAODAnalysis::initialize()
   // GRL
   m_grl = new GoodRunsListSelectionTool("GoodRunsListSelectionTool");
   std::vector<std::string> vecStringGRL;
-  std::cout << "---" << gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/grl.xml") << std::endl;
-  vecStringGRL.push_back(gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/grl.xml"));
+  vecStringGRL.push_back(data_dir +  "grl.xml");
   CHECK(m_grl->setProperty("GoodRunsListVec", vecStringGRL));
   CHECK(m_grl->setProperty("PassThrough", false) ); // if true (default) will ignore result of GRL and will just pass all events
   if (!m_grl->initialize().isSuccess()) { // check this isSuccess
@@ -304,19 +296,6 @@ EL::StatusCode xAODAnalysis::initialize()
   }
   
   
-  // Pile Up Reweighting
-  //m_pileupReweightingTool = new PileupReweightingTool("PileupReweightingTool");
-  //CHECK( m_pileupReweightingTool->setProperty("Input", "EventInfo") );
-  // std::vector<std::string> prwFiles;
-  // prwFiles.push_back("PileupReweighting/mc14v1_defaults.prw.root");
-  // CHECK( objTool->setProperty("PRWConfigFiles", prwFiles) );
-  // std::vector<std::string> lumicalcFiles;
-  // lumicalcFiles.push_back("SUSYTools/susy_data12_avgintperbx.root");
-  // CHECK(objTool->setProperty("PRWLumiCalcFiles", lumicalcFiles));
-  // if (!m_pileupReweightingTool->initialize().isSuccess()) {
-  //   Error(APP_NAME, "Failed to properly initialize the Pile Up Reweighting. Exiting." );
-  //   return EL::StatusCode::FAILURE;
-  // }
   
   // Now we can look at systematics:    
   if (!doSyst) {
@@ -356,8 +335,9 @@ EL::StatusCode xAODAnalysis :: execute ()
   //----------------------------
   // Event information
   //---------------------------
+  
   const xAOD::EventInfo *eventInfo = 0;
-  if (!m_event->retrieve( eventInfo, "EventInfo").isSuccess()) {
+  if (!m_event->retrieve(eventInfo, "EventInfo").isSuccess()) {
     Error(APP_NAME, "Failed to retrieve event info collection. Exiting." );
     return EL::StatusCode::FAILURE;
   }
@@ -365,15 +345,17 @@ EL::StatusCode xAODAnalysis :: execute ()
   event_number = eventInfo->eventNumber();
   run_number   = eventInfo->runNumber();
   avg_mu       = eventInfo->averageInteractionsPerCrossing();
-  
+
   // check if the event is data or MC
   bool is_mc = false;
   if (eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION)) {
     is_mc = true;
 
+    CHECK(objTool->ApplyPRWTool());  
+
 	m_xsec = my_XsecDB->xsectTimesEff(eventInfo->mcChannelNumber());
     weight_mc = (eventInfo->mcEventWeights()).at(0);
-    weight_pu = 1.;
+    weight_pu = objTool->GetPileupWeight();
   }
   else {
     weight_mc = 1.;
@@ -401,8 +383,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   
 
   // Trigger
-  std::string trigitem = "HLT_g140_loose";
-  bool passed = objTool->IsTrigPassed(trigitem);
+  bool passed = objTool->IsTrigPassed("HLT_g140_loose") || objTool->IsTrigPassed("HLT_g120_loose");
   //float prescale = objTool->GetTrigPrescale(trigitem);
   //Info(APP_NAME, "passing %s trigger? %d, prescale %f", trigitem.c_str(), (int)passed, prescale);
   if (!is_mc && !passed)
@@ -440,11 +421,6 @@ EL::StatusCode xAODAnalysis :: execute ()
   xAOD::JetContainer* jets_nominal(0);
   xAOD::ShallowAuxContainer* jets_nominal_aux(0);
   CHECK(objTool->GetJets(jets_nominal, jets_nominal_aux));
-  
-  // Taus
-  // xAOD::TauJetContainer* taus_nominal(0);
-  // xAOD::ShallowAuxContainer* taus_nominal_aux(0);
-  // CHECK(objTool->GetTaus(taus_nominal, taus_nominal_aux));
   
   // MET (remember,you can pick either CST or TST)
   xAOD::MissingETContainer* met_nominal = new xAOD::MissingETContainer;
@@ -622,33 +598,81 @@ EL::StatusCode xAODAnalysis :: execute ()
   //-------------------------
   // NOMINAL TREE PROCESSING
   //-------------------------
-  float weight_sf = 1.;
-  float weight_btag = 1.;
+  //float weight_sf = 1.;
+  //float weight_btag = 1.;
+  
+
+  // std::cout << "before"<< std::endl;
+
+  // for (const auto& ph : *photons_nominal) {
+  //   if (ph->pt() < 40000.)
+  //     continue;
+
+  //   std::cout<< int(ph->auxdata<char>("passOR")) <<  " ";
+  // }
+  // std::cout << std::endl;;
+
+  // for (const auto& jet : *jets_nominal) {
+  //   if (jet->pt() < 40000.)
+  //     continue;
+
+  //   std::cout<< int(jet->auxdata<char>("passOR")) << " ";
+  // }
+  // std::cout << std::endl;;
   
   CHECK(objTool->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
+  //OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal);
+
+  // std::cout << "after"<< std::endl;
+
+  // for (const auto& ph : *photons_nominal) {
+  //   if (ph->pt() < 40000.)
+  //     continue;
+
+  //   std::cout<< int(ph->auxdata<char>("passOR")) <<  " ";
+  // }
+  // std::cout << std::endl;;
+
+  // for (const auto& jet : *jets_nominal) {
+  //   if (jet->pt() < 40000.)
+  //     continue;
+
+  //   std::cout<< int(jet->auxdata<char>("passOR")) << " ";
+  // }
+  // std::cout << std::endl;;
+
+  // std::cout << "---"<< std::endl;
+
+
   CHECK(objTool->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   
   // electrons
   for (const auto& el : *electrons_nominal) {
     objTool->IsSignalElectron(*el) ;      
-    //if (el->auxdata<char>("passOR") != 0 && el->auxdata<char>("signal") != 0) 
-    //objTool->GetSignalElecSF(*el);
+    if (!isData && el->auxdata<char>("baseline") == 1 &&
+        el->auxdata<char>("passOR") == 1 &&
+        el->auxdata<char>("signal") == 1) 
+      objTool->GetSignalElecSF(*el);
   }
   
   // photons
   for (const auto& ph : *photons_nominal) {
-    objTool->IsSignalPhoton(*ph, 75000.);
-    // if (ph->auxdata<char>("passOR") != 0 && ph->auxdata<char>("signal") != 0)
-    //   objTool->GetSignalPhotonSF(*ph);
+    objTool->IsSignalPhoton(*ph, 125000.);
+    if (!isData && ph->auxdata<char>("baseline") == 1 &&
+        ph->auxdata<char>("passOR") == 1 && 
+        ph->auxdata<char>("signal") == 1)
+      objTool->GetSignalPhotonSF(*ph);
   }
-
+  
   bool skip = false;
   // muons
   for (const auto& mu : *muons_nominal) {
     objTool->IsSignalMuon(*mu) ;
     //objTool->IsCosmicMuon(*mu);
-    // if (mu->auxdata<char>("passOR") != 0 && mu->auxdata<char>("signal") != 0)
-    //   objTool->GetSignalMuonSF(*mu);
+    if (!isData && mu->auxdata<char>("baselne") == 1 &&
+        mu->auxdata<char>("passOR") == 1 && 
+        mu->auxdata<char>("signal") == 1)
+      objTool->GetSignalMuonSF(*mu);
     // if ((int)mu->auxdata<char>("cosmic") == 1)  {
     //   std::cout << "cosmic muon" << std::endl;
     //   skip = true;
@@ -659,8 +683,14 @@ EL::StatusCode xAODAnalysis :: execute ()
 
   // jets
   for (const auto& jet : *jets_nominal) {  
-    if ((int)jet->auxdata<char>("bad")) 
+    if ((int)jet->auxdata<char>("bad")) {
       skip = true;
+      break;
+    }
+    else {
+      objTool->IsSignalJet(*jet, 30000., 2.5);
+      objTool->IsBJet(*jet);
+    }
   }
   
   if (!skip) {
@@ -668,6 +698,8 @@ EL::StatusCode xAODAnalysis :: execute ()
 
     AnalysisCollections collections;
     collections.event_number = event_number;
+    collections.avg_mu = avg_mu;
+
     collections.weight_pu = weight_pu;
     collections.weight_mc = weight_mc;
 
@@ -761,4 +793,210 @@ EL::StatusCode xAODAnalysis::histFinalize()
   // that it gets called on all worker nodes regardless of whether
   // they processed input events.
   return EL::StatusCode::SUCCESS;
+}
+
+
+static SG::AuxElement::Decorator<char> dec_baseline("baseline");
+static SG::AuxElement::Decorator<char> dec_signal("signal");
+static SG::AuxElement::Decorator<char> dec_isol("isol");
+static SG::AuxElement::Decorator<char> dec_passOR("passOR");                                                                                                                                                                                static SG::AuxElement::Decorator<char> dec_passSignalID("passSignalID");
+static SG::AuxElement::Decorator<char> dec_bad("bad");
+static SG::AuxElement::Decorator<char> dec_bjet("bjet");
+static SG::AuxElement::Decorator<char> dec_bjet_loose("bjet_loose");
+static SG::AuxElement::Decorator<char> dec_cosmic("cosmic");
+static SG::AuxElement::Decorator<char> dec_passedHighPtCuts("passedHighPtCuts");
+
+
+EL::StatusCode xAODAnalysis::OverlapRemoval(const xAOD::ElectronContainer *electrons, const xAOD::MuonContainer *muons, const xAOD::JetContainer *jets, const xAOD::PhotonContainer *photons, const bool useSignalObjects, const bool useIsolObjects, const bool doBjetOR, const bool doBoostedMuonOR, const double dRejet, const double dRjetmu, const double dRjete, double dRemu, double dRee, double dRphjet, double dReph, double dRmuph) {
+
+  for (const auto& jet : *jets) {
+    dec_passOR( *jet ) = dec_baseline( *jet );
+  }
+  for (const auto& mu : *muons) {
+    bool mu_sel;
+    if (useSignalObjects) mu_sel = dec_signal(*mu);
+    else mu_sel = dec_baseline(*mu);
+    if (useIsolObjects) mu_sel &= dec_isol(*mu);
+    dec_passOR( *mu ) = mu_sel;
+  }
+
+  // remove jets overlapping with (baseline/signal) electrons
+  for (const auto& el : *electrons) {
+    bool el_sel;
+    if (useSignalObjects) el_sel = dec_signal(*el);
+    else el_sel = dec_baseline(*el);
+    if (useIsolObjects) el_sel &= dec_isol(*el);
+    dec_passOR( *el ) = el_sel;
+
+    if ( !el_sel ) continue;
+
+    for (const auto& jet : *jets) {
+      if ( !dec_passOR(*jet) ) continue;
+      if ( doBjetOR && dec_bjet_loose(*jet) ) continue;
+
+      if ( xAOD::P4Helpers::deltaR2(el, jet) < dRejet * dRejet ) {
+        ATH_MSG_VERBOSE( " Rejecting jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ") "
+                         << " due to electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
+        dec_passOR( *jet ) = false;
+      }
+    }
+  } // END loop over electrons
+
+  // remove jets overlapping with (baseline/signal) photons
+  for (const auto& ph : *photons) {
+    bool ph_sel;
+    if (useSignalObjects) ph_sel = dec_signal(*ph);
+    else ph_sel = dec_baseline(*ph);
+    if (useIsolObjects) ph_sel &= dec_isol(*ph);
+      dec_passOR( *ph ) = ph_sel;
+
+    if ( !ph_sel ) continue;
+
+    for (const auto& jet : *jets) {
+      if ( !dec_passOR(*jet) ) continue;
+
+      if ( xAOD::P4Helpers::deltaR2(ph, jet) < dRphjet * dRphjet ) {
+        ATH_MSG_VERBOSE( " Rejecting jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ") "
+                         << " due to photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ")" );
+        dec_passOR( *jet ) = false;
+      }
+    }
+  } // END loop over photons
+
+  // Remove electrons and muons overlapping with jets
+  for (const auto& el : *electrons) {
+    if ( !dec_passOR(*el) ) continue;
+
+    for (const auto& jet : *jets) {
+      if ( !dec_passOR( *jet ) ) continue;
+
+      if ( xAOD::P4Helpers::deltaR2(el, jet) < dRjete * dRjete ) {
+        ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
+                         << " due to jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ")" );
+        dec_passOR( *el ) = false;
+      }
+    }              
+  }
+
+  for (const auto& mu : *muons) {
+    if ( !dec_passOR(*mu) ) continue;
+
+    for (const auto& jet : *jets) {
+      if ( !dec_passOR( *jet ) ) continue;
+
+      std::vector<int> nTrkVec;
+      jet->getAttribute(xAOD::JetAttribute::NumTrkPt500, nTrkVec);
+      int jet_nTrk = (objTool->GetPrimVtx() == 0 || nTrkVec.size() == 0) ? 0 : nTrkVec[objTool->GetPrimVtx()->index()];
+
+      bool muInJet = xAOD::P4Helpers::deltaR2(*mu, *jet) < dRjetmu * dRjetmu;
+      if(doBoostedMuonOR) muInJet = xAOD::P4Helpers::deltaR2(*mu, *jet) < 0.04+10e3/mu->pt();
+      if ( muInJet ) {
+        if (jet_nTrk < 3) {
+          ATH_MSG_VERBOSE( " Rejecting jet at (pT,eta,phi)=(" << jet->pt() << "," << jet->eta() << "," << jet->phi() << ") with only nTrk=" << jet_nTrk
+                           << " due to muon at (pT,eta,phi)=(" << mu->pt() << "," << mu->eta() << "," << mu->phi() << ")" );
+          dec_passOR( *jet ) = false;
+        } else {
+          ATH_MSG_VERBOSE( " Rejecting muon at (pT,eta,phi)=(" << mu->pt() << "," << mu->eta() << "," << mu->phi() << ")"
+                           << " due to jet at (pT,eta,phi)=(" << jet->pt() << "," << jet->eta() << "," << jet->phi() << ") with nTrk=" << jet_nTrk );
+          dec_passOR( *mu ) = false;
+        }
+      }
+    }        
+  }
+
+  // Remove electrons and muons overlapping with each other
+  for (const auto& el : *electrons) {
+    if ( !dec_passOR(*el) ) continue;
+
+    for (const auto& mu : *muons) {
+      if ( !dec_passOR( *mu ) ) continue;
+
+      if ( xAOD::P4Helpers::deltaR2(el, mu) < dRemu * dRemu ) {
+        ATH_MSG_VERBOSE( " Rejecting both electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
+                         << " and muon at (eta,phi)=(" << mu->eta() << "," << mu->phi() << ")" );
+        dec_passOR( *el ) = false;
+        dec_passOR( *mu ) = false;
+      }
+    }
+  }
+
+  // Remove electrons overlapping with each other
+  for (auto el_itr = electrons->begin(); el_itr != electrons->end(); ++el_itr) {
+    const auto& el = *el_itr;
+    if ( !dec_passOR(*el) ) continue;
+
+    for (auto el2_itr = el_itr + 1; el2_itr != electrons->end(); ++el2_itr) {
+      if (el2_itr == el_itr) continue;
+      const auto& el2 = *el2_itr;
+      if ( !dec_passOR( *el2 ) ) continue;
+
+      if ( xAOD::P4Helpers::deltaR2(el, el2) < dRee * dRee ) {
+        if (el->pt() < el2->pt()) {
+          ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
+                           << " and muon at (eta,phi)=(" << el2->eta() << "," << el2->phi() << ")" );
+          dec_passOR( *el ) = false;
+        } else {
+          ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el2->eta() << "," << el2->phi() << ") "
+                           << " and muon at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
+          dec_passOR( *el2 ) = false;
+        }
+      }
+    }
+  }
+
+  // Remove photons overlapping with electrons
+  for (const auto& ph : *photons) {
+    if ( !dec_passOR( *ph ) )
+      continue;
+
+    for (const auto& el : *electrons) {
+      if ( !dec_passOR(*el) ) continue;
+
+      if ( xAOD::P4Helpers::deltaR2(el, ph) < dReph * dReph ) {
+        ATH_MSG_VERBOSE( " Rejecting photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ") "
+                         << " due to electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
+        dec_passOR( *ph ) = 0;
+      }
+    }
+  }
+
+  // Remove photons overlapping with muons
+  for (const auto& ph : *photons) {
+    if ( !dec_passOR( *ph ) )
+      continue;
+
+    for (const auto& mu : *muons) {
+      if ( !dec_passOR(*mu) ) continue;
+
+      if ( xAOD::P4Helpers::deltaR2(mu, ph) < dRmuph * dRmuph ) {
+        ATH_MSG_VERBOSE( " Rejecting photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ") "
+                         << " due to muon at (eta,phi)=(" << mu->eta() << "," << mu->phi() << ")" );
+        dec_passOR( *ph ) = 0;
+      }
+    }
+  }
+
+  // Count number of objects after overlap removal
+  int Nel = 0;
+  for (const auto& el : *electrons) {
+    if (dec_passOR( *el )) Nel++;
+  }
+
+  int Nmu = 0;
+  for (const auto& mu : *muons) {
+    if (dec_passOR( *mu )) Nmu++;
+  }
+
+  int Njet = 0;
+  for (const auto& jet : *jets) {
+    if (dec_passOR( *jet )) Njet++;
+  }
+
+  int Nph = 0;
+  for (const auto& ph : *photons) {
+    if (dec_passOR( *ph )) Nph++;
+  }
+
+  ATH_MSG_VERBOSE( " After overlap removal: Nel=" << Nel << ", Nmu=" << Nmu << ", Njet=" << Njet << ", Nph=" << Nph);
+  return StatusCode::SUCCESS;
 }

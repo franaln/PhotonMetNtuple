@@ -22,12 +22,12 @@ struct AnalysisCollections {
 
   Int_t event_number;
 
-  Float_t weight_pu;
+  Double_t weight_pu;
   Float_t weight_mc;
   Float_t weight_btag;
   Float_t cross_section;
   Float_t primvx_z;
-  Float_t average_interactions_per_crossing; 
+  Int_t avg_mu;
 
   // Containers
   xAOD::PhotonContainer* photons;
@@ -71,6 +71,7 @@ class OutTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> ph_w_map;
 
   std::map<const std::string, int> jet_n_map;
+  std::map<const std::string, int> bjet_n_map;
   std::map<const std::string, std::vector<float>*> jet_pt_map;
   std::map<const std::string, std::vector<float>*> jet_eta_map;
   std::map<const std::string, std::vector<float>*> jet_phi_map;
@@ -96,19 +97,30 @@ class OutTree : public asg::AsgMetadataTool {
   std::map<const std::string, float> met_et_map;
 
   std::map<const std::string, float> ht_map;
+  std::map<const std::string, float> meff_map;
   std::map<const std::string, float> rt2_map;
   std::map<const std::string, float> rt4_map;
 
   std::map<const std::string, float> dphi_jetmet_map;
   std::map<const std::string, float> dphi_gamjet_map;
   std::map<const std::string, float> dphi_gammet_map;
-  
+
+  std::map<const std::string, float> mgj_map;
+  std::map<const std::string, float> mgjj_map;
+  std::map<const std::string, float> mgjjj_map;
   // std::map<const std::string, float> SFwei_map;
   // std::map<const std::string, float> bTagSF_map;
 
 protected:
   TDirectory *m_outfile;    
   std::vector<ST::SystInfo> m_sysList;
+
+  std::vector<float> *ph_loose_pt; 
+  std::vector<float> *ph_loose_eta;
+  std::vector<float> *ph_loose_phi;
+  std::vector<unsigned int> *ph_loose_isem;
+  std::vector<float> *ph_loose_iso20;
+  std::vector<float> *ph_loose_iso40;
 
   std::vector<float> *ph_pt; 
   std::vector<float> *ph_eta;
@@ -134,9 +146,13 @@ protected:
   std::vector<int>   *mu_ch;
   std::vector<float> *mu_w;
   
+  int ph_loose_n;
+
   int event_number;
   float weight_mc;
   float weight_pu;
+
+  int avg_mu;
 };
 
 #endif
