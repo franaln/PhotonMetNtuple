@@ -123,14 +123,14 @@ StatusCode OutTree::initialize()
 
   tree->Branch("weight_mc", &weight_mc);
   tree->Branch("weight_pu", &weight_pu);
-           
+  tree->Branch("weight_sf", &weight_sf);
+  
   tree->Branch("ph_loose_n", &ph_loose_n, "ph_loose_n/I");
   tree->Branch("ph_loose_eta", ph_loose_eta);
   tree->Branch("ph_loose_phi", ph_loose_phi);
   tree->Branch("ph_loose_pt",  ph_loose_pt);
   tree->Branch("ph_loose_iso20",  ph_loose_iso20);
   tree->Branch("ph_loose_iso40",  ph_loose_iso40);
-
 
   tree->Branch("ph_n", &ph_n_map["Nominal"], "ph_n/I");
   tree->Branch("ph_eta", ph_eta);
@@ -398,42 +398,42 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   collections.jets->setStore(collections.jets_aux);
   collections.met->setStore(collections.met_aux);
 
-  // // all loose photons
-  // if (sysname == "Nominal") {
+  // all loose photons
+  if (sysname == "Nominal") {
 
-  //   ph_loose_pt->clear();
-  //   ph_loose_eta->clear();
-  //   ph_loose_phi->clear();
-  //   ph_loose_iso20->clear();
-  //   ph_loose_iso40->clear();
+    ph_loose_pt->clear();
+    ph_loose_eta->clear();
+    ph_loose_phi->clear();
+    ph_loose_iso20->clear();
+    ph_loose_iso40->clear();
 
-  //   int loose_photons = 0;
-  //   for (const auto& ph_itr : *collections.photons) {
+    int loose_photons = 0;
+    for (const auto& ph_itr : *collections.photons) {
       
-  //     if (ph_itr->auxdata<char>("baseline") == 1  &&
-  //         ph_itr->auxdata<char>("passOR") == 1  &&
-  //         fabs(ph_itr->eta()) < 2.37) {  
+      if (ph_itr->auxdata<char>("baseline") == 1  &&
+          ph_itr->auxdata<char>("passOR") == 1  &&
+          fabs(ph_itr->eta()) < 2.37) {  
         
-  //       loose_photons += 1;
+        loose_photons += 1;
         
-  //       ph_loose_pt->push_back(ph_itr->pt()*IGEV);
-  //       ph_loose_eta->push_back(ph_itr->eta());
-  //       ph_loose_phi->push_back(ph_itr->phi());
+        ph_loose_pt->push_back(ph_itr->pt()*IGEV);
+        ph_loose_eta->push_back(ph_itr->eta());
+        ph_loose_phi->push_back(ph_itr->phi());
         
-  //       ph_loose_iso20->push_back(ph_itr->isolationValue(xAOD::Iso::topoetcone20)*IGEV);
-  //       ph_loose_iso40->push_back(ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV);
+        ph_loose_iso20->push_back(ph_itr->isolationValue(xAOD::Iso::topoetcone20)*IGEV);
+        ph_loose_iso40->push_back(ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV);
 
-  //       // bool is_signal = ph_itr->auxdata<char>("signal") && (ph_itr->pt() > 125000.) && (ph_itr->eta() < 2.37);
-  //       // ph_loose_signal->push_back(is_signal);
+        // bool is_signal = ph_itr->auxdata<char>("signal") && (ph_itr->pt() > 125000.) && (ph_itr->eta() < 2.37);
+        //       // ph_loose_signal->push_back(is_signal);
 
-  //       // unsigned int m_isem = ph_itr->selectionisEM(xAOD::EgammaParameters::SelectionisEM::isEMTight);
-  //       // std::cout << m_isem << std::endl;
-  //     }
-  //   }
-  //   ph_loose_n = loose_photons;
-  // }
+        //       // unsigned int m_isem = ph_itr->selectionisEM(xAOD::EgammaParameters::SelectionisEM::isEMTight);
+        //       // std::cout << m_isem << std::endl;
+      }
+    }
+    ph_loose_n = loose_photons;
+  }
 
-  Double_t total_weight = 1.;
+  Double_t total_weight_sf = 1.;
 
   // electrons
   int el_n = 0;;
@@ -449,7 +449,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
       el_phi_map[sysname]->push_back(el_itr->phi());
       el_ch_map[sysname]->push_back(el_itr->trackParticle()->charge());
       el_w_map[sysname]->push_back( el_itr->auxdata<double>("effscalefact") );
-      total_weight *= el_itr->auxdata<double>("effscalefact");
+      total_weight_sf *= el_itr->auxdata<double>("effscalefact");
     }
   }
   el_n_map[sysname] = el_n;
@@ -468,7 +468,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
       mu_phi_map[sysname]->push_back(mu_itr->phi());
       mu_ch_map[sysname] ->push_back(mu_itr->primaryTrackParticle()->charge());
       mu_w_map[sysname]->push_back(mu_itr->auxdata<double>("effscalefact"));
-      total_weight *= mu_itr->auxdata<double>("effscalefact");
+      total_weight_sf *= mu_itr->auxdata<double>("effscalefact");
     }
   }
   mu_n_map[sysname] = mu_n;
@@ -488,7 +488,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
       jet_phi_map[sysname]->push_back(jet_itr->phi());
       jet_e_map[sysname]->push_back(jet_itr->e()*IGEV);
       jet_w_map[sysname]->push_back(jet_itr->auxdata<double>("effscalefact"));
-      total_weight *= jet_itr->auxdata<double>("effscalefact");
+      total_weight_sf *= jet_itr->auxdata<double>("effscalefact");
 
       int isbjet = int(jet_itr->auxdata<char>("bjet"));
       if (isbjet)
@@ -514,7 +514,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
       ph_eta_map[sysname]->push_back(ph_itr->eta());
       ph_phi_map[sysname]->push_back(ph_itr->phi());
       ph_w_map[sysname]->push_back(ph_itr->auxdata<double>("effscalefact") );
-      total_weight *= ph_itr->auxdata<double>("effscalefact");
+      total_weight_sf *= ph_itr->auxdata<double>("effscalefact");
 
     }
   }
@@ -573,7 +573,6 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   // Delta phi between met and closest jet
   Double_t dphi1 = 4.;
   Double_t dphi2 = 4.;
-  
   if (jet_n > 0) dphi1 = get_dphi((*jet_phi_map[sysname])[0], met.Phi());
   if (jet_n > 1) dphi2 = get_dphi((*jet_phi_map[sysname])[1], met.Phi());
   
@@ -590,6 +589,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   // weigths
   weight_mc = collections.weight_mc;
   weight_pu = collections.weight_pu;
+  weight_sf = total_weight_sf;
 
   avg_mu = collections.avg_mu;
   

@@ -234,10 +234,16 @@ EL::StatusCode xAODAnalysis::initialize()
   objTool->msg().setLevel(MSG::FATAL);
 
   CHECK(objTool->setProperty("DataSource", datasource)); 
-  CHECK(objTool->setProperty("Is25ns", true));
 
-  CHECK(objTool->setProperty("PhotonIsoWP", "FixedCutTightCaloOnly"));
-  CHECK(objTool->setProperty("DoPhotonOR", true));
+  // Data dir
+  std::string data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
+
+  CHECK(objTool->setProperty("ConfigFile", data_dir+"SUSYTools_Default.txt"));
+
+
+  // CHECK(objTool->setProperty("Is25ns", true));
+  // CHECK(objTool->setProperty("PhotonIsoWP", "FixedCutTightCaloOnly"));
+  // CHECK(objTool->setProperty("DoPhotonOR", true));
  
   // Set to true for DxAOD, false for primary xAOD
   //CHECK(objTool->setProperty("DoJetAreaCalib", true));
@@ -249,8 +255,6 @@ EL::StatusCode xAODAnalysis::initialize()
   //CHECK(objTool->setProperty("JESNuisanceParameterSet", 1));
   
 
-  // Data dir
-  std::string data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
   
   // Pile Up Reweighting
   std::vector<std::string> prwFiles;
@@ -264,14 +268,14 @@ EL::StatusCode xAODAnalysis::initialize()
   lumicalcFiles.push_back(data_dir+"ilumicalc_histograms_None_276262-282712.root");
   CHECK(objTool->setProperty("PRWLumiCalcFiles", lumicalcFiles));
  
-  if (objTool->SUSYToolsInit().isFailure()) {
-    Error(APP_NAME, "Failed to initialise tools in SUSYToolsInit()...");
-    Error(APP_NAME, "Exiting...");
-    return EL::StatusCode::FAILURE;
-  }
-  else {
-    Info(APP_NAME, "SUSYToolsInit with success!!... " );
-  }
+  // if (objTool->SUSYToolsInit().isFailure()) {
+  //   Error(APP_NAME, "Failed to initialise tools in SUSYToolsInit()...");
+  //   Error(APP_NAME, "Exiting...");
+  //   return EL::StatusCode::FAILURE;
+  // }
+  // else {
+  //   Info(APP_NAME, "SUSYToolsInit with success!!... " );
+  // }
   
   if (objTool->initialize() != StatusCode::SUCCESS) {
     Error(APP_NAME, "Cannot intialize SUSYObjDef_xAOD...");
@@ -602,96 +606,57 @@ EL::StatusCode xAODAnalysis :: execute ()
   //float weight_btag = 1.;
   
 
-  // std::cout << "before"<< std::endl;
-
-  // for (const auto& ph : *photons_nominal) {
-  //   if (ph->pt() < 40000.)
-  //     continue;
-
-  //   std::cout<< int(ph->auxdata<char>("passOR")) <<  " ";
-  // }
-  // std::cout << std::endl;;
-
-  // for (const auto& jet : *jets_nominal) {
-  //   if (jet->pt() < 40000.)
-  //     continue;
-
-  //   std::cout<< int(jet->auxdata<char>("passOR")) << " ";
-  // }
-  // std::cout << std::endl;;
-  
   CHECK(objTool->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
-  //OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal);
 
-  // std::cout << "after"<< std::endl;
-
-  // for (const auto& ph : *photons_nominal) {
-  //   if (ph->pt() < 40000.)
-  //     continue;
-
-  //   std::cout<< int(ph->auxdata<char>("passOR")) <<  " ";
-  // }
-  // std::cout << std::endl;;
-
-  // for (const auto& jet : *jets_nominal) {
-  //   if (jet->pt() < 40000.)
-  //     continue;
-
-  //   std::cout<< int(jet->auxdata<char>("passOR")) << " ";
-  // }
-  // std::cout << std::endl;;
-
-  // std::cout << "---"<< std::endl;
-
-
+  // MET
   CHECK(objTool->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   
   // electrons
-  for (const auto& el : *electrons_nominal) {
-    objTool->IsSignalElectron(*el) ;      
-    if (!isData && el->auxdata<char>("baseline") == 1 &&
-        el->auxdata<char>("passOR") == 1 &&
-        el->auxdata<char>("signal") == 1) 
-      objTool->GetSignalElecSF(*el);
-  }
+  // for (const auto& el : *electrons_nominal) {
+  //   // objTool->IsSignalElectron(*el) ;      
+  //   // if (!isData && el->auxdata<char>("baseline") == 1 &&
+  //   //     el->auxdata<char>("passOR") == 1 &&
+  //   //     el->auxdata<char>("signal") == 1) 
+  //   //   objTool->GetSignalElecSF(*el);
+  // }
   
   // photons
-  for (const auto& ph : *photons_nominal) {
-    objTool->IsSignalPhoton(*ph, 125000.);
-    if (!isData && ph->auxdata<char>("baseline") == 1 &&
-        ph->auxdata<char>("passOR") == 1 && 
-        ph->auxdata<char>("signal") == 1)
-      objTool->GetSignalPhotonSF(*ph);
-  }
+  // for (const auto& ph : *photons_nominal) {
+  //   //   objTool->IsSignalPhoton(*ph, 125000.);
+  //   if (!isData && ph->auxdata<char>("baseline") == 1 &&
+  //       ph->auxdata<char>("passOR") == 1 && 
+  //       ph->auxdata<char>("signal") == 1)
+  //     objTool->GetSignalPhotonSF(*ph);
+  // }
   
   bool skip = false;
   // muons
-  for (const auto& mu : *muons_nominal) {
-    objTool->IsSignalMuon(*mu) ;
-    //objTool->IsCosmicMuon(*mu);
-    if (!isData && mu->auxdata<char>("baselne") == 1 &&
-        mu->auxdata<char>("passOR") == 1 && 
-        mu->auxdata<char>("signal") == 1)
-      objTool->GetSignalMuonSF(*mu);
-    // if ((int)mu->auxdata<char>("cosmic") == 1)  {
-    //   std::cout << "cosmic muon" << std::endl;
-    //   skip = true;
-    // }
-  }
+  // for (const auto& mu : *muons_nominal) {
+  //   objTool->IsSignalMuon(*mu) ;
+  //   //objTool->IsCosmicMuon(*mu);
+  //   if (!isData && mu->auxdata<char>("baselne") == 1 &&
+  //       mu->auxdata<char>("passOR") == 1 && 
+  //       mu->auxdata<char>("signal") == 1)
+  //     objTool->GetSignalMuonSF(*mu);
+  //   // if ((int)mu->auxdata<char>("cosmic") == 1)  {
+  //   //   std::cout << "cosmic muon" << std::endl;
+  //   //   skip = true;
+  //   // }
+  // }
   // if (!skip)
   //   h_cutflow->Fill(6);
 
   // jets
-  for (const auto& jet : *jets_nominal) {  
-    if ((int)jet->auxdata<char>("bad")) {
-      skip = true;
-      break;
-    }
-    else {
-      objTool->IsSignalJet(*jet, 30000., 2.5);
-      objTool->IsBJet(*jet);
-    }
-  }
+  // for (const auto& jet : *jets_nominal) {  
+  //   if ((int)jet->auxdata<char>("bad")) {
+  //     skip = true;
+  //     break;
+  //   }
+  //   else {
+  //     objTool->IsSignalJet(*jet, 30000., 2.5);
+  //     objTool->IsBJet(*jet);
+  //   }
+  // }
   
   if (!skip) {
     h_cutflow->Fill(7);
@@ -796,207 +761,208 @@ EL::StatusCode xAODAnalysis::histFinalize()
 }
 
 
-static SG::AuxElement::Decorator<char> dec_baseline("baseline");
-static SG::AuxElement::Decorator<char> dec_signal("signal");
-static SG::AuxElement::Decorator<char> dec_isol("isol");
-static SG::AuxElement::Decorator<char> dec_passOR("passOR");                                                                                                                                                                                static SG::AuxElement::Decorator<char> dec_passSignalID("passSignalID");
-static SG::AuxElement::Decorator<char> dec_bad("bad");
-static SG::AuxElement::Decorator<char> dec_bjet("bjet");
-static SG::AuxElement::Decorator<char> dec_bjet_loose("bjet_loose");
-static SG::AuxElement::Decorator<char> dec_cosmic("cosmic");
-static SG::AuxElement::Decorator<char> dec_passedHighPtCuts("passedHighPtCuts");
+// static SG::AuxElement::Decorator<char> dec_baseline("baseline");
+// static SG::AuxElement::Decorator<char> dec_signal("signal");
+// static SG::AuxElement::Decorator<char> dec_isol("isol");
+// static SG::AuxElement::Decorator<char> dec_passOR("passOR");                                                 
+// static SG::AuxElement::Decorator<char> dec_passSignalID("passSignalID");
+// static SG::AuxElement::Decorator<char> dec_bad("bad");
+// static SG::AuxElement::Decorator<char> dec_bjet("bjet");
+// static SG::AuxElement::Decorator<char> dec_bjet_loose("bjet_loose");
+// static SG::AuxElement::Decorator<char> dec_cosmic("cosmic");
+// static SG::AuxElement::Decorator<char> dec_passedHighPtCuts("passedHighPtCuts");
 
 
-EL::StatusCode xAODAnalysis::OverlapRemoval(const xAOD::ElectronContainer *electrons, const xAOD::MuonContainer *muons, const xAOD::JetContainer *jets, const xAOD::PhotonContainer *photons, const bool useSignalObjects, const bool useIsolObjects, const bool doBjetOR, const bool doBoostedMuonOR, const double dRejet, const double dRjetmu, const double dRjete, double dRemu, double dRee, double dRphjet, double dReph, double dRmuph) {
+// EL::StatusCode xAODAnalysis::OverlapRemoval(const xAOD::ElectronContainer *electrons, const xAOD::MuonContainer *muons, const xAOD::JetContainer *jets, const xAOD::PhotonContainer *photons, const bool useSignalObjects, const bool useIsolObjects, const bool doBjetOR, const bool doBoostedMuonOR, const double dRejet, const double dRjetmu, const double dRjete, double dRemu, double dRee, double dRphjet, double dReph, double dRmuph) {
 
-  for (const auto& jet : *jets) {
-    dec_passOR( *jet ) = dec_baseline( *jet );
-  }
-  for (const auto& mu : *muons) {
-    bool mu_sel;
-    if (useSignalObjects) mu_sel = dec_signal(*mu);
-    else mu_sel = dec_baseline(*mu);
-    if (useIsolObjects) mu_sel &= dec_isol(*mu);
-    dec_passOR( *mu ) = mu_sel;
-  }
+//   for (const auto& jet : *jets) {
+//     dec_passOR( *jet ) = dec_baseline( *jet );
+//   }
+//   for (const auto& mu : *muons) {
+//     bool mu_sel;
+//     if (useSignalObjects) mu_sel = dec_signal(*mu);
+//     else mu_sel = dec_baseline(*mu);
+//     if (useIsolObjects) mu_sel &= dec_isol(*mu);
+//     dec_passOR( *mu ) = mu_sel;
+//   }
 
-  // remove jets overlapping with (baseline/signal) electrons
-  for (const auto& el : *electrons) {
-    bool el_sel;
-    if (useSignalObjects) el_sel = dec_signal(*el);
-    else el_sel = dec_baseline(*el);
-    if (useIsolObjects) el_sel &= dec_isol(*el);
-    dec_passOR( *el ) = el_sel;
+//   // remove jets overlapping with (baseline/signal) electrons
+//   for (const auto& el : *electrons) {
+//     bool el_sel;
+//     if (useSignalObjects) el_sel = dec_signal(*el);
+//     else el_sel = dec_baseline(*el);
+//     if (useIsolObjects) el_sel &= dec_isol(*el);
+//     dec_passOR( *el ) = el_sel;
 
-    if ( !el_sel ) continue;
+//     if ( !el_sel ) continue;
 
-    for (const auto& jet : *jets) {
-      if ( !dec_passOR(*jet) ) continue;
-      if ( doBjetOR && dec_bjet_loose(*jet) ) continue;
+//     for (const auto& jet : *jets) {
+//       if ( !dec_passOR(*jet) ) continue;
+//       if ( doBjetOR && dec_bjet_loose(*jet) ) continue;
 
-      if ( xAOD::P4Helpers::deltaR2(el, jet) < dRejet * dRejet ) {
-        ATH_MSG_VERBOSE( " Rejecting jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ") "
-                         << " due to electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
-        dec_passOR( *jet ) = false;
-      }
-    }
-  } // END loop over electrons
+//       if ( xAOD::P4Helpers::deltaR2(el, jet) < dRejet * dRejet ) {
+//         ATH_MSG_VERBOSE( " Rejecting jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ") "
+//                          << " due to electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
+//         dec_passOR( *jet ) = false;
+//       }
+//     }
+//   } // END loop over electrons
 
-  // remove jets overlapping with (baseline/signal) photons
-  for (const auto& ph : *photons) {
-    bool ph_sel;
-    if (useSignalObjects) ph_sel = dec_signal(*ph);
-    else ph_sel = dec_baseline(*ph);
-    if (useIsolObjects) ph_sel &= dec_isol(*ph);
-      dec_passOR( *ph ) = ph_sel;
+//   // remove jets overlapping with (baseline/signal) photons
+//   for (const auto& ph : *photons) {
+//     bool ph_sel;
+//     if (useSignalObjects) ph_sel = dec_signal(*ph);
+//     else ph_sel = dec_baseline(*ph);
+//     if (useIsolObjects) ph_sel &= dec_isol(*ph);
+//       dec_passOR( *ph ) = ph_sel;
 
-    if ( !ph_sel ) continue;
+//     if ( !ph_sel ) continue;
 
-    for (const auto& jet : *jets) {
-      if ( !dec_passOR(*jet) ) continue;
+//     for (const auto& jet : *jets) {
+//       if ( !dec_passOR(*jet) ) continue;
 
-      if ( xAOD::P4Helpers::deltaR2(ph, jet) < dRphjet * dRphjet ) {
-        ATH_MSG_VERBOSE( " Rejecting jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ") "
-                         << " due to photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ")" );
-        dec_passOR( *jet ) = false;
-      }
-    }
-  } // END loop over photons
+//       if ( xAOD::P4Helpers::deltaR2(ph, jet) < dRphjet * dRphjet ) {
+//         ATH_MSG_VERBOSE( " Rejecting jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ") "
+//                          << " due to photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ")" );
+//         dec_passOR( *jet ) = false;
+//       }
+//     }
+//   } // END loop over photons
 
-  // Remove electrons and muons overlapping with jets
-  for (const auto& el : *electrons) {
-    if ( !dec_passOR(*el) ) continue;
+//   // Remove electrons and muons overlapping with jets
+//   for (const auto& el : *electrons) {
+//     if ( !dec_passOR(*el) ) continue;
 
-    for (const auto& jet : *jets) {
-      if ( !dec_passOR( *jet ) ) continue;
+//     for (const auto& jet : *jets) {
+//       if ( !dec_passOR( *jet ) ) continue;
 
-      if ( xAOD::P4Helpers::deltaR2(el, jet) < dRjete * dRjete ) {
-        ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
-                         << " due to jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ")" );
-        dec_passOR( *el ) = false;
-      }
-    }              
-  }
+//       if ( xAOD::P4Helpers::deltaR2(el, jet) < dRjete * dRjete ) {
+//         ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
+//                          << " due to jet at (eta,phi)=(" << jet->eta() << "," << jet->phi() << ")" );
+//         dec_passOR( *el ) = false;
+//       }
+//     }              
+//   }
 
-  for (const auto& mu : *muons) {
-    if ( !dec_passOR(*mu) ) continue;
+//   for (const auto& mu : *muons) {
+//     if ( !dec_passOR(*mu) ) continue;
 
-    for (const auto& jet : *jets) {
-      if ( !dec_passOR( *jet ) ) continue;
+//     for (const auto& jet : *jets) {
+//       if ( !dec_passOR( *jet ) ) continue;
 
-      std::vector<int> nTrkVec;
-      jet->getAttribute(xAOD::JetAttribute::NumTrkPt500, nTrkVec);
-      int jet_nTrk = (objTool->GetPrimVtx() == 0 || nTrkVec.size() == 0) ? 0 : nTrkVec[objTool->GetPrimVtx()->index()];
+//       std::vector<int> nTrkVec;
+//       jet->getAttribute(xAOD::JetAttribute::NumTrkPt500, nTrkVec);
+//       int jet_nTrk = (objTool->GetPrimVtx() == 0 || nTrkVec.size() == 0) ? 0 : nTrkVec[objTool->GetPrimVtx()->index()];
 
-      bool muInJet = xAOD::P4Helpers::deltaR2(*mu, *jet) < dRjetmu * dRjetmu;
-      if(doBoostedMuonOR) muInJet = xAOD::P4Helpers::deltaR2(*mu, *jet) < 0.04+10e3/mu->pt();
-      if ( muInJet ) {
-        if (jet_nTrk < 3) {
-          ATH_MSG_VERBOSE( " Rejecting jet at (pT,eta,phi)=(" << jet->pt() << "," << jet->eta() << "," << jet->phi() << ") with only nTrk=" << jet_nTrk
-                           << " due to muon at (pT,eta,phi)=(" << mu->pt() << "," << mu->eta() << "," << mu->phi() << ")" );
-          dec_passOR( *jet ) = false;
-        } else {
-          ATH_MSG_VERBOSE( " Rejecting muon at (pT,eta,phi)=(" << mu->pt() << "," << mu->eta() << "," << mu->phi() << ")"
-                           << " due to jet at (pT,eta,phi)=(" << jet->pt() << "," << jet->eta() << "," << jet->phi() << ") with nTrk=" << jet_nTrk );
-          dec_passOR( *mu ) = false;
-        }
-      }
-    }        
-  }
+//       bool muInJet = xAOD::P4Helpers::deltaR2(*mu, *jet) < dRjetmu * dRjetmu;
+//       if(doBoostedMuonOR) muInJet = xAOD::P4Helpers::deltaR2(*mu, *jet) < 0.04+10e3/mu->pt();
+//       if ( muInJet ) {
+//         if (jet_nTrk < 3) {
+//           ATH_MSG_VERBOSE( " Rejecting jet at (pT,eta,phi)=(" << jet->pt() << "," << jet->eta() << "," << jet->phi() << ") with only nTrk=" << jet_nTrk
+//                            << " due to muon at (pT,eta,phi)=(" << mu->pt() << "," << mu->eta() << "," << mu->phi() << ")" );
+//           dec_passOR( *jet ) = false;
+//         } else {
+//           ATH_MSG_VERBOSE( " Rejecting muon at (pT,eta,phi)=(" << mu->pt() << "," << mu->eta() << "," << mu->phi() << ")"
+//                            << " due to jet at (pT,eta,phi)=(" << jet->pt() << "," << jet->eta() << "," << jet->phi() << ") with nTrk=" << jet_nTrk );
+//           dec_passOR( *mu ) = false;
+//         }
+//       }
+//     }        
+//   }
 
-  // Remove electrons and muons overlapping with each other
-  for (const auto& el : *electrons) {
-    if ( !dec_passOR(*el) ) continue;
+//   // Remove electrons and muons overlapping with each other
+//   for (const auto& el : *electrons) {
+//     if ( !dec_passOR(*el) ) continue;
 
-    for (const auto& mu : *muons) {
-      if ( !dec_passOR( *mu ) ) continue;
+//     for (const auto& mu : *muons) {
+//       if ( !dec_passOR( *mu ) ) continue;
 
-      if ( xAOD::P4Helpers::deltaR2(el, mu) < dRemu * dRemu ) {
-        ATH_MSG_VERBOSE( " Rejecting both electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
-                         << " and muon at (eta,phi)=(" << mu->eta() << "," << mu->phi() << ")" );
-        dec_passOR( *el ) = false;
-        dec_passOR( *mu ) = false;
-      }
-    }
-  }
+//       if ( xAOD::P4Helpers::deltaR2(el, mu) < dRemu * dRemu ) {
+//         ATH_MSG_VERBOSE( " Rejecting both electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
+//                          << " and muon at (eta,phi)=(" << mu->eta() << "," << mu->phi() << ")" );
+//         dec_passOR( *el ) = false;
+//         dec_passOR( *mu ) = false;
+//       }
+//     }
+//   }
 
-  // Remove electrons overlapping with each other
-  for (auto el_itr = electrons->begin(); el_itr != electrons->end(); ++el_itr) {
-    const auto& el = *el_itr;
-    if ( !dec_passOR(*el) ) continue;
+//   // Remove electrons overlapping with each other
+//   for (auto el_itr = electrons->begin(); el_itr != electrons->end(); ++el_itr) {
+//     const auto& el = *el_itr;
+//     if ( !dec_passOR(*el) ) continue;
 
-    for (auto el2_itr = el_itr + 1; el2_itr != electrons->end(); ++el2_itr) {
-      if (el2_itr == el_itr) continue;
-      const auto& el2 = *el2_itr;
-      if ( !dec_passOR( *el2 ) ) continue;
+//     for (auto el2_itr = el_itr + 1; el2_itr != electrons->end(); ++el2_itr) {
+//       if (el2_itr == el_itr) continue;
+//       const auto& el2 = *el2_itr;
+//       if ( !dec_passOR( *el2 ) ) continue;
 
-      if ( xAOD::P4Helpers::deltaR2(el, el2) < dRee * dRee ) {
-        if (el->pt() < el2->pt()) {
-          ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
-                           << " and muon at (eta,phi)=(" << el2->eta() << "," << el2->phi() << ")" );
-          dec_passOR( *el ) = false;
-        } else {
-          ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el2->eta() << "," << el2->phi() << ") "
-                           << " and muon at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
-          dec_passOR( *el2 ) = false;
-        }
-      }
-    }
-  }
+//       if ( xAOD::P4Helpers::deltaR2(el, el2) < dRee * dRee ) {
+//         if (el->pt() < el2->pt()) {
+//           ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ") "
+//                            << " and muon at (eta,phi)=(" << el2->eta() << "," << el2->phi() << ")" );
+//           dec_passOR( *el ) = false;
+//         } else {
+//           ATH_MSG_VERBOSE( " Rejecting electron at (eta,phi)=(" << el2->eta() << "," << el2->phi() << ") "
+//                            << " and muon at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
+//           dec_passOR( *el2 ) = false;
+//         }
+//       }
+//     }
+//   }
 
-  // Remove photons overlapping with electrons
-  for (const auto& ph : *photons) {
-    if ( !dec_passOR( *ph ) )
-      continue;
+//   // Remove photons overlapping with electrons
+//   for (const auto& ph : *photons) {
+//     if ( !dec_passOR( *ph ) )
+//       continue;
 
-    for (const auto& el : *electrons) {
-      if ( !dec_passOR(*el) ) continue;
+//     for (const auto& el : *electrons) {
+//       if ( !dec_passOR(*el) ) continue;
 
-      if ( xAOD::P4Helpers::deltaR2(el, ph) < dReph * dReph ) {
-        ATH_MSG_VERBOSE( " Rejecting photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ") "
-                         << " due to electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
-        dec_passOR( *ph ) = 0;
-      }
-    }
-  }
+//       if ( xAOD::P4Helpers::deltaR2(el, ph) < dReph * dReph ) {
+//         ATH_MSG_VERBOSE( " Rejecting photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ") "
+//                          << " due to electron at (eta,phi)=(" << el->eta() << "," << el->phi() << ")" );
+//         dec_passOR( *ph ) = 0;
+//       }
+//     }
+//   }
 
-  // Remove photons overlapping with muons
-  for (const auto& ph : *photons) {
-    if ( !dec_passOR( *ph ) )
-      continue;
+//   // Remove photons overlapping with muons
+//   for (const auto& ph : *photons) {
+//     if ( !dec_passOR( *ph ) )
+//       continue;
 
-    for (const auto& mu : *muons) {
-      if ( !dec_passOR(*mu) ) continue;
+//     for (const auto& mu : *muons) {
+//       if ( !dec_passOR(*mu) ) continue;
 
-      if ( xAOD::P4Helpers::deltaR2(mu, ph) < dRmuph * dRmuph ) {
-        ATH_MSG_VERBOSE( " Rejecting photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ") "
-                         << " due to muon at (eta,phi)=(" << mu->eta() << "," << mu->phi() << ")" );
-        dec_passOR( *ph ) = 0;
-      }
-    }
-  }
+//       if ( xAOD::P4Helpers::deltaR2(mu, ph) < dRmuph * dRmuph ) {
+//         ATH_MSG_VERBOSE( " Rejecting photon at (eta,phi)=(" << ph->eta() << "," << ph->phi() << ") "
+//                          << " due to muon at (eta,phi)=(" << mu->eta() << "," << mu->phi() << ")" );
+//         dec_passOR( *ph ) = 0;
+//       }
+//     }
+//   }
 
-  // Count number of objects after overlap removal
-  int Nel = 0;
-  for (const auto& el : *electrons) {
-    if (dec_passOR( *el )) Nel++;
-  }
+//   // Count number of objects after overlap removal
+//   int Nel = 0;
+//   for (const auto& el : *electrons) {
+//     if (dec_passOR( *el )) Nel++;
+//   }
 
-  int Nmu = 0;
-  for (const auto& mu : *muons) {
-    if (dec_passOR( *mu )) Nmu++;
-  }
+//   int Nmu = 0;
+//   for (const auto& mu : *muons) {
+//     if (dec_passOR( *mu )) Nmu++;
+//   }
 
-  int Njet = 0;
-  for (const auto& jet : *jets) {
-    if (dec_passOR( *jet )) Njet++;
-  }
+//   int Njet = 0;
+//   for (const auto& jet : *jets) {
+//     if (dec_passOR( *jet )) Njet++;
+//   }
 
-  int Nph = 0;
-  for (const auto& ph : *photons) {
-    if (dec_passOR( *ph )) Nph++;
-  }
+//   int Nph = 0;
+//   for (const auto& ph : *photons) {
+//     if (dec_passOR( *ph )) Nph++;
+//   }
 
-  ATH_MSG_VERBOSE( " After overlap removal: Nel=" << Nel << ", Nmu=" << Nmu << ", Njet=" << Njet << ", Nph=" << Nph);
-  return StatusCode::SUCCESS;
-}
+//   ATH_MSG_VERBOSE( " After overlap removal: Nel=" << Nel << ", Nmu=" << Nmu << ", Njet=" << Njet << ", Nph=" << Nph);
+//   return StatusCode::SUCCESS;
+// }

@@ -108,8 +108,6 @@ class OutTree : public asg::AsgMetadataTool {
   std::map<const std::string, float> mgj_map;
   std::map<const std::string, float> mgjj_map;
   std::map<const std::string, float> mgjjj_map;
-  // std::map<const std::string, float> SFwei_map;
-  // std::map<const std::string, float> bTagSF_map;
 
 protected:
   TDirectory *m_outfile;    
@@ -151,6 +149,7 @@ protected:
   int event_number;
   float weight_mc;
   float weight_pu;
+  float weight_sf;
 
   int avg_mu;
 };

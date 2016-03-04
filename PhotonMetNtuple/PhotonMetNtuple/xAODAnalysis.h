@@ -102,7 +102,7 @@ public:
   virtual EL::StatusCode finalize ();
   virtual EL::StatusCode histFinalize ();
 
-  virtual EL::StatusCode OverlapRemoval(const xAOD::ElectronContainer *electrons, const xAOD::MuonContainer *muons, const xAOD::JetContainer *jets, const xAOD::PhotonContainer *photons, const bool useSignalObjects = false, const bool useIsolObjects=false, const bool doBjetOR=false, const bool doBoostedMuonOR=false, const double dRejet = 0.2, const double dRjetmu = 0.4, const double dRjete = 0.4, const double dRemu = 0.01, const double dRee = 0.05, double dRphjet=0.4, double dReph = 0.4, double dRmuph = 0.4);
+  // virtual EL::StatusCode OverlapRemoval(const xAOD::ElectronContainer *electrons, const xAOD::MuonContainer *muons, const xAOD::JetContainer *jets, const xAOD::PhotonContainer *photons, const bool useSignalObjects = false, const bool useIsolObjects=false, const bool doBjetOR=false, const bool doBoostedMuonOR=false, const double dRejet = 0.2, const double dRjetmu = 0.4, const double dRjete = 0.4, const double dRemu = 0.01, const double dRee = 0.05, double dRphjet=0.4, double dReph = 0.4, double dRmuph = 0.4);
   
   // this is needed to distribute the algorithm to the workers
   ClassDef(xAODAnalysis, 1);
