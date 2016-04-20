@@ -59,8 +59,9 @@ class OutTree : public asg::AsgMetadataTool {
   StatusCode initialize();
   bool process(AnalysisCollections collections, std::string sysname);
   StatusCode FillTree();
-
   TString BookName(TString branch, TString sys_name);
+
+  bool PassEtaCut(const xAOD::IParticle *part, Double_t maxeta=99.);
   
   TTree* tree;
   
@@ -68,7 +69,15 @@ class OutTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> ph_pt_map;
   std::map<const std::string, std::vector<float>*> ph_eta_map;
   std::map<const std::string, std::vector<float>*> ph_phi_map;
+  std::map<const std::string, std::vector<float>*> ph_iso_map;
   std::map<const std::string, std::vector<float>*> ph_w_map;
+
+  std::map<const std::string, int> ph_noniso_n_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_pt_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_eta_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_phi_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_iso_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_w_map;
 
   std::map<const std::string, int> jet_n_map;
   std::map<const std::string, int> bjet_n_map;
@@ -112,6 +121,7 @@ class OutTree : public asg::AsgMetadataTool {
 protected:
   TDirectory *m_outfile;    
   std::vector<ST::SystInfo> m_sysList;
+  Bool_t m_ismc;
 
   std::vector<float> *ph_loose_pt; 
   std::vector<float> *ph_loose_eta;
@@ -123,7 +133,21 @@ protected:
   std::vector<float> *ph_pt; 
   std::vector<float> *ph_eta;
   std::vector<float> *ph_phi;
+  std::vector<float> *ph_iso;
   std::vector<float> *ph_w;
+
+  std::vector<float> *ph_truth_pt; 
+  std::vector<float> *ph_truth_eta;
+  std::vector<float> *ph_truth_phi;
+  std::vector<int>   *ph_truth_origin;
+  std::vector<int>   *ph_truth_type;
+  std::vector<int>   *ph_truth_id;
+
+  std::vector<float> *ph_noniso_pt; 
+  std::vector<float> *ph_noniso_eta;
+  std::vector<float> *ph_noniso_phi;
+  std::vector<float> *ph_noniso_iso;
+  std::vector<float> *ph_noniso_w;
 
   std::vector<float> *jet_pt; 
   std::vector<float> *jet_eta;
