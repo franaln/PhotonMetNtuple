@@ -1,4 +1,4 @@
-683;40003;0c#include <TSystem.h>
+#include <TSystem.h>
 
 #include <EventLoop/Job.h>
 #include <EventLoop/StatusCode.h>
@@ -109,8 +109,8 @@ EL::StatusCode xAODAnalysis::histInitialize()
 
 EL::StatusCode xAODAnalysis::fileExecute()
 {
-  // Here you do everything that needs to be done exactly once for every
-  // single file, e.g. collect a list of all lumi-blocks processed
+  // Here you do everything that n<eeds to be done exactly once for every
+  // single file, e.g. collect a st of all lumi-blocks processed
   return EL::StatusCode::SUCCESS;
 }
 
@@ -177,10 +177,13 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
 
   }
 
-  std::cout << m_initial_events << " " << m_initial_sumw << " " << m_initial_sumw2 << std::endl;
-  h_events->Fill(1, m_initial_events);
-  h_events->Fill(3, m_initial_sumw);
-  h_events->Fill(5, m_initial_sumw2);
+  if (!isData) { 
+    std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
+
+    h_events->Fill(1, m_initial_events);
+    h_events->Fill(3, m_initial_sumw);
+    h_events->Fill(5, m_initial_sumw2);
+  }
 
   return EL::StatusCode::SUCCESS;
 }
@@ -220,7 +223,7 @@ EL::StatusCode xAODAnalysis::initialize()
   CHECK(objTool->setProperty("ConfigFile", data_dir+"SUSYTools_Default.conf"));
 
 
-  // Pile Up Reweighting
+  // // Pile Up Reweighting
   // std::vector<std::string> prwFiles;
   // prwFiles.push_back(data_dir+"signal_prw.root"); 
   // prwFiles.push_back(data_dir+"signal_ewk_prw.root"); 
@@ -254,9 +257,8 @@ EL::StatusCode xAODAnalysis::initialize()
     Error(APP_NAME, "Failed to properly initialize the GRL. Exiting." );
     return EL::StatusCode::FAILURE;
   }
-  
-  
-  
+
+
   // Now we can look at systematics:    
   doSyst = false;
   if (!doSyst) {
@@ -325,6 +327,9 @@ EL::StatusCode xAODAnalysis :: execute ()
 	//m_xsec = 1.;
   }
   
+  //std::cout << "Sumw = " << objTool->GetSumOfWeights(373061) << std::endl;
+  
+
   //--------------------
   // CLEANING CUTS HERE
   //--------------------
