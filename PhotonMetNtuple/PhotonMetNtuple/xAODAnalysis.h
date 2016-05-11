@@ -14,10 +14,12 @@
 #include "PATInterfaces/SystematicSet.h"
 #include "PATInterfaces/SystematicRegistry.h"
 #include "PATInterfaces/SystematicVariation.h"
-//#include "boost/unordered_map.hpp"
 #include <SUSYTools/SUSYCrossSection.h>
-#include <PhotonMetNtuple/OutTree.h>
+//#include <PhotonMetNtuple/MiniTree.h>
+#include <PhotonMetNtuple/MiniTree2.h>
 #include "SUSYTools/ISUSYObjDef_xAODTool.h"
+
+#include <PhotonMetNtuple/MCFilter.h>
 
 // GRL
 class GoodRunsListSelectionTool;
@@ -39,12 +41,12 @@ class xAODAnalysis : public EL::Algorithm
   
   SUSY::CrossSectionDB *my_XsecDB;  //!
 
-  #ifndef __CINT__
-   GoodRunsListSelectionTool *m_grl; //!
-   PileupReweightingTool *m_pileupReweightingTool; //!
-   SUSYObjDef_xAOD *objTool; //!
-   OutTree *mem_leaker; //!
-  #endif // not __CINT__
+#ifndef __CINT__
+  GoodRunsListSelectionTool *m_grl; //!
+  PileupReweightingTool *m_pileupReweightingTool; //!
+  SUSYObjDef_xAOD *objTool; //!
+  //  MiniTree *mem_leaker; //!
+#endif // not __CINT__
 
 private:
 
@@ -78,10 +80,14 @@ public:
   // protected from being send from the submission node to the worker
   // node (done by the //!)
 public:
-  OutTree *outtree; //!
+  MiniTree2 *outtree; //!
+
+  MCFilter *mc_filter; //!
 
   TH1D *h_events; //!
   TH1D *h_cutflow; //!
+  TH1D *h_events_subproceses; //!
+  TH1D *h_sumw_subproceses; //!
 
   xAOD::TEvent *m_event;  //!
 

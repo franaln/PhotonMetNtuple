@@ -1,4 +1,4 @@
-#include "PhotonMetNtuple/OutTree.h"
+#include "PhotonMetNtuple/MiniTree2.h"
 #include "PhotonMetNtuple/Utils.h"
 
 #include "xAODTruth/xAODTruthHelpers.h"
@@ -7,7 +7,7 @@
 
 #define IGEV 0.001
 
-OutTree::OutTree(const std::string& name): asg::AsgMetadataTool( name )
+MiniTree2::MiniTree2(const std::string& name): asg::AsgMetadataTool( name )
 {
   declareProperty("SystematicList", m_sysList); //pass here the list of systematics
   declareProperty("OutFile", m_outfile); //here we should pass *file = wk()->getOutputFile ("output");
@@ -16,7 +16,7 @@ OutTree::OutTree(const std::string& name): asg::AsgMetadataTool( name )
   tree = 0;
 }
 
-OutTree::~OutTree()
+MiniTree2::~MiniTree2()
 {
   
   for(const auto& sys : m_sysList) {
@@ -90,13 +90,13 @@ OutTree::~OutTree()
   delete mu_w_map["Nominal"];
 }
 
-TString OutTree::BookName(TString branch, TString sys_name) 
+TString MiniTree2::BookName(TString branch, TString sys_name) 
 {
   TString ret = branch + "_" + sys_name ;
   return ret;
 }
 
-StatusCode OutTree::initialize() 
+StatusCode MiniTree2::initialize() 
 {
   //Init the nominal tree
   ph_loose_pt = new std::vector<float>(); 
@@ -143,20 +143,23 @@ StatusCode OutTree::initialize()
   mu_phi = new std::vector<float>();
   mu_ch = new std::vector<int>();
   mu_w = new std::vector<float>();
-  
+
+  // Tree  
   TString tree_name = "mini";
 
-  //Get ready to leak memory all over the place
   tree = new TTree(tree_name, tree_name);
   tree->SetDirectory(m_outfile);	 
 
+  // Nominal blocks
   tree->Branch("event_number", &event_number, "event_number/I");
   tree->Branch("avg_mu", &avg_mu, "avg_mu/I");
 
   tree->Branch("weight_mc", &weight_mc);
   tree->Branch("weight_pu", &weight_pu);
-  tree->Branch("weight_sf", &weight_sf);
-  
+  tree->Branch("weight_sf", &weight_sf_map["Nominal"]);
+  tree->Branch("weight_btag", &weight_btag_map["Nominal"]);
+ 
+  // loose photon only in nominal
   tree->Branch("ph_loose_n", &ph_loose_n, "ph_loose_n/I");
   tree->Branch("ph_loose_eta", ph_loose_eta);
   tree->Branch("ph_loose_phi", ph_loose_phi);
@@ -222,14 +225,10 @@ StatusCode OutTree::initialize()
   tree->Branch("dphi_jetmet", &dphi_jetmet_map["Nominal"]);
   tree->Branch("dphi_gammet", &dphi_gammet_map["Nominal"]);
 
-  tree->Branch("mgj",   &mgj_map["Nominal"]);  
-  tree->Branch("mgjj",  &mgjj_map["Nominal"]);  
-  tree->Branch("mgjjj", &mgjjj_map["Nominal"]);
-
   std::string sys_name = "Nominal"; 
    
-  //  SFwei_map.insert (std::pair<std::string, float>(sys_name, 1.));
-  //bTagSF_map.insert (std::pair<std::string, float>(sys_name, 1.));
+  weight_sf_map.insert(std::pair<std::string, float>(sys_name, 1.));
+  weight_btag_map.insert(std::pair<std::string, float>(sys_name, 1.));
   
   ph_n_map.insert (std::pair<std::string, int>(sys_name, 0));
   ph_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_pt));
@@ -280,11 +279,7 @@ StatusCode OutTree::initialize()
   dphi_gamjet_map.insert(std::pair<std::string, float>(sys_name, 0.));
   dphi_gammet_map.insert(std::pair<std::string, float>(sys_name, 0.));
 
-  mgj_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  mgjj_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  mgjjj_map.insert(std::pair<std::string, float>(sys_name, 0.));
-   
-  //Here I have to initialize all the trees
+  // Systematics blocks
   for (const auto& sys : m_sysList) {
 
     if (sys.affectsKinematics || sys.affectsWeights ) {
@@ -335,12 +330,14 @@ StatusCode OutTree::initialize()
 
       TString tree_name = "mini_" + sys_name;
 
-      //Get ready to leak memory all over the place
+      // jets/btagging
       if (syst_affectsJets || syst_affectsBTag) {
+        
         if (sys.affectsWeights) {
           tree->Branch(BookName("jet_w", sys_name), jet_w);
         }
         else {
+          tree->Branch(BookName("jet_n", sys_name) , &jet_n_map[sys_name]);
           tree->Branch(BookName("jet_pt", sys_name) , jet_pt);
           tree->Branch(BookName("jet_eta", sys_name), jet_eta);
           tree->Branch(BookName("jet_phi", sys_name), jet_phi);
@@ -349,29 +346,27 @@ StatusCode OutTree::initialize()
         }
       }
      
+      // photons
       if (syst_affectsPhotons) {
         if (sys.affectsWeights) {
           tree->Branch(BookName("ph_w", sys_name), ph_w);
-          tree->Branch(BookName("ph_noniso_w", sys_name), ph_noniso_w);
         }
         else {
+          tree->Branch(BookName("ph_n", sys_name) , &ph_n_map[sys_name]);
           tree->Branch(BookName("ph_pt", sys_name) , ph_pt);
           tree->Branch(BookName("ph_eta", sys_name), ph_eta);
           tree->Branch(BookName("ph_phi", sys_name), ph_phi);
           tree->Branch(BookName("ph_iso", sys_name), ph_phi);
-
-          tree->Branch(BookName("ph_noniso_pt", sys_name) , ph_noniso_pt);
-          tree->Branch(BookName("ph_noniso_eta", sys_name), ph_noniso_eta);
-          tree->Branch(BookName("ph_noniso_phi", sys_name), ph_noniso_phi);
-          tree->Branch(BookName("ph_noniso_iso", sys_name), ph_noniso_phi);
 	  	}
       }
       
+      // electrons
       if (syst_affectsElectrons) {
         if (sys.affectsWeights) {
           tree->Branch(BookName("el_w", sys_name), el_w);
         }
         else {
+          tree->Branch(BookName("el_n", sys_name), &el_n_map[sys_name]);
           tree->Branch(BookName("el_pt", sys_name), el_pt);
           tree->Branch(BookName("el_eta", sys_name), el_eta);
           tree->Branch(BookName("el_phi", sys_name), el_phi);
@@ -379,11 +374,13 @@ StatusCode OutTree::initialize()
 	  	}
       }
 
+      // muons
       if (syst_affectsMuons) {
         if (sys.affectsWeights) {
           tree->Branch(BookName("mu_w", sys_name), mu_w);
         }
         else {
+          tree->Branch(BookName("mu_n", sys_name) , &mu_n_map[sys_name]);
           tree->Branch(BookName("mu_pt", sys_name) , mu_pt);
           tree->Branch(BookName("mu_eta", sys_name), mu_eta);
           tree->Branch(BookName("mu_phi", sys_name), mu_phi);
@@ -394,6 +391,16 @@ StatusCode OutTree::initialize()
       if (sys.affectsKinematics) {
         tree->Branch(BookName("met_et", sys_name), &met_et_map[sys_name]);
         tree->Branch(BookName("met_phi", sys_name), &met_phi_map[sys_name]);
+      
+        tree->Branch(BookName("ht", sys_name), &ht_map[sys_name]);
+        tree->Branch(BookName("meff", sys_name), &meff_map[sys_name]);
+        tree->Branch(BookName("rt2", sys_name), &rt2_map[sys_name]);
+        tree->Branch(BookName("rt4", sys_name), &rt4_map[sys_name]);
+      
+        tree->Branch(BookName("dphi_gamjet", sys_name), &dphi_gamjet_map[sys_name]);
+        tree->Branch(BookName("dphi_jetmet", sys_name), &dphi_jetmet_map[sys_name]);
+        tree->Branch(BookName("dphi_gammet", sys_name), &dphi_gammet_map[sys_name]);
+                    
       }
       
       // tree_map.insert(std::pair<std::string, TTree*>(sys_name, tree));
@@ -403,11 +410,11 @@ StatusCode OutTree::initialize()
       ph_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_iso));
       ph_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_w));
 
-      ph_noniso_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_pt));
-      ph_noniso_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_eta));
-      ph_noniso_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_phi));
-      ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
-      ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
+      // ph_noniso_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_pt));
+      // ph_noniso_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_eta));
+      // ph_noniso_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_phi));
+      // ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
+      // ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
 
       jet_pt_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_pt));
       jet_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_eta));
@@ -428,20 +435,27 @@ StatusCode OutTree::initialize()
       mu_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, mu_ch));
       mu_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_w));
 
-      met_et_map.insert(std::pair<std::string, float>(sys_name, 0.));
-      met_phi_map.insert(std::pair<std::string, float>(sys_name, 0.));
+      met_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+
+      ht_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      meff_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      rt2_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      rt4_map.insert(std::pair<std::string, float>(sys_name, -99.));
+
+      dphi_gamjet_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      dphi_jetmet_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      dphi_gammet_map.insert(std::pair<std::string, float>(sys_name, -99.));
+
     }
   }
 
   return StatusCode::SUCCESS;
 }
 
-bool OutTree::process(AnalysisCollections collections, std::string sysname) 
+bool MiniTree2::process(AnalysisCollections collections, std::string sysname) 
 {
-  const char *APP_NAME = "process()";
-  
   // Setting up a barebone output tree
-  //ph_n_map[sysname] = 0;
   ph_pt_map[sysname]->clear();
   ph_eta_map[sysname]->clear();
   ph_phi_map[sysname]->clear();
@@ -457,12 +471,14 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
     ph_truth_origin->clear();
   }
 
-  ph_noniso_pt_map[sysname]->clear();
-  ph_noniso_eta_map[sysname]->clear();
-  ph_noniso_phi_map[sysname]->clear();
-  ph_noniso_iso_map[sysname]->clear();
-  ph_noniso_w_map[sysname]->clear();
-  
+  if (sysname == "Nominal") {
+    ph_noniso_pt_map[sysname]->clear();
+    ph_noniso_eta_map[sysname]->clear();
+    ph_noniso_phi_map[sysname]->clear();
+    ph_noniso_iso_map[sysname]->clear();
+    ph_noniso_w_map[sysname]->clear();
+  }
+
   jet_pt_map[sysname]->clear();
   jet_eta_map[sysname]->clear();
   jet_phi_map[sysname]->clear();
@@ -483,7 +499,6 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   mu_w_map[sysname]->clear();
   
   // Setting up some basic filtering rule
-  event_number = collections.event_number;
   collections.photons->setStore(collections.photons_aux);
   collections.electrons->setStore(collections.electrons_aux);
   collections.muons->setStore(collections.muons_aux);
@@ -576,7 +591,8 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
     if (jet_itr->auxdata<char>("baseline") == 1  &&
         jet_itr->auxdata<char>("passOR") == 1 &&
         jet_itr->auxdata<char>("signal") == 1 &&
-        PassEtaCut(jet_itr) ) {
+        PassEtaCut(jet_itr, 2.5) && 
+        jet_itr->pt()>30000.) {
       
       jet_n++;
       jet_pt_map[sysname]->push_back(jet_itr->pt()*IGEV);
@@ -601,16 +617,11 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   int ph_n = 0;
   int ph_noniso_n = 0;
 
-  // const xAOD::TruthParticleContainer *truthP = 0;
-  // if (evtStore()->contains<xAOD::TruthParticleContainer>("TruthParticles")) {
-  //   ATH_CHECK( evtStore()->retrieve(truthP, "TruthParticles") );
-  // }
-
   for (const auto& ph_itr : *collections.photons) {
    
-    if (ph_itr->auxdata<char>("baseline") == 1  &&
-        ph_itr->auxdata<char>("signal") == 1  &&
-        ph_itr->auxdata<char>("passOR") == 1 &&
+    if (ph_itr->auxdata<char>("baseline") == 1 &&
+        ph_itr->auxdata<char>("signal")   == 1 &&
+        ph_itr->auxdata<char>("passOR")   == 1 &&
         PassEtaCut(ph_itr, 2.37) ) {
       
       float iso40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
@@ -623,11 +634,12 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
         ph_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_eta_map[sysname]->push_back(ph_itr->eta());
         ph_phi_map[sysname]->push_back(ph_itr->phi());
-        ph_w_map[sysname]->push_back(ph_itr->auxdata<double>("effscalefact") );
-
+        
         ph_iso_map[sysname]->push_back(iso);
 
-        total_weight_sf *= ph_itr->auxdata<double>("effscalefact");
+        double sf = ph_itr->auxdata<double>("effscalefact");
+        ph_w_map[sysname]->push_back(sf);
+        total_weight_sf *= sf;
         
         // truth info
         if (m_ismc) {
@@ -652,7 +664,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
         }
 
       }
-      else if (iso > 5.45 && iso < 29.45) {
+      else if (sysname == "Nominal" && iso > 5.45 && iso < 29.45) {
 
         ph_noniso_n += 1;
       
@@ -678,7 +690,7 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   
   xAOD::MissingETContainer::const_iterator met_it = collections.met->find("Final");
   if (met_it == collections.met->end()) {
-    Error(APP_NAME, "No RefFinal inside MET container");
+    Error("PhotonMetNtuple:MiniTree", "No RefFinal inside MET container");
   }
   else {
     etmiss_etx = (*met_it)->mpx() * IGEV;
@@ -721,90 +733,50 @@ bool OutTree::process(AnalysisCollections collections, std::string sysname)
   rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
   rt4_map[sysname] = sum_jet4_pt/sum_jet_pt;
   
-  // Delta phi between met and closest jet
+  // min dphi between met and the first two jets
   Double_t dphi1 = 4.;
   Double_t dphi2 = 4.;
   if (jet_n > 0) dphi1 = get_dphi((*jet_phi_map[sysname])[0], met.Phi());
   if (jet_n > 1) dphi2 = get_dphi((*jet_phi_map[sysname])[1], met.Phi());
   
   dphi_jetmet_map[sysname] = TMath::Min(dphi1, dphi2);
-  
-  // dphi beteen leading photon and leading jet
+
+  // dphi between leading photon and leading jet
   if (ph_n > 0 && jet_n > 0) 
     dphi_gamjet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*jet_phi_map[sysname])[0]);
   
-  // dphi beteen leading photon and MET
+  // dphi between leading photon and MET
   if (ph_n > 0)
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], met.Phi());
 
   // weigths
-  weight_mc = collections.weight_mc;
-  weight_pu = collections.weight_pu;
-  weight_sf = total_weight_sf;
+  //weight_mc = collections.weight_mc;
+  //weight_pu = collections.weight_pu;
+  weight_sf_map[sysname] = total_weight_sf;
 
-  avg_mu = collections.avg_mu;
   
-  // invariant masses
-  TLorentzVector total;
-  TLorentzVector gam;
-  TLorentzVector jet1;
-  TLorentzVector jet2;
-  TLorentzVector jet3;                                                                                                
-
-  mgj_map[sysname] = -999.;
-  mgjj_map[sysname] = -999.;
-  mgjjj_map[sysname] = -999.;
-
-  if (ph_n > 0 && jet_n > 0) {
-
-    gam.SetPtEtaPhiM((*ph_pt_map[sysname])[0], (*ph_eta_map[sysname])[0], (*ph_phi_map[sysname])[0], 0);
-
-    jet1.SetPtEtaPhiE((*jet_pt_map[sysname])[0], (*jet_eta_map[sysname])[0], (*jet_phi_map[sysname])[0], (*jet_e_map[sysname])[0]);
-
-    total = gam + jet1;
-    mgj_map[sysname] = total.M();
-
-    if (jet_n > 1) {
-
-      jet2.SetPtEtaPhiE((*jet_pt_map[sysname])[1], (*jet_eta_map[sysname])[1], (*jet_phi_map[sysname])[1], (*jet_e_map[sysname])[1]);
-
-      total = gam + jet1 + jet2;
-      mgjj_map[sysname] = total.M();
-
-      if (jet_n > 2) {
-
-        jet3.SetPtEtaPhiE((*jet_pt_map[sysname])[2], (*jet_eta_map[sysname])[2], (*jet_phi_map[sysname])[2], (*jet_e_map[sysname])[2]);
-
-        total = gam + jet1 + jet2 + jet3;
-        mgjjj_map[sysname] = total.M();
-      }
-    }
-  }
-
-  //Apply your custom filter here
-  // return true; 
+  // Skim: at least one loose photon with pt>75 or an electron
   int photons_loose = 0;
   for (const auto& ph_itr : *collections.photons) {
-      
     if (ph_itr->auxdata<char>("baseline") == 1  &&
         ph_itr->auxdata<char>("passOR") == 1  &&
         PassEtaCut(ph_itr, 2.37) &&
-        ph_itr->pt()*IGEV > 125) {
+        ph_itr->pt()*IGEV > 75) {
       photons_loose += 1;
     }
   }
-  return (photons_loose > 0);
-
+  return (photons_loose > 0 || el_n > 0);
+  //return true;
 }
 
 // Call after all the syst have been processed and ONLY IF one of them passed the event selection criteria
-StatusCode OutTree::FillTree()
+StatusCode MiniTree2::FillTree()
 {
   tree->Fill();
   return StatusCode::SUCCESS;
 }
 
-bool OutTree::PassEtaCut(const xAOD::IParticle *part, Double_t maxeta) 
+bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Double_t maxeta) 
 {
   Double_t eta = fabs(part->eta());
 

@@ -8,30 +8,135 @@ data = [
     'data15_13TeV.periodJ.physics_Main.PhysCont.DAOD_SUSY1.grp15_v01_p2425',
     ]
 
+data_runs = [
+    # periodD
+    'data15_13TeV.00276262.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276329.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276336.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276416.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276511.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276689.physics_Main.merge.DAOD_SUSY1.f623_m1480_p2425',
+    'data15_13TeV.00276778.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276790.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276952.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+    'data15_13TeV.00276954.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
+
+    # periodE
+    'data15_13TeV.00278880.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00278912.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00278968.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279169.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279259.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279279.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279284.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279345.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279515.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279598.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279685.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279764.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279813.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279867.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+    'data15_13TeV.00279928.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+
+    # periodF
+    'data15_13TeV.00279932.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00279984.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280231.physics_Main.merge.DAOD_SUSY1.f630_m1504_p2425',
+    'data15_13TeV.00280319.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280368.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+
+    # periodG
+    'data15_13TeV.00280423.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280464.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280500.physics_Main.merge.DAOD_SUSY1.f631_m1504_p2425',
+    'data15_13TeV.00280520.physics_Main.merge.DAOD_SUSY1.f632_m1504_p2425',
+    'data15_13TeV.00280614.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280673.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280753.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280853.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280862.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280950.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00280977.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00281070.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00281074.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00281075.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+
+    # periodH
+    'data15_13TeV.00281317.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00281385.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+    'data15_13TeV.00281411.physics_Main.merge.DAOD_SUSY1.f629_m1504_p2425',
+
+    # periodJ
+    'data15_13TeV.00282625.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    'data15_13TeV.00282631.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    'data15_13TeV.00282712.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    'data15_13TeV.00282784.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    'data15_13TeV.00282992.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    'data15_13TeV.00283074.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    'data15_13TeV.00283155.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    ## 'data15_13TeV.00283270.physics_Main.merge.DAOD_SUSY1.f640_m1511_p2425',
+    ## 'data15_13TeV.00283429.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    ## 'data15_13TeV.00283608.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    ## 'data15_13TeV.00283780.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    ## 'data15_13TeV.00284006.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    ## 'data15_13TeV.00284154.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    ## 'data15_13TeV.00284213.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    'data15_13TeV.00284285.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    'data15_13TeV.00284420.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    'data15_13TeV.00284427.physics_Main.merge.DAOD_SUSY1.f643_m1518_p2425',
+    'data15_13TeV.00284484.physics_Main.merge.DAOD_SUSY1.f644_m1518_p2425',
+    ]
+
 photonjet = [
-    'mc15_13TeV.361039.Sherpa_CT10_SinglePhotonPt35_70_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361040.Sherpa_CT10_SinglePhotonPt35_70_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361041.Sherpa_CT10_SinglePhotonPt35_70_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361042.Sherpa_CT10_SinglePhotonPt70_140_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361043.Sherpa_CT10_SinglePhotonPt70_140_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361044.Sherpa_CT10_SinglePhotonPt70_140_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361045.Sherpa_CT10_SinglePhotonPt140_280_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361046.Sherpa_CT10_SinglePhotonPt140_280_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361047.Sherpa_CT10_SinglePhotonPt140_280_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361039.Sherpa_CT10_SinglePhotonPt35_70_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361040.Sherpa_CT10_SinglePhotonPt35_70_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361041.Sherpa_CT10_SinglePhotonPt35_70_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361042.Sherpa_CT10_SinglePhotonPt70_140_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361043.Sherpa_CT10_SinglePhotonPt70_140_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361044.Sherpa_CT10_SinglePhotonPt70_140_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361045.Sherpa_CT10_SinglePhotonPt140_280_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361046.Sherpa_CT10_SinglePhotonPt140_280_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361047.Sherpa_CT10_SinglePhotonPt140_280_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
     'mc15_13TeV.361048.Sherpa_CT10_SinglePhotonPt280_500_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361049.Sherpa_CT10_SinglePhotonPt280_500_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361050.Sherpa_CT10_SinglePhotonPt280_500_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361051.Sherpa_CT10_SinglePhotonPt500_1000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361052.Sherpa_CT10_SinglePhotonPt500_1000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361053.Sherpa_CT10_SinglePhotonPt500_1000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361054.Sherpa_CT10_SinglePhotonPt1000_2000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361055.Sherpa_CT10_SinglePhotonPt1000_2000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361056.Sherpa_CT10_SinglePhotonPt1000_2000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361057.Sherpa_CT10_SinglePhotonPt2000_4000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361058.Sherpa_CT10_SinglePhotonPt2000_4000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361059.Sherpa_CT10_SinglePhotonPt2000_4000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361060.Sherpa_CT10_SinglePhotonPt4000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
-    'mc15_13TeV.361061.Sherpa_CT10_SinglePhotonPt4000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361049.Sherpa_CT10_SinglePhotonPt280_500_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361050.Sherpa_CT10_SinglePhotonPt280_500_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361051.Sherpa_CT10_SinglePhotonPt500_1000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361052.Sherpa_CT10_SinglePhotonPt500_1000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361053.Sherpa_CT10_SinglePhotonPt500_1000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361054.Sherpa_CT10_SinglePhotonPt1000_2000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361055.Sherpa_CT10_SinglePhotonPt1000_2000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361056.Sherpa_CT10_SinglePhotonPt1000_2000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361057.Sherpa_CT10_SinglePhotonPt2000_4000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361058.Sherpa_CT10_SinglePhotonPt2000_4000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361059.Sherpa_CT10_SinglePhotonPt2000_4000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361060.Sherpa_CT10_SinglePhotonPt4000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+    # 'mc15_13TeV.361061.Sherpa_CT10_SinglePhotonPt4000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7326_r6282_p2540',
+]
+
+photonjet_mc15a = [
+    'mc15_13TeV.361039.Sherpa_CT10_SinglePhotonPt35_70_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361040.Sherpa_CT10_SinglePhotonPt35_70_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361041.Sherpa_CT10_SinglePhotonPt35_70_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361042.Sherpa_CT10_SinglePhotonPt70_140_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361043.Sherpa_CT10_SinglePhotonPt70_140_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361044.Sherpa_CT10_SinglePhotonPt70_140_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361045.Sherpa_CT10_SinglePhotonPt140_280_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361046.Sherpa_CT10_SinglePhotonPt140_280_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361047.Sherpa_CT10_SinglePhotonPt140_280_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361048.Sherpa_CT10_SinglePhotonPt280_500_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361049.Sherpa_CT10_SinglePhotonPt280_500_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361050.Sherpa_CT10_SinglePhotonPt280_500_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361051.Sherpa_CT10_SinglePhotonPt500_1000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361052.Sherpa_CT10_SinglePhotonPt500_1000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361053.Sherpa_CT10_SinglePhotonPt500_1000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361054.Sherpa_CT10_SinglePhotonPt1000_2000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361055.Sherpa_CT10_SinglePhotonPt1000_2000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361056.Sherpa_CT10_SinglePhotonPt1000_2000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361057.Sherpa_CT10_SinglePhotonPt2000_4000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361058.Sherpa_CT10_SinglePhotonPt2000_4000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361059.Sherpa_CT10_SinglePhotonPt2000_4000_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361060.Sherpa_CT10_SinglePhotonPt4000_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
+    'mc15_13TeV.361061.Sherpa_CT10_SinglePhotonPt4000_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r6869_r6282_p2419',
 ]
 
 vgamma = [
@@ -360,6 +465,25 @@ signal = [
     # 'mc15_13TeV.373171.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1650.merge.AOD.e4349_a766_a777_r6282',
     # 'mc15_13TeV.373172.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1850.merge.AOD.e4349_a766_a777_r6282',
     ]
+
+signal_gg_truth = [
+
+]
+
+signal_ewk_truth = [
+    'mc15_13TeV.373162.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_150.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373163.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_200.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373164.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_250.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373165.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_450.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373166.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_650.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373167.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_850.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373168.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1050.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373169.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1250.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373170.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1450.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373171.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1650.merge.DAOD_TRUTH1.e4349_p2596',
+    # 'mc15_13TeV.373172.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1850.merge.DAOD_TRUTH1.e4349_p2596',
+]
+
 
 all_samples = photonjet + vgamma + wjets + zjets + ttbar + ttbarg + multijet
 
