@@ -7,13 +7,21 @@
 
 #define IGEV 0.001
 
-MiniTree2::MiniTree2(const std::string& name): asg::AsgMetadataTool( name )
+MiniTree2::MiniTree2(const std::string& name): 
+  asg::AsgMetadataTool(name)
 {
   declareProperty("SystematicList", m_sysList); //pass here the list of systematics
   declareProperty("OutFile", m_outfile); //here we should pass *file = wk()->getOutputFile ("output");
   declareProperty("IsMC", m_ismc);
 
   tree = 0;
+
+  event_number = 0;
+  avg_mu = 0;
+  final_state = 0;
+
+  weight_mc = 1.;
+  weight_pu = 1.;
 }
 
 MiniTree2::~MiniTree2()
@@ -153,6 +161,10 @@ StatusCode MiniTree2::initialize()
   // Nominal blocks
   tree->Branch("event_number", &event_number, "event_number/I");
   tree->Branch("avg_mu", &avg_mu, "avg_mu/I");
+
+  if (m_ismc) {
+    tree->Branch("fs", &final_state, "final_state/I");
+  }
 
   tree->Branch("weight_mc", &weight_mc);
   tree->Branch("weight_pu", &weight_pu);

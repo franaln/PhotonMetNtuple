@@ -66,6 +66,7 @@ class MiniTree2 : public asg::AsgMetadataTool {
 
   void SetEventNumber(int en) { event_number = en; };
   void SetAvgMu(int mu) { avg_mu = mu; };
+  void SetMCFinalState(unsigned int fs) { final_state = fs; };
   
   void SetWeightMC(int w) { weight_mc = w; };
   void SetWeightPU(int w) { weight_pu = w; };
@@ -181,11 +182,12 @@ protected:
 
   int event_number;
   int avg_mu;
+  unsigned int final_state;
+
   float weight_mc;
   float weight_pu;
   float weight_sf;
   float weight_btag;
-
 };
 
 #endif

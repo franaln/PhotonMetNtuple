@@ -58,7 +58,11 @@ bool ptsorter( const xAOD::IParticle* j1, const xAOD::IParticle* j2 ) {
 
 xAODAnalysis::xAODAnalysis() : 
   my_XsecDB(0), m_grl(0), objTool(0),
-  isData(false), isAtlfast(false), doSyst(false)
+  is_data(false), 
+  is_atlfast(false), 
+  is_susy(false),
+  is_susy_ewk(false),
+  do_syst(false)
 {
   // Here you put any code for the base initialization of variables,
   // e.g. initialize all pointers to 0.  Note that you should only put
@@ -153,7 +157,7 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
   Double_t m_initial_sumw = 0.;
   Double_t m_initial_sumw2 = 0.;
 
-  if (!isData) {
+  if (!is_data) {
 
     if (is_derivation) {
     
@@ -218,7 +222,7 @@ EL::StatusCode xAODAnalysis::initialize()
 
   // ST Options
 
-  ST::ISUSYObjDef_xAODTool::DataSource datasource = (isData ? ST::ISUSYObjDef_xAODTool::Data : (isAtlfast ? ST::ISUSYObjDef_xAODTool::AtlfastII : ST::ISUSYObjDef_xAODTool::FullSim));
+  ST::ISUSYObjDef_xAODTool::DataSource datasource = (is_data ? ST::ISUSYObjDef_xAODTool::Data : (is_atlfast ? ST::ISUSYObjDef_xAODTool::AtlfastII : ST::ISUSYObjDef_xAODTool::FullSim));
 
   objTool = new ST::SUSYObjDef_xAOD("SUSYObjDef_xAOD");
   objTool->msg().setLevel(MSG::FATAL);
@@ -268,17 +272,16 @@ EL::StatusCode xAODAnalysis::initialize()
 
 
   // Now we can look at systematics:    
-  //  doSyst = false;
-  if (!doSyst) {
+  if (do_syst) {
+    systInfoList = objTool->getSystInfoList();
+  }
+  else {
     ST::SystInfo infodef;
     infodef.affectsKinematics = false;
     infodef.affectsWeights = false;
     infodef.affectsType = ST::Unknown;
     systInfoList.push_back(infodef);
   } 
-  else {
-    systInfoList = objTool->getSystInfoList();
-  }
 
   TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
   
@@ -287,12 +290,10 @@ EL::StatusCode xAODAnalysis::initialize()
   //Here you can select a subsect of the systematic uncertainties
   CHECK(outtree->setProperty("SystematicList", systInfoList));
   CHECK(outtree->setProperty("OutFile", out_dir));
-  CHECK(outtree->setProperty("IsMC", !isData));
+  CHECK(outtree->setProperty("IsMC", !is_data));
   CHECK(outtree->initialize());
 
-
   mc_filter = new MCFilter;
-
 
   return EL::StatusCode::SUCCESS;
 }
@@ -314,16 +315,15 @@ EL::StatusCode xAODAnalysis :: execute ()
     Error(APP_NAME, "Failed to retrieve event info collection. Exiting." );
     return EL::StatusCode::FAILURE;
   }
-
+  
   outtree->SetEventNumber(eventInfo->eventNumber());
   //outtree->run_number   = eventInfo->runNumber();
   outtree->SetAvgMu(eventInfo->averageInteractionsPerCrossing());
 
   // check if the event is data or MC
-  bool is_mc = false;
-  if (eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION)) {
-    is_mc = true;
-
+  bool is_mc = !is_data; //eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION)) {
+  if (is_mc) {
+    
     outtree->SetWeightMC(eventInfo->mcEventWeight());
 
     //CHECK(objTool->ApplyPRWTool());  
@@ -343,7 +343,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   //--------------------
   h_cutflow->Fill(1);
 
-  if (!is_mc && !m_grl->passRunLB(*eventInfo)) {
+  if (is_data && !m_grl->passRunLB(*eventInfo)) {
     return EL::StatusCode::SUCCESS; // go to next event
   }
   if (is_mc && !mc_filter->accept_event(eventInfo->mcChannelNumber(), *m_event)) {
@@ -351,7 +351,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   }
   h_cutflow->Fill(2);
 
-  if (!is_mc &&
+  if (is_data &&
       ((eventInfo->errorState(xAOD::EventInfo::LAr) == xAOD::EventInfo::Error) ||
        (eventInfo->errorState(xAOD::EventInfo::Tile) == xAOD::EventInfo::Error) ||
        (eventInfo->isEventFlagBitSet(xAOD::EventInfo::Core, 18)))) {
@@ -515,14 +515,14 @@ EL::StatusCode xAODAnalysis :: execute ()
         met_aux = met_syst_aux;
         
         for (const auto& el : *electrons) {
-          if (!isData && el->auxdata<char>("baseline") == 1 &&
+          if (is_mc && el->auxdata<char>("baseline") == 1 &&
               el->auxdata<char>("passOR") == 1 &&
               el->auxdata<char>("signal") == 1)
             objTool->GetSignalElecSF(*el);
         }
 
         for (const auto& ph : *photons) {
-          if (!isData && ph->auxdata<char>("baseline") == 1 &&
+          if (is_mc && ph->auxdata<char>("baseline") == 1 &&
               ph->auxdata<char>("passOR") == 1 &&
               ph->auxdata<char>("signal") == 1)
             objTool->GetSignalPhotonSF(*ph);
@@ -530,7 +530,7 @@ EL::StatusCode xAODAnalysis :: execute ()
         
         bool skip = false;
         for (const auto& mu : *muons) {
-          if (!isData && mu->auxdata<char>("baseline") == 1 &&
+          if (is_mc && mu->auxdata<char>("baseline") == 1 &&
               mu->auxdata<char>("passOR") == 1 && 
               mu->auxdata<char>("signal") == 1)
             objTool->GetSignalMuonSF(*mu);
@@ -545,8 +545,10 @@ EL::StatusCode xAODAnalysis :: execute ()
           }
         }
         
-        outtree->SetWeightBtag(sys.name().c_str(), objTool->BtagSF(jets));
-        
+        if (is_mc) {
+          outtree->SetWeightBtag(sys.name().c_str(), objTool->BtagSF(jets));
+        }
+
         if (!skip) {
           AnalysisCollections collections;
 
@@ -587,18 +589,20 @@ EL::StatusCode xAODAnalysis :: execute ()
     }
   } //end loop over systematics affecting kinematics or weights
 
+
   //-------------------------
   // NOMINAL TREE PROCESSING
   //-------------------------
-
+  
+  // Overlap removal
   CHECK(objTool->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
-
+  
   // MET
   CHECK(objTool->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   
   // electrons
   for (const auto& el : *electrons_nominal) {
-    if (!isData && el->auxdata<char>("baseline") == 1 &&
+    if (is_mc && el->auxdata<char>("baseline") == 1 &&
         el->auxdata<char>("passOR") == 1 &&
         el->auxdata<char>("signal") == 1)
       objTool->GetSignalElecSF(*el);
@@ -606,7 +610,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   
   // photons
   for (const auto& ph : *photons_nominal) {
-    if (!isData && ph->auxdata<char>("baseline") == 1 &&
+    if (is_mc && ph->auxdata<char>("baseline") == 1 &&
         ph->auxdata<char>("passOR") == 1 && 
         ph->auxdata<char>("signal") == 1)
       objTool->GetSignalPhotonSF(*ph);
@@ -615,7 +619,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   bool skip = false;
   // muons
   for (const auto& mu : *muons_nominal) {
-    if (!isData && mu->auxdata<char>("baseline") == 1 &&
+    if (is_mc && mu->auxdata<char>("baseline") == 1 &&
         mu->auxdata<char>("passOR") == 1 && 
         mu->auxdata<char>("signal") == 1)
       objTool->GetSignalMuonSF(*mu);
@@ -623,7 +627,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   if (!skip)
     h_cutflow->Fill(6);
 
-  // jets
+  // Badj jet veto
   for (const auto& jet : *jets_nominal) {  
     if (jet->auxdata<char>("baseline") == 1 &&
         jet->auxdata<char>("passOR") == 1 &&
@@ -633,8 +637,26 @@ EL::StatusCode xAODAnalysis :: execute ()
     }
   }
   
-  outtree->SetWeightBtag("Nominal", objTool->BtagSF(jets_nominal));
+  if (is_mc)
+    outtree->SetWeightBtag("Nominal", objTool->BtagSF(jets_nominal));
+
+
+  // MC final state
+  if (is_mc && is_susy_ewk) {
+    
+    const xAOD::TruthParticleContainer* truth_particles = 0;
+    if(!m_event->retrieve(truth_particles, "TruthParticles").isSuccess()) {
+      Error(APP_NAME, "Failed to retrieve truth particles collection. Exiting." );
+      return EL::StatusCode::FAILURE;
+    }
   
+    int pdg1, pdg2;
+    objTool->FindSusyHardProc(truth_particles, pdg1, pdg2);
+
+    outtree->SetMCFinalState(SUSY::finalState(pdg1, pdg2));
+  }
+
+
   if (!skip) {
     h_cutflow->Fill(7);
 
@@ -659,19 +681,6 @@ EL::StatusCode xAODAnalysis :: execute ()
   }
 
   
-  const xAOD::TruthParticleContainer* truth_particles = 0;
-  if(!m_event->retrieve(truth_particles, "TruthParticles").isSuccess()) {
-    Error(APP_NAME, "Failed to retrieve truth particles collection. Exiting." );
-    return EL::StatusCode::FAILURE;
-  }
-
-  
-  // For ewk grid, we need to compute lumi weight event by event
-  // if (ewk_grid) {
-  //   int pdg1, pdg2;
-  //   objTool->FindSusyHardProc(truth_particles, pdg1, pdg2);
-  // }
-  // std::cout << pdg1 << pdg2 << std::endl;
 
   delete jets_nominal;
   delete jets_nominal_aux;

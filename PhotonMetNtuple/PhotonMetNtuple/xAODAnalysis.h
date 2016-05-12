@@ -70,9 +70,11 @@ private:
   // that way they can be set directly from CINT and python.
 public:
 
-  bool isData;
-  bool isAtlfast;
-  bool doSyst;
+  bool is_data;
+  bool is_atlfast;
+  bool is_susy;
+  bool is_susy_ewk;
+  bool do_syst;
 
   //  std::vector<CP::SystematicSet> sysList; //!
 
