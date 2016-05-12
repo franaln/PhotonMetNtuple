@@ -48,15 +48,22 @@ def run_job(sample, driver):
     if job_name == 'xAODAnalysis':
         alg = ROOT.xAODAnalysis()
 
-        is_data    = ('data' in sample)
-        is_atlfast = ('_GGM_' in sample)
-
-        print 'data:   ', is_data
-        print 'atlfast:', is_atlfast
+        is_data     = sample.startswith('data')
+        is_susy     = ('_GGM_' in sample)
+        is_susy_ewk = ('_GGM_mu_' in sample)
+        is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
+        
+        print 'CONFIG: data =', is_data
+        print 'CONFIG: susy =', is_susy
+        print 'CONFIG: susy ewk =', is_susy_ewk
+        print 'CONFIG: atlfast =', is_atlfast
+        print 'CONFIG: dosyst =', args.dosyst
     
-        alg.isData = is_data
-        alg.isAtlfast = is_atlfast
-        alg.doSyst = args.dosyst
+        alg.is_data = is_data
+        alg.is_susy = is_susy
+        alg.is_susy_ewk = is_susy_ewk
+        alg.is_atlfast = is_atlfast
+        alg.do_syst = args.dosyst
 
     elif job_name == 'xAODCountEwkProcesses':
         alg = ROOT.xAODCountEwkProcesses()
@@ -112,8 +119,6 @@ def main():
     parser.add_argument("--nevents", type=int, help="number of events to process for all the datasets")
     # parser.add_argument("--skip-events", type=int, help="skip the first n events")
 
-    # parser.add_argument("--isdata", action='store_true')
-    # parser.add_argument("--isatlfast", action='store_true')
     parser.add_argument("--dosyst", action='store_true', help="Create Trees with systemtic variations")
     
     parser.add_argument("--testdata", action='store_true')
@@ -208,15 +213,15 @@ def main():
     # Test code
     elif args.testmc:
         args.output = 'output_mc'
-        run_job('/raid/falonso/SUSY1/mc_gamjet', 'local')
+        run_job('/ar/pcunlp001/raid/falonso/SUSY1/mc_gamjet', 'local')
         
     elif args.testdata:
         args.output = 'output_data'
-        run_job('/raid/falonso/SUSY1/data', 'local')
+        run_job('/ar/pcunlp001/raid/falonso/SUSY1/data', 'local')
 
     elif args.testsig:
         args.output = 'output_signal'
-        run_job('/raid/falonso/signal', 'local')
+        run_job('/ar/pcunlp001/raid/falonso/SUSY1/mc15_13TeV.373061.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1100_450.merge.AOD.e4349_a766_a777_r6282', 'local')
 
     elif args.test is not None:
         args.output = 'output_test'
