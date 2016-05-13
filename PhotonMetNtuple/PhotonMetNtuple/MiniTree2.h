@@ -20,15 +20,6 @@
 
 struct AnalysisCollections {
 
-  // Int_t event_number;
-  // Int_t avg_mu;
-
-  // Double_t weight_pu;
-  // Float_t weight_mc;
-  // Float_t weight_btag;
-  //   Float_t cross_section;
-  // Float_t primvx_z;
-
   // Containers
   xAOD::PhotonContainer* photons;
   xAOD::ElectronContainer* electrons;
