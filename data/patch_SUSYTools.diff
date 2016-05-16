@@ -1,0 +1,25 @@
+Index: Root/SUSYObjDef_xAOD.cxx
+===================================================================
+--- Root/SUSYObjDef_xAOD.cxx	(revision 745486)
++++ Root/SUSYObjDef_xAOD.cxx	(working copy)
+@@ -419,6 +419,7 @@
+ 
+   // Greet the user:
+   ATH_MSG_INFO( "Initialising... " );
++  ATH_MSG_INFO( "** ST modified to don't apply isolation requiremente in IsSignalPhoton " );
+ 
+   bool autoconf(false);
+ #ifndef XAOD_STANDALONE // For now metadata is Athena-only
+@@ -2368,9 +2369,9 @@
+ 
+   if ( input.pt() < ptcut ) return false;
+ 
+-  if (dec_isol(input) || !m_doIsoSignal) {
+-    ATH_MSG_VERBOSE( "IsSignalPhoton: passed isolation");
+-  } else return false;
++  // if (dec_isol(input) || !m_doIsoSignal) {
++  //   ATH_MSG_VERBOSE( "IsSignalPhoton: passed isolation");
++  // } else return false;
+ 
+   if (!m_photonSelIsEM->accept(&input) ) return false;
+ 

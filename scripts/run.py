@@ -48,7 +48,7 @@ def run_job(sample, driver):
     if job_name == 'xAODAnalysis':
         alg = ROOT.xAODAnalysis()
 
-        is_data     = sample.startswith('data')
+        is_data     = ('data15' in sample)
         is_susy     = ('_GGM_' in sample)
         is_susy_ewk = ('_GGM_mu_' in sample)
         is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
