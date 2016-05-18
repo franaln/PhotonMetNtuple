@@ -107,12 +107,12 @@ TString MiniTree2::BookName(TString branch, TString sys_name)
 StatusCode MiniTree2::initialize() 
 {
   //Init the nominal tree
-  ph_loose_pt = new std::vector<float>(); 
-  ph_loose_eta = new std::vector<float>();
-  ph_loose_phi = new std::vector<float>();
-  ph_loose_isem = new std::vector<unsigned int>();
-  ph_loose_iso20 = new std::vector<float>();
-  ph_loose_iso40 = new std::vector<float>();
+  // ph_loose_pt = new std::vector<float>(); 
+  // ph_loose_eta = new std::vector<float>();
+  // ph_loose_phi = new std::vector<float>();
+  // ph_loose_isem = new std::vector<unsigned int>();
+  // ph_loose_iso20 = new std::vector<float>();
+  // ph_loose_iso40 = new std::vector<float>();
 
   ph_pt = new std::vector<float>(); 
   ph_eta = new std::vector<float>();
@@ -172,12 +172,12 @@ StatusCode MiniTree2::initialize()
   tree->Branch("weight_btag", &weight_btag_map["Nominal"]);
  
   // loose photon only in nominal
-  tree->Branch("ph_loose_n", &ph_loose_n, "ph_loose_n/I");
-  tree->Branch("ph_loose_eta", ph_loose_eta);
-  tree->Branch("ph_loose_phi", ph_loose_phi);
-  tree->Branch("ph_loose_pt",  ph_loose_pt);
-  tree->Branch("ph_loose_iso20",  ph_loose_iso20);
-  tree->Branch("ph_loose_iso40",  ph_loose_iso40);
+  // tree->Branch("ph_loose_n", &ph_loose_n, "ph_loose_n/I");
+  // tree->Branch("ph_loose_eta", ph_loose_eta);
+  // tree->Branch("ph_loose_phi", ph_loose_phi);
+  // tree->Branch("ph_loose_pt",  ph_loose_pt);
+  // tree->Branch("ph_loose_iso20",  ph_loose_iso20);
+  // tree->Branch("ph_loose_iso40",  ph_loose_iso40);
 
   tree->Branch("ph_n", &ph_n_map["Nominal"], "ph_n/I");
   tree->Branch("ph_pt",  ph_pt);
@@ -362,14 +362,22 @@ StatusCode MiniTree2::initialize()
       if (syst_affectsPhotons) {
         if (sys.affectsWeights) {
           tree->Branch(BookName("ph_w", sys_name), ph_w);
+          tree->Branch(BookName("ph_noniso_w", sys_name), ph_noniso_w);
         }
         else {
           tree->Branch(BookName("ph_n", sys_name) , &ph_n_map[sys_name]);
           tree->Branch(BookName("ph_pt", sys_name) , ph_pt);
           tree->Branch(BookName("ph_eta", sys_name), ph_eta);
           tree->Branch(BookName("ph_phi", sys_name), ph_phi);
-          tree->Branch(BookName("ph_iso", sys_name), ph_phi);
+          tree->Branch(BookName("ph_iso", sys_name), ph_iso);
+
+          tree->Branch(BookName("ph_noniso_n", sys_name) , &ph_noniso_n_map[sys_name]);
+          tree->Branch(BookName("ph_noniso_pt", sys_name) , ph_noniso_pt);
+          tree->Branch(BookName("ph_noniso_eta", sys_name), ph_noniso_eta);
+          tree->Branch(BookName("ph_noniso_phi", sys_name), ph_noniso_phi);
+          tree->Branch(BookName("ph_noniso_iso", sys_name), ph_noniso_iso);
 	  	}
+
       }
       
       // electrons
@@ -412,7 +420,6 @@ StatusCode MiniTree2::initialize()
         tree->Branch(BookName("dphi_gamjet", sys_name), &dphi_gamjet_map[sys_name]);
         tree->Branch(BookName("dphi_jetmet", sys_name), &dphi_jetmet_map[sys_name]);
         tree->Branch(BookName("dphi_gammet", sys_name), &dphi_gammet_map[sys_name]);
-                    
       }
       
       // tree_map.insert(std::pair<std::string, TTree*>(sys_name, tree));
@@ -422,11 +429,11 @@ StatusCode MiniTree2::initialize()
       ph_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_iso));
       ph_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_w));
 
-      // ph_noniso_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_pt));
-      // ph_noniso_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_eta));
-      // ph_noniso_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_phi));
-      // ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
-      // ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
+      ph_noniso_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_pt));
+      ph_noniso_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_eta));
+      ph_noniso_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_phi));
+      ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
+      ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
 
       jet_pt_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_pt));
       jet_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, jet_eta));
@@ -483,14 +490,12 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     ph_truth_origin->clear();
   }
 
-  if (sysname == "Nominal") {
-    ph_noniso_pt_map[sysname]->clear();
-    ph_noniso_eta_map[sysname]->clear();
-    ph_noniso_phi_map[sysname]->clear();
-    ph_noniso_iso_map[sysname]->clear();
-    ph_noniso_w_map[sysname]->clear();
-  }
-
+  ph_noniso_pt_map[sysname]->clear();
+  ph_noniso_eta_map[sysname]->clear();
+  ph_noniso_phi_map[sysname]->clear();
+  ph_noniso_iso_map[sysname]->clear();
+  ph_noniso_w_map[sysname]->clear();
+  
   jet_pt_map[sysname]->clear();
   jet_eta_map[sysname]->clear();
   jet_phi_map[sysname]->clear();
@@ -517,40 +522,6 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
   collections.jets->setStore(collections.jets_aux);
   collections.met->setStore(collections.met_aux);
 
-  // all loose photons
-  if (sysname == "Nominal") {
-
-    ph_loose_pt->clear();
-    ph_loose_eta->clear();
-    ph_loose_phi->clear();
-    ph_loose_iso20->clear();
-    ph_loose_iso40->clear();
-
-    int loose_photons = 0;
-    for (const auto& ph_itr : *collections.photons) {
-      
-      if (ph_itr->auxdata<char>("baseline") == 1  &&
-          ph_itr->auxdata<char>("passOR") == 1  &&
-          PassEtaCut(ph_itr, 2.37)) {
-        
-        loose_photons += 1;
-        
-        ph_loose_pt->push_back(ph_itr->pt()*IGEV);
-        ph_loose_eta->push_back(ph_itr->eta());
-        ph_loose_phi->push_back(ph_itr->phi());
-        
-        ph_loose_iso20->push_back(ph_itr->isolationValue(xAOD::Iso::topoetcone20)*IGEV);
-        ph_loose_iso40->push_back(ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV);
-
-        // bool is_signal = ph_itr->auxdata<char>("signal") && (ph_itr->pt() > 125000.) && (ph_itr->eta() < 2.37);
-        //       // ph_loose_signal->push_back(is_signal);
-
-        //       // unsigned int m_isem = ph_itr->selectionisEM(xAOD::EgammaParameters::SelectionisEM::isEMTight);
-        //       // std::cout << m_isem << std::endl;
-      }
-    }
-    ph_loose_n = loose_photons;
-  }
 
   Double_t total_weight_sf = 1.;
 
@@ -561,7 +532,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     if (el_itr->auxdata<char>("baseline") == 1 &&
         el_itr->auxdata<char>("passOR") == 1 &&
         el_itr->auxdata<char>("signal") == 1 && 
-        PassEtaCut(el_itr)) {
+        PassEtaCut(el_itr, true)) {
       
       el_n += 1;
       el_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
@@ -603,7 +574,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     if (jet_itr->auxdata<char>("baseline") == 1  &&
         jet_itr->auxdata<char>("passOR") == 1 &&
         jet_itr->auxdata<char>("signal") == 1 &&
-        PassEtaCut(jet_itr, 2.5) && 
+        PassEtaCut(jet_itr, false, 2.5) && 
         jet_itr->pt()>30000.) {
       
       jet_n++;
@@ -634,19 +605,19 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     if (ph_itr->auxdata<char>("baseline") == 1 &&
         ph_itr->auxdata<char>("signal")   == 1 &&
         ph_itr->auxdata<char>("passOR")   == 1 &&
-        PassEtaCut(ph_itr, 2.37) ) {
+        PassEtaCut(ph_itr, true, 2.37)) {
       
+      // separate iso and noniso photons
       float iso40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
       float iso = iso40 - 0.022 * ph_itr->pt()*IGEV;
 
+      // isolated
       if (iso < 2.45) {
 
         ph_n += 1;
-      
         ph_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_eta_map[sysname]->push_back(ph_itr->eta());
         ph_phi_map[sysname]->push_back(ph_itr->phi());
-        
         ph_iso_map[sysname]->push_back(iso);
 
         double sf = ph_itr->auxdata<double>("effscalefact");
@@ -672,22 +643,19 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
 
           ph_truth_type->push_back(xAOD::TruthHelpers::getParticleTruthType(*ph_itr));
           ph_truth_origin->push_back(xAOD::TruthHelpers::getParticleTruthOrigin(*ph_itr));
-
         }
-
       }
-      else if (sysname == "Nominal" && iso > 5.45 && iso < 29.45) {
+      // noniso photons
+      else if (iso > 5.45 && iso < 29.45) {
 
         ph_noniso_n += 1;
       
         ph_noniso_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_noniso_eta_map[sysname]->push_back(ph_itr->eta());
         ph_noniso_phi_map[sysname]->push_back(ph_itr->phi());
-        ph_noniso_w_map[sysname]->push_back(ph_itr->auxdata<double>("effscalefact") );
-
-        total_weight_sf *= ph_itr->auxdata<double>("effscalefact");
-        
         ph_noniso_iso_map[sysname]->push_back(iso);
+
+        ph_noniso_w_map[sysname]->push_back(ph_itr->auxdata<double>("effscalefact"));
       }
 
     }
@@ -767,17 +735,17 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
   weight_sf_map[sysname] = total_weight_sf;
 
   
-  // Skim: at least one loose photon with pt>75 or an electron
-  int photons_loose = 0;
+  // Skim: at least one baseline photon with pt>75 or an electron
+  int photons_baseline = 0;
   for (const auto& ph_itr : *collections.photons) {
     if (ph_itr->auxdata<char>("baseline") == 1  &&
         ph_itr->auxdata<char>("passOR") == 1  &&
         PassEtaCut(ph_itr, 2.37) &&
         ph_itr->pt()*IGEV > 75) {
-      photons_loose += 1;
+      photons_baseline += 1;
     }
   }
-  return (photons_loose > 0 || el_n > 0);
+  return (photons_baseline > 0 || el_n > 0);
   //return true;
 }
 
@@ -788,14 +756,30 @@ StatusCode MiniTree2::FillTree()
   return StatusCode::SUCCESS;
 }
 
-bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Double_t maxeta) 
+bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, Double_t maxeta)
 {
   Double_t eta = fabs(part->eta());
 
   if (eta > maxeta)
     return false;
 
-  if (eta >= 1.37 && eta < 1.52)
+  if (apply_crack_cut && eta >= 1.37 && eta < 1.52)
+    return false;
+
+  return true;
+}
+
+bool MiniTree2::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Double_t maxeta) 
+{
+  // Double_t eta = fabs(part->eta());
+
+  //if (use_etas2)
+  Double_t eta = fabs(part->caloCluster()->etaBE(2));
+
+  if (eta > maxeta)
+    return false;
+
+  if (apply_crack_cut && eta >= 1.37 && eta < 1.52)
     return false;
 
   return true;

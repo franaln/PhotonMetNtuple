@@ -53,7 +53,9 @@ class MiniTree2 : public asg::AsgMetadataTool {
   StatusCode FillTree();
   TString BookName(TString branch, TString sys_name);
 
-  bool PassEtaCut(const xAOD::IParticle *part, Double_t maxeta=99.);
+  bool PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut=false, Double_t maxeta=99.);
+  bool PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut=false, Double_t maxeta=99.);
+
 
   void SetEventNumber(int en) { event_number = en; };
   void SetAvgMu(int mu) { avg_mu = mu; };
