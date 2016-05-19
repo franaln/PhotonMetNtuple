@@ -649,15 +649,15 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
       else if (iso > 5.45 && iso < 29.45) {
 
         ph_noniso_n += 1;
-      
+
         ph_noniso_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_noniso_eta_map[sysname]->push_back(ph_itr->eta());
         ph_noniso_phi_map[sysname]->push_back(ph_itr->phi());
         ph_noniso_iso_map[sysname]->push_back(iso);
-
+        
         ph_noniso_w_map[sysname]->push_back(ph_itr->auxdata<double>("effscalefact"));
       }
-
+      
     }
   }
   ph_n_map[sysname] = ph_n;

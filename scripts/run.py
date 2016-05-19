@@ -178,15 +178,16 @@ def main():
         grl = '/afs/cern.ch/user/a/atlasdqm/grlgen/All_Good/data15_13TeV.periodAllYear_DetStatus-v73-pro19-08_DQDefects-00-01-02_PHYS_StandardGRL_All_Good_25ns.xml'
 
         pu_files = [
-            'ilumicalc_histograms_None_276262-282712.root',
-            'signal_prw.root',
-            'signal_ewk_prw.root',
-            'merged_prw.root',
-            'ttgam_prw.root',
+            # 'ilumicalc_histograms_None_276262-282712.root',
+            # 'signal_prw.root',
+            # 'signal_ewk_prw.root',
+            # 'merged_prw.root',
+            # 'ttgam_prw.root',
             'SUSYTools_Default.conf',
             ]
 
         direc = os.environ["ROOTCOREBIN"] + "/data/PhotonMetNtuple/"
+        os.system('mkdir -p %s' % direc)
         newname = direc + "grl.xml"
         shutil.copy2(grl, newname)
 

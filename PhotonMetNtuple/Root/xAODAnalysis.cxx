@@ -506,9 +506,7 @@ EL::StatusCode xAODAnalysis :: execute ()
         xAOD::MissingETAuxContainer* met_syst_aux = new xAOD::MissingETAuxContainer;
         met_syst->setStore(met_syst_aux);
 
-
-        // CHECK(objTool->GetMET(*met_syst, jets, electrons, muons));
-        // CHECK(objTool->GetMET(*met_syst, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
+        // MET
         CHECK(objTool->GetMET(*met_syst, jets, electrons, muons, photons));
         
         met = met_syst;
@@ -525,7 +523,7 @@ EL::StatusCode xAODAnalysis :: execute ()
           if (is_mc && ph->auxdata<char>("baseline") == 1 &&
               ph->auxdata<char>("passOR") == 1 &&
               ph->auxdata<char>("signal") == 1)
-            objTool->GetSignalPhotonSF(*ph);
+            objTool->GetSignalPhotonSF(*ph, true, false);
         }
         
         bool skip = false;
@@ -613,7 +611,7 @@ EL::StatusCode xAODAnalysis :: execute ()
     if (is_mc && ph->auxdata<char>("baseline") == 1 &&
         ph->auxdata<char>("passOR") == 1 && 
         ph->auxdata<char>("signal") == 1)
-      objTool->GetSignalPhotonSF(*ph);
+      objTool->GetSignalPhotonSF(*ph, true, false);
   }
   
   bool skip = false;
@@ -679,8 +677,6 @@ EL::StatusCode xAODAnalysis :: execute ()
     h_cutflow->Fill(8);
     CHECK(outtree->FillTree());
   }
-
-  
 
   delete jets_nominal;
   delete jets_nominal_aux;
