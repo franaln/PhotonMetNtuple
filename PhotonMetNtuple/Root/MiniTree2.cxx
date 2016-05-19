@@ -342,6 +342,11 @@ StatusCode MiniTree2::initialize()
 
       TString tree_name = "mini_" + sys_name;
 
+      // total sf weight
+      if (sys.affectsWeights) {
+        tree->Branch(BookName("weight_sf", sys_name), &weight_sf_map[sys_name]);
+      }
+
       // jets/btagging
       if (syst_affectsJets || syst_affectsBTag) {
         
@@ -350,6 +355,7 @@ StatusCode MiniTree2::initialize()
         }
         else {
           tree->Branch(BookName("jet_n", sys_name) , &jet_n_map[sys_name]);
+          tree->Branch(BookName("bjet_n", sys_name) , &bjet_n_map[sys_name]);
           tree->Branch(BookName("jet_pt", sys_name) , jet_pt);
           tree->Branch(BookName("jet_eta", sys_name), jet_eta);
           tree->Branch(BookName("jet_phi", sys_name), jet_phi);
@@ -466,6 +472,7 @@ StatusCode MiniTree2::initialize()
       dphi_jetmet_map.insert(std::pair<std::string, float>(sys_name, -99.));
       dphi_gammet_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
+      weight_sf_map.insert(std::pair<std::string, float>(sys_name, 1.));
     }
   }
 
@@ -622,6 +629,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
 
         double sf = ph_itr->auxdata<double>("effscalefact");
         ph_w_map[sysname]->push_back(sf);
+
         total_weight_sf *= sf;
         
         // truth info
@@ -677,6 +685,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     etmiss_ety = (*met_it)->mpy() * IGEV;
     etmiss_et = sqrt(etmiss_etx*etmiss_etx + etmiss_ety*etmiss_ety);
   }
+
   
   TLorentzVector met(etmiss_etx, etmiss_ety, 0., etmiss_et);
   met_et_map[sysname] = met.Perp();
@@ -730,8 +739,6 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], met.Phi());
 
   // weigths
-  //weight_mc = collections.weight_mc;
-  //weight_pu = collections.weight_pu;
   weight_sf_map[sysname] = total_weight_sf;
 
   
