@@ -88,7 +88,7 @@ def run_job(sample, driver):
         #     outname = 'user.' + os.environ['USER'] + '.' + short_name + '.ewk_v' + args.version
 
         driver.options().setString('nc_outputSampleName', outname)
-        driver.options().setString(ROOT.EL.Job.optGridExcludedSite, 'CA ANALY_TRIUMF,US ANALY_HU_ATLAS_Tier2,CA ANALY_SFU,FR ANALY_GRIF-IRFU')
+        driver.options().setString(ROOT.EL.Job.optGridExcludedSite, 'CA ANALY_TRIUMF,US ANALY_HU_ATLAS_Tier2,CA ANALY_SFU,FR ANALY_GRIF-IRFU,UK ANALY_RHUL_SL6')
         driver.options().setString(ROOT.EL.Job.optGridNGBPerJob, 'MAX')
         driver.options().setString(ROOT.EL.Job.optGridMergeOutput, 'FALSE')
 

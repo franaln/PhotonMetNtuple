@@ -53,18 +53,18 @@ class MiniTree2 : public asg::AsgMetadataTool {
   StatusCode FillTree();
   TString BookName(TString branch, TString sys_name);
 
-  bool PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut=false, Double_t maxeta=99.);
-  bool PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut=false, Double_t maxeta=99.);
+  bool PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut=false, Float_t maxeta=99.);
+  bool PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut=false, Float_t maxeta=99.);
 
 
   void SetEventNumber(int en) { event_number = en; };
   void SetAvgMu(int mu) { avg_mu = mu; };
   void SetMCFinalState(unsigned int fs) { final_state = fs; };
   
-  void SetWeightMC(int w) { weight_mc = w; };
-  void SetWeightPU(int w) { weight_pu = w; };
+  void SetWeightMC(float w) { weight_mc = w; };
+  void SetWeightPU(float w) { weight_pu = w; };
 
-  void SetWeightBtag(std::string sysname, int w) { weight_btag_map[sysname] = w; };
+  void SetWeightBtag(std::string sysname, float w) { weight_btag_map[sysname] = w; };
   
   TTree* tree;
   

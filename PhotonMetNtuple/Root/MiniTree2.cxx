@@ -618,6 +618,10 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
       float iso40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
       float iso = iso40 - 0.022 * ph_itr->pt()*IGEV;
 
+      // if ((iso < 2.45 && !ph_itr->auxdata<char>("isol")) || (iso > 2.45 && ph_itr->auxdata<char>("isol"))) {
+      //     std::cout << "** something is wrong with the isolation cut" << std::endl;
+      // }
+
       // isolated
       if (iso < 2.45) {
 
@@ -763,7 +767,7 @@ StatusCode MiniTree2::FillTree()
   return StatusCode::SUCCESS;
 }
 
-bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, Double_t maxeta)
+bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, Float_t maxeta)
 {
   Double_t eta = fabs(part->eta());
 
@@ -776,7 +780,7 @@ bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, 
   return true;
 }
 
-bool MiniTree2::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Double_t maxeta) 
+bool MiniTree2::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Float_t maxeta) 
 {
   // Double_t eta = fabs(part->eta());
 
