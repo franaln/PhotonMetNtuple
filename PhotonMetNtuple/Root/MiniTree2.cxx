@@ -539,6 +539,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     if (el_itr->auxdata<char>("baseline") == 1 &&
         el_itr->auxdata<char>("passOR") == 1 &&
         el_itr->auxdata<char>("signal") == 1 && 
+        el_itr->auxdata<char>("isol") == 1 && 
         PassEtaCut(el_itr, true)) {
       
       el_n += 1;
@@ -559,6 +560,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     if (mu_itr->auxdata<char>("baseline") == 1 &&
         mu_itr->auxdata<char>("passOR") == 1 &&
         mu_itr->auxdata<char>("signal") == 1 &&
+        mu_itr->auxdata<char>("isol") == 1 &&
         PassEtaCut(mu_itr)) {
 
       mu_n += 1;      
