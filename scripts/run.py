@@ -15,8 +15,25 @@ def quite_exit():
     ROOT.gSystem.Exit(0)
 
 
+def get_samples_from_file(file_):
+    
+    samples = []
+
+    lines = open(args.input_file).read().split('\n')
+
+    for line in lines:
+        if not line or line.startswith('#'):
+            continue
+        samples.append(line)
+
+    return samples
+
+
+
 def run_job(sample, driver):
 
+    if args.output is None:
+        args.output = 'output'
     shutil.rmtree(args.output, True)
 
     short_name = '.'.join(sample.split('.')[0:3])
@@ -88,7 +105,7 @@ def run_job(sample, driver):
         #     outname = 'user.' + os.environ['USER'] + '.' + short_name + '.ewk_v' + args.version
 
         driver.options().setString('nc_outputSampleName', outname)
-        driver.options().setString(ROOT.EL.Job.optGridExcludedSite, 'CA ANALY_TRIUMF,US ANALY_HU_ATLAS_Tier2,CA ANALY_SFU,FR ANALY_GRIF-IRFU,UK ANALY_RHUL_SL6')
+        driver.options().setString(ROOT.EL.Job.optGridExcludedSite, 'ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6')
         driver.options().setString(ROOT.EL.Job.optGridNGBPerJob, 'MAX')
         driver.options().setString(ROOT.EL.Job.optGridMergeOutput, 'FALSE')
 
@@ -113,7 +130,7 @@ def run_job(sample, driver):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--output", help="dir to store the output", default="output")
+    parser.add_argument("--output", help="dir to store the output")
     #parser.add_argument("--inputDS", help="input DS from DQ2")
     #parser.add_argument("--driver", help="select where to run", choices=("direct", "prooflite", "grid"), default="direct")
     parser.add_argument("--nevents", type=int, help="number of events to process for all the datasets")
@@ -130,6 +147,7 @@ def main():
     parser.add_argument('-v', dest='version')
     parser.add_argument('-s', dest='samples')
     parser.add_argument('-d', dest='dry')
+    parser.add_argument('-i', dest='input_file')
 
     parser.add_argument('--download', action='store_true')
 
@@ -151,13 +169,18 @@ def main():
 
     if args.download:
 
-        try:
-            torun = []
-            for s in args.samples.split(','):
-                torun.extend(getattr(samples, s))
-        except:
-            print 'no samples to run'
-            torun = []
+        if args.input_file is not None:
+            torun = get_samples_from_file(args.input_file)
+
+        elif args.samples is not None:
+
+            try:
+                torun = []
+                for s in args.samples.split(','):
+                    torun.extend(getattr(samples, s))
+            except:
+                print 'no samples to run'
+                torun = []
 
         for sample in torun:
             s = '.'.join(sample.split('.')[:3])
@@ -173,39 +196,51 @@ def main():
     global job_name
     job_name = args.job
 
-    if job_name == 'xAODAnalysis':
-    
-        grl = '/afs/cern.ch/user/a/atlasdqm/grlgen/All_Good/data15_13TeV.periodAllYear_DetStatus-v73-pro19-08_DQDefects-00-01-02_PHYS_StandardGRL_All_Good_25ns.xml'
+    # if job_name == 'xAODAnalysis':
 
-        pu_files = [
-            # 'ilumicalc_histograms_None_276262-282712.root',
-            # 'signal_prw.root',
-            # 'signal_ewk_prw.root',
-            # 'merged_prw.root',
-            # 'ttgam_prw.root',
-            'SUSYTools_Default.conf',
-            ]
+        # direc = os.environ["ROOTCOREBIN"] + "/data/PhotonMetNtuple/"
+        # os.system('mkdir -p %s' % direc)
 
-        direc = os.environ["ROOTCOREBIN"] + "/data/PhotonMetNtuple/"
-        os.system('mkdir -p %s' % direc)
-        newname = direc + "grl.xml"
-        shutil.copy2(grl, newname)
+        # # GRL
+        # #grl = '/afs/cern.ch/user/a/atlasdqm/grlgen/All_Good/data15_13TeV.periodAllYear_DetStatus-v73-pro19-08_DQDefects-00-01-02_PHYS_StandardGRL_All_Good_25ns.xml'
+        # grl = '/afs/cern.ch/user/a/atlasdqm/grlgen/All_Good/data15_13TeV.periodAllYear_DetStatus-v75-repro20-01_DQDefects-00-02-02_PHYS_StandardGRL_All_Good_25ns.xml' # new 20.7
 
-        for f in pu_files:
-            shutil.copy2('data/'+f, direc+f)
+        # shutil.copy2(grl, direc + "grl.xml")
+
+        # # ST config
+        # conf = 'ST_PhotonMet.conf'
+        # shutil.copy2('data/'+conf, direc + conf)
+
+        # # PU files
+        # pu_files = [
+        #     'merged_prw_mc15c.root',
+        #     'ilumicalc_histograms_None_276262-284154.root',
+        #     # 'signal_prw.root',
+        #     # 'signal_ewk_prw.root',
+        #     # 'merged_prw.root',
+        #     # 'ttgam_prw.root',
+        #     ]
+
+        # for f in pu_files:
+        #     shutil.copy2('/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/SUSYTools/'+f, direc+f)
 
 
     #Set up the job for xAOD access:
     ROOT.xAOD.Init().ignore()
 
     if args.grid:
+        
+        if args.input_file is not None:
+            torun = get_samples_from_file(args.input_file)
 
-        try:
-            torun = []
-            for s in args.samples.split(','):
-                torun.extend(getattr(samples, s))
-        except:
-            raise
+        elif args.samples is not None:
+
+            try:
+                torun = []
+                for s in args.samples.split(','):
+                    torun.extend(getattr(samples, s))
+            except:
+                raise
 
         for sample in torun:
             run_job(sample, 'grid')
@@ -225,7 +260,8 @@ def main():
         run_job('/ar/pcunlp001/raid/falonso/SUSY1/mc15_13TeV.373061.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1100_450.merge.AOD.e4349_a766_a777_r6282', 'local')
 
     elif args.test is not None:
-        args.output = 'output_test'
+        if args.output is None:
+            args.output = 'output_test' 
         run_job(args.test, 'local')
 
 

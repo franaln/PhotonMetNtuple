@@ -8,6 +8,10 @@ data = [
     'data15_13TeV.periodJ.physics_Main.PhysCont.DAOD_SUSY1.grp15_v01_p2425',
     ]
 
+data_failed = [
+    'data15_13TeV.00279685.physics_Main.merge.DAOD_SUSY1.f628_m1497_p2425',
+]
+
 data_runs = [
     # periodD
     'data15_13TeV.00276262.physics_Main.merge.DAOD_SUSY1.f620_m1480_p2425',
@@ -170,6 +174,7 @@ ttbar = [
 ttbarg = [
     ## 'mc15_13TeV.410082.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma_noallhad.merge.DAOD_SUSY1.*',
     ## 'mc15_13TeV.410083.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma4080_noallhad.merge.DAOD_SUSY1.*',
+    #'mc15_13TeV.410083.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma4080_noallhad.merge.DAOD_SUSY1.e4418_a766_a777_r6282_p2540',
     'mc15_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad.merge.DAOD_SUSY1.e4418_a766_a810_r6282_p2540',
     ]
 
@@ -453,17 +458,17 @@ signal = [
     'mc15_13TeV.373138.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1800_1730.merge.AOD.e4349_a766_a777_r6282',
     'mc15_13TeV.373139.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_M3_mu_1800_1770.merge.AOD.e4349_a766_a777_r6282',
 
-    # 'mc15_13TeV.373162.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_150.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373163.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_200.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373164.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_250.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373165.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_450.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373166.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_650.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373167.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_850.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373168.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1050.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373169.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1250.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373170.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1450.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373171.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1650.merge.AOD.e4349_a766_a777_r6282',
-    # 'mc15_13TeV.373172.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1850.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373162.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_150.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373163.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_200.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373164.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_250.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373165.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_450.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373166.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_650.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373167.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_850.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373168.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1050.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373169.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1250.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373170.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1450.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373171.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1650.merge.AOD.e4349_a766_a777_r6282',
+    'mc15_13TeV.373172.HerwigppEvtGen_UEEE5CTEQ6L1_GGM_mu_1850.merge.AOD.e4349_a766_a777_r6282',
     ]
 
 signal_gg_truth = [
@@ -495,8 +500,8 @@ if __name__ == '__main__':
     #     print cmd
     #     os.system(cmd)
 
-    for s in zjets + wjets:
-        cmd = 'rucio list-dids %s | grep CONTAINER'  % s
+    for s in data_runs:
+        cmd = 'rucio list-dids %s | grep CONTAINER'  % ('.'.join(s.split('.')[:5]) + '.*')  #replace('p2425', '*')
         print cmd
         os.system(cmd)
 

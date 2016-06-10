@@ -41,11 +41,8 @@
 #include "xAODCutFlow/CutBookkeeper.h"
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
-// #include "PhotonMetNtuple/MiniTree2.h"
-
-
 const char *APP_NAME = "PhotonMetNtuple:xAODAnalaysis";
-const char *APP_VERSION = "v19";
+const char *APP_VERSION = "v31";
 
 
 // this is needed to distribute the algorithm to the workers
@@ -57,7 +54,7 @@ bool ptsorter( const xAOD::IParticle* j1, const xAOD::IParticle* j2 ) {
 }
 
 xAODAnalysis::xAODAnalysis() : 
-  my_XsecDB(0), m_grl(0), objTool(0),
+  my_XsecDB(0), m_grl(0), susytools(0),
   is_data(false), 
   is_atlfast(false), 
   is_susy(false),
@@ -221,34 +218,32 @@ EL::StatusCode xAODAnalysis::initialize()
   m_event = wk()->xaodEvent();
 
   // ST Options
-
   ST::ISUSYObjDef_xAODTool::DataSource datasource = (is_data ? ST::ISUSYObjDef_xAODTool::Data : (is_atlfast ? ST::ISUSYObjDef_xAODTool::AtlfastII : ST::ISUSYObjDef_xAODTool::FullSim));
+  
+  susytools = new ST::SUSYObjDef_xAOD("SUSYObjDef_xAOD");
+  susytools->msg().setLevel(MSG::FATAL);
 
-  objTool = new ST::SUSYObjDef_xAOD("SUSYObjDef_xAOD");
-  objTool->msg().setLevel(MSG::FATAL);
-
-  CHECK(objTool->setProperty("DataSource", datasource)); 
+  CHECK(susytools->setProperty("DataSource", datasource)); 
 
   // Data dir
   std::string data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
 
   // Config file
-  CHECK(objTool->setProperty("ConfigFile", data_dir+"SUSYTools_Default.conf"));
+  std::string config_file = data_dir+"ST_PhotonMet.conf";
 
-  // // Pile Up Reweighting
-  // std::vector<std::string> prwFiles;
-  // prwFiles.push_back(data_dir+"signal_prw.root"); 
-  // prwFiles.push_back(data_dir+"signal_ewk_prw.root"); 
-  // prwFiles.push_back(data_dir+"merged_prw.root"); 
-  // prwFiles.push_back(data_dir+"ttgam_prw.root"); 
-  // CHECK( objTool->setProperty("PRWConfigFiles", prwFiles) );
+  CHECK(susytools->setProperty("ConfigFile", config_file));
 
-  // std::vector<std::string> lumicalcFiles;
-  // lumicalcFiles.push_back(data_dir+"ilumicalc_histograms_None_276262-282712.root");
-  // CHECK(objTool->setProperty("PRWLumiCalcFiles", lumicalcFiles));
+  ReadConfiguration(config_file);
+
+  // Pile Up Reweighting
+  //std::vector<std::string> prwFiles;
+  //prwFiles.push_back(data_dir+"merged_prw_mc15c.root");
+  //  std::vector<std::string> lumicalcFiles;
+  //  lumicalcFiles.push_back(data_dir+"ilumicalc_histograms_None_276262-284154.root");
+  CHECK(susytools->setProperty("PRWConfigFiles", m_prw_mc_files));
+  CHECK(susytools->setProperty("PRWLumiCalcFiles", m_prw_lumicalc_files));
  
-  
-  if (objTool->initialize() != StatusCode::SUCCESS) {
+  if (susytools->initialize() != StatusCode::SUCCESS) {
     Error(APP_NAME, "Cannot intialize SUSYObjDef_xAOD...");
     Error(APP_NAME, "Exiting... ");
     return EL::StatusCode::FAILURE;
@@ -261,9 +256,9 @@ EL::StatusCode xAODAnalysis::initialize()
   
   // GRL
   m_grl = new GoodRunsListSelectionTool("GoodRunsListSelectionTool");
-  std::vector<std::string> vecStringGRL;
-  vecStringGRL.push_back(data_dir +  "grl.xml");
-  CHECK(m_grl->setProperty("GoodRunsListVec", vecStringGRL));
+  // std::vector<std::string> vecStringGRL;
+  //vecStringGRL.push_back(data_dir +  "grl.xml");
+  CHECK(m_grl->setProperty("GoodRunsListVec", m_grl_files));
   CHECK(m_grl->setProperty("PassThrough", false) ); // if true (default) will ignore result of GRL and will just pass all events
   if (!m_grl->initialize().isSuccess()) { // check this isSuccess
     Error(APP_NAME, "Failed to properly initialize the GRL. Exiting." );
@@ -273,7 +268,7 @@ EL::StatusCode xAODAnalysis::initialize()
 
   // Now we can look at systematics:    
   if (do_syst) {
-    systInfoList = objTool->getSystInfoList();
+    systInfoList = susytools->getSystInfoList();
   }
   else {
     ST::SystInfo infodef;
@@ -304,12 +299,14 @@ EL::StatusCode xAODAnalysis :: execute ()
   // events, e.g. read input variables, apply cuts, and fill
   // histograms and trees.  This is where most of your actual analysis
   // code will go.
- 
+
+  // clear tree
+  outtree->clear();
   
   //----------------------------
   // Event information
   //---------------------------
-  
+ 
   const xAOD::EventInfo *eventInfo = 0;
   if (!m_event->retrieve(eventInfo, "EventInfo").isSuccess()) {
     Error(APP_NAME, "Failed to retrieve event info collection. Exiting." );
@@ -317,23 +314,25 @@ EL::StatusCode xAODAnalysis :: execute ()
   }
   
   outtree->SetEventNumber(eventInfo->eventNumber());
-  //outtree->run_number   = eventInfo->runNumber();
+  outtree->SetRunNumber(eventInfo->runNumber());
   outtree->SetAvgMu(eventInfo->averageInteractionsPerCrossing());
 
   // check if the event is data or MC
-  bool is_mc = !is_data; //eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION)) {
+  bool is_mc = !is_data; 
+
+  if (is_data && eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION)) {
+    Error(APP_NAME, "Bad configuration. Is DATA or MC?. Exiting." );
+    return EL::StatusCode::FAILURE;
+  }
+
   if (is_mc) {
-    
     outtree->SetWeightMC(eventInfo->mcEventWeight());
 
-    //CHECK(objTool->ApplyPRWTool());  
-	//outtree->SetWeightPU(objTool->GetPileupWeight());
-	outtree->SetWeightPU(1.);
-    
-    // m_xsec = my_XsecDB->xsectTimesEff(eventInfo->mcChannelNumber());
+    CHECK(susytools->ApplyPRWTool());  
+	outtree->SetWeightPU(susytools->GetPileupWeight());
+    outtree->SetPRWHash(susytools->GetPileupWeightHash());
   }
   else {
-	//m_xsec = 1.;
     outtree->SetWeightMC(1.);
     outtree->SetWeightPU(1.);
   }
@@ -361,8 +360,8 @@ EL::StatusCode xAODAnalysis :: execute ()
   
 
   // Trigger
-  bool passed = objTool->IsTrigPassed("HLT_g140_loose") || objTool->IsTrigPassed("HLT_g120_loose");
-  //float prescale = objTool->GetTrigPrescale(trigitem);
+  bool passed = susytools->IsTrigPassed("HLT_g140_loose") || susytools->IsTrigPassed("HLT_g120_loose");
+  //float prescale = susytools->GetTrigPrescale(trigitem);
   //Info(APP_NAME, "passing %s trigger? %d, prescale %f", trigitem.c_str(), (int)passed, prescale);
   if (!passed)
     return EL::StatusCode::SUCCESS;
@@ -371,7 +370,7 @@ EL::StatusCode xAODAnalysis :: execute ()
 
   //Get the event Vertex
   const xAOD::Vertex *prim_vx = 0;
-  prim_vx = objTool->GetPrimVtx();
+  prim_vx = susytools->GetPrimVtx();
   if (!prim_vx) 
     return EL::StatusCode::SUCCESS;
   h_cutflow->Fill(5);
@@ -383,28 +382,28 @@ EL::StatusCode xAODAnalysis :: execute ()
   // Electrons
   xAOD::ElectronContainer* electrons_nominal(0);
   xAOD::ShallowAuxContainer* electrons_nominal_aux(0);
-  CHECK(objTool->GetElectrons(electrons_nominal, electrons_nominal_aux));
+  CHECK(susytools->GetElectrons(electrons_nominal, electrons_nominal_aux));
   
   electrons_nominal->sort(ptsorter);
 
   // Photons
   xAOD::PhotonContainer* photons_nominal(0);
   xAOD::ShallowAuxContainer* photons_nominal_aux(0);
-  CHECK(objTool->GetPhotons(photons_nominal, photons_nominal_aux));
+  CHECK(susytools->GetPhotons(photons_nominal, photons_nominal_aux));
 
   photons_nominal->sort(ptsorter);
 
   // Muons
   xAOD::MuonContainer* muons_nominal(0);
   xAOD::ShallowAuxContainer* muons_nominal_aux(0);
-  CHECK(objTool->GetMuons(muons_nominal, muons_nominal_aux));
+  CHECK(susytools->GetMuons(muons_nominal, muons_nominal_aux));
 
   muons_nominal->sort(ptsorter);
   
   // Jets
   xAOD::JetContainer* jets_nominal(0);
   xAOD::ShallowAuxContainer* jets_nominal_aux(0);
-  CHECK(objTool->GetJets(jets_nominal, jets_nominal_aux));
+  CHECK(susytools->GetJets(jets_nominal, jets_nominal_aux));
 
   jets_nominal->sort(ptsorter);
 
@@ -413,7 +412,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   xAOD::MissingETContainer* met_nominal = new xAOD::MissingETContainer;
   xAOD::MissingETAuxContainer* met_nominal_aux = new xAOD::MissingETAuxContainer;
   met_nominal->setStore(met_nominal_aux);
-    
+
   //--------------------
   // LOOP ON SYSTEMATICS
   //--------------------
@@ -422,7 +421,7 @@ EL::StatusCode xAODAnalysis :: execute ()
       
     if (sysInfo.affectsKinematics || sysInfo.affectsWeights) {
       const CP::SystematicSet& sys = sysInfo.systset;
-      if (objTool->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
+      if (susytools->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
       }
       else {
@@ -457,7 +456,7 @@ EL::StatusCode xAODAnalysis :: execute ()
           xAOD::ElectronContainer* electrons_syst(0);
           xAOD::ShallowAuxContainer* electrons_syst_aux(0);
 
-          CHECK(objTool->GetElectrons(electrons_syst, electrons_syst_aux));
+          CHECK(susytools->GetElectrons(electrons_syst, electrons_syst_aux));
           electrons_syst->sort(ptsorter);
 
           electrons = electrons_syst;
@@ -468,7 +467,7 @@ EL::StatusCode xAODAnalysis :: execute ()
           xAOD::MuonContainer* muons_syst(0);
           xAOD::ShallowAuxContainer* muons_syst_aux(0);
 
-          CHECK(objTool->GetMuons(muons_syst, muons_syst_aux));
+          CHECK(susytools->GetMuons(muons_syst, muons_syst_aux));
           muons_syst->sort(ptsorter);
 
           muons = muons_syst;
@@ -479,7 +478,7 @@ EL::StatusCode xAODAnalysis :: execute ()
           xAOD::PhotonContainer* photons_syst(0);
           xAOD::ShallowAuxContainer* photons_syst_aux(0);
 
-          CHECK(objTool->GetPhotons(photons_syst, photons_syst_aux));
+          CHECK(susytools->GetPhotons(photons_syst, photons_syst_aux));
           photons_syst->sort(ptsorter);
 
           photons = photons_syst;
@@ -490,7 +489,7 @@ EL::StatusCode xAODAnalysis :: execute ()
           xAOD::JetContainer* jets_syst(0);
           xAOD::ShallowAuxContainer* jets_syst_aux(0);
 
-          CHECK(objTool->GetJets(jets_syst, jets_syst_aux));
+          CHECK(susytools->GetJets(jets_syst, jets_syst_aux));
           jets_syst->sort(ptsorter);
 
           jets = jets_syst;
@@ -500,14 +499,14 @@ EL::StatusCode xAODAnalysis :: execute ()
         //-----------------
         // OVERLAP REMOVAL
         //-----------------
-        CHECK(objTool->OverlapRemoval(electrons, muons, jets, photons));
+        CHECK(susytools->OverlapRemoval(electrons, muons, jets, photons));
         
         xAOD::MissingETContainer*    met_syst = new xAOD::MissingETContainer;
         xAOD::MissingETAuxContainer* met_syst_aux = new xAOD::MissingETAuxContainer;
         met_syst->setStore(met_syst_aux);
 
         // MET
-        CHECK(objTool->GetMET(*met_syst, jets, electrons, muons, photons));
+        CHECK(susytools->GetMET(*met_syst, jets, electrons, muons, photons));
         
         met = met_syst;
         met_aux = met_syst_aux;
@@ -516,14 +515,14 @@ EL::StatusCode xAODAnalysis :: execute ()
           if (is_mc && el->auxdata<char>("baseline") == 1 &&
               el->auxdata<char>("passOR") == 1 &&
               el->auxdata<char>("signal") == 1)
-            objTool->GetSignalElecSF(*el);
+            susytools->GetSignalElecSF(*el);
         }
 
         for (const auto& ph : *photons) {
           if (is_mc && ph->auxdata<char>("baseline") == 1 &&
               ph->auxdata<char>("passOR") == 1 &&
               ph->auxdata<char>("signal") == 1)
-            objTool->GetSignalPhotonSF(*ph, true, false);
+            susytools->GetSignalPhotonSF(*ph, true, false);
         }
         
         bool skip = false;
@@ -531,7 +530,7 @@ EL::StatusCode xAODAnalysis :: execute ()
           if (is_mc && mu->auxdata<char>("baseline") == 1 &&
               mu->auxdata<char>("passOR") == 1 && 
               mu->auxdata<char>("signal") == 1)
-            objTool->GetSignalMuonSF(*mu);
+            susytools->GetSignalMuonSF(*mu);
         }
         
         for (const auto& jet : *jets) {
@@ -544,7 +543,7 @@ EL::StatusCode xAODAnalysis :: execute ()
         }
         
         if (is_mc) {
-          outtree->SetWeightBtag(sys.name().c_str(), objTool->BtagSF(jets));
+          outtree->SetWeightBtag(sys.name().c_str(), susytools->BtagSF(jets));
         }
 
         if (!skip) {
@@ -593,17 +592,23 @@ EL::StatusCode xAODAnalysis :: execute ()
   //-------------------------
   
   // Overlap removal
-  CHECK(objTool->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
+  CHECK(susytools->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
   
   // MET
-  CHECK(objTool->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
+  CHECK(susytools->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   
+  // FIX: TST cleaning, until bug fix
+  if (susytools->passTSTCleaning(*met_nominal))
+    outtree->SetPassTSTCleaning(1);
+  else
+    outtree->SetPassTSTCleaning(0);
+
   // electrons
   for (const auto& el : *electrons_nominal) {
     if (is_mc && el->auxdata<char>("baseline") == 1 &&
         el->auxdata<char>("passOR") == 1 &&
         el->auxdata<char>("signal") == 1)
-      objTool->GetSignalElecSF(*el);
+      susytools->GetSignalElecSF(*el);
   }
   
   // photons
@@ -611,7 +616,7 @@ EL::StatusCode xAODAnalysis :: execute ()
     if (is_mc && ph->auxdata<char>("baseline") == 1 &&
         ph->auxdata<char>("passOR") == 1 && 
         ph->auxdata<char>("signal") == 1)
-      objTool->GetSignalPhotonSF(*ph, true, false);
+      susytools->GetSignalPhotonSF(*ph, true, false);
   }
   
   bool skip = false;
@@ -620,7 +625,7 @@ EL::StatusCode xAODAnalysis :: execute ()
     if (is_mc && mu->auxdata<char>("baseline") == 1 &&
         mu->auxdata<char>("passOR") == 1 && 
         mu->auxdata<char>("signal") == 1)
-      objTool->GetSignalMuonSF(*mu);
+      susytools->GetSignalMuonSF(*mu);
   }
   if (!skip)
     h_cutflow->Fill(6);
@@ -636,7 +641,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   }
   
   if (is_mc)
-    outtree->SetWeightBtag("Nominal", objTool->BtagSF(jets_nominal));
+    outtree->SetWeightBtag("Nominal", susytools->BtagSF(jets_nominal));
 
 
   // MC final state
@@ -649,7 +654,7 @@ EL::StatusCode xAODAnalysis :: execute ()
     }
   
     int pdg1, pdg2;
-    objTool->FindSusyHardProc(truth_particles, pdg1, pdg2);
+    susytools->FindSusyHardProc(truth_particles, pdg1, pdg2);
 
     outtree->SetMCFinalState(SUSY::finalState(pdg1, pdg2));
   }
@@ -723,9 +728,9 @@ EL::StatusCode xAODAnalysis::finalize()
     my_XsecDB = 0;
   }
   
-  if (objTool) {
-    delete objTool;
-    objTool = 0;
+  if (susytools) {
+    delete susytools;
+    susytools = 0;
   }
   
   return EL::StatusCode::SUCCESS;
@@ -746,4 +751,33 @@ EL::StatusCode xAODAnalysis::histFinalize()
   return EL::StatusCode::SUCCESS;
 }
 
+std::vector<std::string> xAODAnalysis::SplitString(TString line){
+  
+  std::vector<std::string> vtokens;
+  TObjArray* tokens = TString(line).Tokenize(","); 
+  
+  if(tokens->GetEntriesFast()) {
+    TIter iString(tokens);
+    TObjString* os=0;
+    while ((os=(TObjString*)iString())) {
+      vtokens.push_back( os->GetString().Data() );
+    }
+  }
+  delete tokens;
+  return vtokens;
+}
 
+void xAODAnalysis::ReadConfiguration(std::string config_file)
+{
+  TEnv env(config_file.c_str());
+
+  TString ilumicalc_files = env.GetValue("PRW.LumiCalcFile", "");
+  m_prw_lumicalc_files = SplitString(ilumicalc_files);
+        
+  TString mc_files = env.GetValue("PRW.MCFile", "");
+  m_prw_mc_files = SplitString(mc_files);
+
+  std::string data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/");
+  TString grl_files = data_dir + env.GetValue("GRL.File", "");
+  m_grl_files = SplitString(grl_files);
+}

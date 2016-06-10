@@ -44,8 +44,7 @@ class xAODAnalysis : public EL::Algorithm
 #ifndef __CINT__
   GoodRunsListSelectionTool *m_grl; //!
   PileupReweightingTool *m_pileupReweightingTool; //!
-  SUSYObjDef_xAOD *objTool; //!
-  //  MiniTree *mem_leaker; //!
+  SUSYObjDef_xAOD *susytools; //!
 #endif // not __CINT__
 
 private:
@@ -60,11 +59,15 @@ private:
   double weight_pu; //!
 
   Int_t avg_mu; //!
-  Int_t tbcid; //!
-  Int_t tLB; //!
-  Double_t tEventWeight; //!
-  Int_t tChannelNumber; //!
-  Int_t tDetError; //!
+
+  std::vector<std::string> m_prw_lumicalc_files; //!
+  std::vector<std::string> m_prw_mc_files; //!
+  std::vector<std::string> m_grl_files; //!
+
+  std::vector<std::string> SplitString(TString); //!
+  void ReadConfiguration(std::string); //!
+
+
 
   // put your configuration variables here as public variables.
   // that way they can be set directly from CINT and python.
@@ -75,6 +78,8 @@ public:
   bool is_susy;
   bool is_susy_ewk;
   bool do_syst;
+
+
 
   //  std::vector<CP::SystematicSet> sysList; //!
 

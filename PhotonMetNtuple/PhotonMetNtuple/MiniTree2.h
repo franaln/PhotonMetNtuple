@@ -26,7 +26,6 @@ struct AnalysisCollections {
   xAOD::MuonContainer* muons;
   xAOD::JetContainer* jets;
   xAOD::MissingETContainer* met;
-  xAOD::MissingETContainer* met_tst;
 
   // Aux containers too
   xAOD::ShallowAuxContainer* photons_aux;
@@ -34,7 +33,6 @@ struct AnalysisCollections {
   xAOD::ShallowAuxContainer* muons_aux;
   xAOD::ShallowAuxContainer* jets_aux;
   xAOD::MissingETAuxContainer* met_aux;
-  xAOD::MissingETAuxContainer* met_tst_aux;
 
   //Truth containers
   xAOD::TruthParticleContainer* truth_p;
@@ -49,6 +47,7 @@ class MiniTree2 : public asg::AsgMetadataTool {
   ~MiniTree2();
 
   StatusCode initialize();
+  void clear();
   bool process(AnalysisCollections collections, std::string sysname);
   StatusCode FillTree();
   TString BookName(TString branch, TString sys_name);
@@ -56,21 +55,25 @@ class MiniTree2 : public asg::AsgMetadataTool {
   bool PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut=false, Float_t maxeta=99.);
   bool PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut=false, Float_t maxeta=99.);
 
-
   void SetEventNumber(int en) { event_number = en; };
-  void SetAvgMu(int mu) { avg_mu = mu; };
+  void SetRunNumber(int en) { run_number = en; };
+  void SetAvgMu(float mu) { avg_mu = mu; };
+
   void SetMCFinalState(unsigned int fs) { final_state = fs; };
   
   void SetWeightMC(float w) { weight_mc = w; };
   void SetWeightPU(float w) { weight_pu = w; };
-
   void SetWeightBtag(std::string sysname, float w) { weight_btag_map[sysname] = w; };
+  void SetPRWHash(ULong64_t hash) { PRWHash = hash; };
+
+  void SetPassTSTCleaning(int w) { pass_tst_cleaning = w; };
   
   TTree* tree;
   
   std::map<const std::string, int> ph_n_map;
   std::map<const std::string, std::vector<float>*> ph_pt_map;
   std::map<const std::string, std::vector<float>*> ph_eta_map;
+  std::map<const std::string, std::vector<float>*> ph_etas2_map;
   std::map<const std::string, std::vector<float>*> ph_phi_map;
   std::map<const std::string, std::vector<float>*> ph_iso_map;
   std::map<const std::string, std::vector<float>*> ph_w_map;
@@ -108,6 +111,9 @@ class MiniTree2 : public asg::AsgMetadataTool {
   std::map<const std::string, float> met_phi_map;
   std::map<const std::string, float> met_et_map;
 
+  std::map<const std::string, float> tst_phi_map;
+  std::map<const std::string, float> tst_et_map;
+
   std::map<const std::string, float> ht_map;
   std::map<const std::string, float> meff_map;
   std::map<const std::string, float> rt2_map;
@@ -136,6 +142,7 @@ protected:
 
   std::vector<float> *ph_pt; 
   std::vector<float> *ph_eta;
+  std::vector<float> *ph_etas2;
   std::vector<float> *ph_phi;
   std::vector<float> *ph_iso;
   std::vector<float> *ph_w;
@@ -172,15 +179,20 @@ protected:
   std::vector<int>   *mu_ch;
   std::vector<float> *mu_w;
   
-
   int event_number;
-  int avg_mu;
+  int run_number;
+  float avg_mu;
+
   unsigned int final_state;
+  unsigned int pass_tst_cleaning;
 
   float weight_mc;
   float weight_pu;
   float weight_sf;
   float weight_btag;
+
+  ULong64_t PRWHash;
+
 };
 
 #endif

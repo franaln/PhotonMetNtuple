@@ -15,13 +15,6 @@ MiniTree2::MiniTree2(const std::string& name):
   declareProperty("IsMC", m_ismc);
 
   tree = 0;
-
-  event_number = 0;
-  avg_mu = 0;
-  final_state = 0;
-
-  weight_mc = 1.;
-  weight_pu = 1.;
 }
 
 MiniTree2::~MiniTree2()
@@ -35,6 +28,7 @@ MiniTree2::~MiniTree2()
       
       delete ph_pt_map[sys_name];
       delete ph_eta_map[sys_name];
+      delete ph_etas2_map[sys_name];
       delete ph_phi_map[sys_name];
       delete ph_iso_map[sys_name];
       delete ph_w_map[sys_name];
@@ -68,6 +62,7 @@ MiniTree2::~MiniTree2()
      
   delete ph_pt_map["Nominal"];
   delete ph_eta_map["Nominal"];
+  delete ph_etas2_map["Nominal"];
   delete ph_phi_map["Nominal"];
   delete ph_iso_map["Nominal"];
   delete ph_w_map["Nominal"];
@@ -116,6 +111,7 @@ StatusCode MiniTree2::initialize()
 
   ph_pt = new std::vector<float>(); 
   ph_eta = new std::vector<float>();
+  ph_etas2 = new std::vector<float>();
   ph_phi = new std::vector<float>();
   ph_iso = new std::vector<float>();
   ph_w = new std::vector<float>();
@@ -159,29 +155,28 @@ StatusCode MiniTree2::initialize()
   tree->SetDirectory(m_outfile);	 
 
   // Nominal blocks
-  tree->Branch("event_number", &event_number, "event_number/I");
-  tree->Branch("avg_mu", &avg_mu, "avg_mu/I");
+  tree->Branch("event", &event_number, "event/I");
+  tree->Branch("run", &run_number, "run/I");
+  
+  tree->Branch("avgmu", &avg_mu, "avgmu/F");
 
   if (m_ismc) {
-    tree->Branch("fs", &final_state, "final_state/I");
+    tree->Branch("fs", &final_state, "final_state/i");
   }
+
+  tree->Branch("pass_tst_cleaning", &pass_tst_cleaning, "pass_tst_cleaning/i");
+
+  tree->Branch("PRWHash", &PRWHash, "PRWHash/l");
 
   tree->Branch("weight_mc", &weight_mc);
   tree->Branch("weight_pu", &weight_pu);
   tree->Branch("weight_sf", &weight_sf_map["Nominal"]);
   tree->Branch("weight_btag", &weight_btag_map["Nominal"]);
  
-  // loose photon only in nominal
-  // tree->Branch("ph_loose_n", &ph_loose_n, "ph_loose_n/I");
-  // tree->Branch("ph_loose_eta", ph_loose_eta);
-  // tree->Branch("ph_loose_phi", ph_loose_phi);
-  // tree->Branch("ph_loose_pt",  ph_loose_pt);
-  // tree->Branch("ph_loose_iso20",  ph_loose_iso20);
-  // tree->Branch("ph_loose_iso40",  ph_loose_iso40);
-
   tree->Branch("ph_n", &ph_n_map["Nominal"], "ph_n/I");
   tree->Branch("ph_pt",  ph_pt);
   tree->Branch("ph_eta", ph_eta);
+  tree->Branch("ph_etas2", ph_etas2);
   tree->Branch("ph_phi", ph_phi);
   tree->Branch("ph_iso", ph_iso);
   tree->Branch("ph_w",   ph_w);
@@ -227,6 +222,8 @@ StatusCode MiniTree2::initialize()
   
   tree->Branch("met_et", &met_et_map["Nominal"]);
   tree->Branch("met_phi", &met_phi_map["Nominal"]);
+  tree->Branch("tst_et", &tst_et_map["Nominal"]);
+  tree->Branch("tst_phi", &tst_phi_map["Nominal"]);
 
   tree->Branch("ht", &ht_map["Nominal"]);				
   tree->Branch("meff", &meff_map["Nominal"]);				
@@ -245,6 +242,7 @@ StatusCode MiniTree2::initialize()
   ph_n_map.insert (std::pair<std::string, int>(sys_name, 0));
   ph_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_pt));
   ph_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_eta));
+  ph_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_etas2));
   ph_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_phi));
   ph_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_iso));
   ph_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_w));
@@ -281,6 +279,8 @@ StatusCode MiniTree2::initialize()
   
   met_et_map.insert(std::pair<std::string, float>(sys_name, 0.));
   met_phi_map.insert(std::pair<std::string, float>(sys_name, 0.));
+  tst_et_map.insert(std::pair<std::string, float>(sys_name, 0.));
+  tst_phi_map.insert(std::pair<std::string, float>(sys_name, 0.));
 
   ht_map.insert(std::pair<std::string, float>(sys_name, 0.));
   meff_map.insert(std::pair<std::string, float>(sys_name, 0.));
@@ -308,6 +308,7 @@ StatusCode MiniTree2::initialize()
       
       ph_pt = new std::vector<float>(); 
       ph_eta = new std::vector<float>();
+      ph_etas2 = new std::vector<float>();
       ph_phi = new std::vector<float>();
       ph_iso = new std::vector<float>();
       ph_w = new std::vector<float>();
@@ -374,6 +375,7 @@ StatusCode MiniTree2::initialize()
           tree->Branch(BookName("ph_n", sys_name) , &ph_n_map[sys_name]);
           tree->Branch(BookName("ph_pt", sys_name) , ph_pt);
           tree->Branch(BookName("ph_eta", sys_name), ph_eta);
+          tree->Branch(BookName("ph_etas2", sys_name), ph_etas2);
           tree->Branch(BookName("ph_phi", sys_name), ph_phi);
           tree->Branch(BookName("ph_iso", sys_name), ph_iso);
 
@@ -417,6 +419,8 @@ StatusCode MiniTree2::initialize()
       if (sys.affectsKinematics) {
         tree->Branch(BookName("met_et", sys_name), &met_et_map[sys_name]);
         tree->Branch(BookName("met_phi", sys_name), &met_phi_map[sys_name]);
+        tree->Branch(BookName("tst_et", sys_name), &tst_et_map[sys_name]);
+        tree->Branch(BookName("tst_phi", sys_name), &tst_phi_map[sys_name]);
       
         tree->Branch(BookName("ht", sys_name), &ht_map[sys_name]);
         tree->Branch(BookName("meff", sys_name), &meff_map[sys_name]);
@@ -431,6 +435,7 @@ StatusCode MiniTree2::initialize()
       // tree_map.insert(std::pair<std::string, TTree*>(sys_name, tree));
       ph_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_pt));
       ph_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_eta));
+      ph_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_etas2));
       ph_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_phi));
       ph_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_iso));
       ph_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_w));
@@ -462,6 +467,8 @@ StatusCode MiniTree2::initialize()
 
       met_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
       met_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      tst_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      tst_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
       ht_map.insert(std::pair<std::string, float>(sys_name, -99.));
       meff_map.insert(std::pair<std::string, float>(sys_name, -99.));
@@ -479,11 +486,29 @@ StatusCode MiniTree2::initialize()
   return StatusCode::SUCCESS;
 }
 
+void MiniTree2::clear()
+{
+  event_number = 0;
+  run_number = 0;
+  avg_mu = 0;
+
+  final_state = 0;
+  pass_tst_cleaning = 0;
+
+  weight_mc = 1.;
+  weight_pu = 1.;
+  weight_sf = 1.;
+  weight_btag = 1.;
+
+  PRWHash = 0;
+}
+
 bool MiniTree2::process(AnalysisCollections collections, std::string sysname) 
 {
-  // Setting up a barebone output tree
+  // clear
   ph_pt_map[sysname]->clear();
   ph_eta_map[sysname]->clear();
+  ph_etas2_map[sysname]->clear();
   ph_phi_map[sysname]->clear();
   ph_iso_map[sysname]->clear();
   ph_w_map[sysname]->clear();
@@ -630,6 +655,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
         ph_n += 1;
         ph_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_eta_map[sysname]->push_back(ph_itr->eta());
+        ph_etas2_map[sysname]->push_back(ph_itr->caloCluster()->etaBE(2));
         ph_phi_map[sysname]->push_back(ph_itr->phi());
         ph_iso_map[sysname]->push_back(iso);
 
@@ -678,24 +704,16 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
   ph_noniso_n_map[sysname] = ph_noniso_n;
 
   // met
-  float etmiss_etx = 0.;
-  float etmiss_ety = 0.;
-  float etmiss_et = 0.;
-  
   xAOD::MissingETContainer::const_iterator met_it = collections.met->find("Final");
   if (met_it == collections.met->end()) {
     Error("PhotonMetNtuple:MiniTree", "No RefFinal inside MET container");
   }
-  else {
-    etmiss_etx = (*met_it)->mpx() * IGEV;
-    etmiss_ety = (*met_it)->mpy() * IGEV;
-    etmiss_et = sqrt(etmiss_etx*etmiss_etx + etmiss_ety*etmiss_ety);
-  }
 
-  
-  TLorentzVector met(etmiss_etx, etmiss_ety, 0., etmiss_et);
-  met_et_map[sysname] = met.Perp();
-  met_phi_map[sysname] = met.Phi();  
+  met_et_map[sysname] = (*met_it)->met() * IGEV; 
+  met_phi_map[sysname] = (*met_it)->phi(); 
+
+  tst_et_map[sysname] = (*collections.met)["PVSoftTrk"]->met() * IGEV;
+  tst_phi_map[sysname] = (*collections.met)["PVSoftTrk"]->phi();
   
   // Extra variables
   Double_t sum_jet_pt = 0.0;
@@ -731,8 +749,8 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
   // min dphi between met and the first two jets
   Double_t dphi1 = 4.;
   Double_t dphi2 = 4.;
-  if (jet_n > 0) dphi1 = get_dphi((*jet_phi_map[sysname])[0], met.Phi());
-  if (jet_n > 1) dphi2 = get_dphi((*jet_phi_map[sysname])[1], met.Phi());
+  if (jet_n > 0) dphi1 = get_dphi((*jet_phi_map[sysname])[0], (*met_it)->phi());
+  if (jet_n > 1) dphi2 = get_dphi((*jet_phi_map[sysname])[1], (*met_it)->phi());
   
   dphi_jetmet_map[sysname] = TMath::Min(dphi1, dphi2);
 
@@ -742,7 +760,7 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
   
   // dphi between leading photon and MET
   if (ph_n > 0)
-    dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], met.Phi());
+    dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*met_it)->phi());
 
   // weigths
   weight_sf_map[sysname] = total_weight_sf;
@@ -758,8 +776,14 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
       photons_baseline += 1;
     }
   }
-  return (photons_baseline > 0 || el_n > 0);
-  //return true;
+
+  bool pass_skim = false;
+  if (m_ismc) 
+    pass_skim = (photons_baseline > 0);
+  else
+    pass_skim = (photons_baseline > 0 || el_n > 0);
+
+  return pass_skim;
 }
 
 // Call after all the syst have been processed and ONLY IF one of them passed the event selection criteria
@@ -784,9 +808,6 @@ bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, 
 
 bool MiniTree2::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Float_t maxeta) 
 {
-  // Double_t eta = fabs(part->eta());
-
-  //if (use_etas2)
   Double_t eta = fabs(part->caloCluster()->etaBE(2));
 
   if (eta > maxeta)
