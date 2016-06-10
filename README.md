@@ -19,5 +19,14 @@ PhotonMetNtuple
 
 ## Run
 
-    run.py -i input.txt --grid -v XX
+* First you need copy the needed files (PRW files) to PhotonMetNtuple/data
+
+* To test:
+
+    run.py --test /path/to/samples -c PhotonMetNtuple_20.7_std.conf
+
+* And to run in the grid:
+
+    run.py -i input.txt --grid -v XX -c PhotonMetNtuple_20.7_std.conf
+
 
