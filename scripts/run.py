@@ -75,6 +75,9 @@ def run_job(sample, driver):
         print 'CONFIG: susy ewk =', is_susy_ewk
         print 'CONFIG: atlfast =', is_atlfast
         print 'CONFIG: dosyst =', args.dosyst
+
+
+        alg.config_file = args.config_file
     
         alg.is_data = is_data
         alg.is_susy = is_susy
@@ -131,28 +134,30 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", help="dir to store the output")
-    #parser.add_argument("--inputDS", help="input DS from DQ2")
-    #parser.add_argument("--driver", help="select where to run", choices=("direct", "prooflite", "grid"), default="direct")
     parser.add_argument("--nevents", type=int, help="number of events to process for all the datasets")
-    # parser.add_argument("--skip-events", type=int, help="skip the first n events")
 
-    parser.add_argument("--dosyst", action='store_true', help="Create Trees with systemtic variations")
-    
+    # test
     parser.add_argument("--testdata", action='store_true')
     parser.add_argument("--testmc", action='store_true')
     parser.add_argument("--testsig", action='store_true')
     parser.add_argument('--test', dest='test')
 
-    parser.add_argument('--grid', action='store_true')    
-    parser.add_argument('-v', dest='version')
-    parser.add_argument('-s', dest='samples')
-    parser.add_argument('-d', dest='dry')
+    # run
     parser.add_argument('-i', dest='input_file')
+    parser.add_argument('-s', dest='samples')
 
-    parser.add_argument('--download', action='store_true')
-
-    # job
     parser.add_argument('--job', default='xAODAnalysis')
+
+    parser.add_argument('-c', dest='config_file', help='Config file')
+    parser.add_argument('-v', dest='version')
+
+    parser.add_argument("--dosyst", action='store_true', help="Create systematics blocks")
+
+    parser.add_argument('--grid', action='store_true')    
+    parser.add_argument('-d', dest='dry')
+
+    # others
+    parser.add_argument('--download', action='store_true')
 
 
     

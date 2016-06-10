@@ -41,7 +41,7 @@
 #include "xAODCutFlow/CutBookkeeper.h"
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
-const char *APP_NAME = "PhotonMetNtuple:xAODAnalaysis";
+const char *APP_NAME = "PhotonMetNtuple";
 const char *APP_VERSION = "v31";
 
 
@@ -55,6 +55,7 @@ bool ptsorter( const xAOD::IParticle* j1, const xAOD::IParticle* j2 ) {
 
 xAODAnalysis::xAODAnalysis() : 
   my_XsecDB(0), m_grl(0), susytools(0),
+  config_file(""),
   is_data(false), 
   is_atlfast(false), 
   is_susy(false),
@@ -112,8 +113,8 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow->GetXaxis()->SetBinLabel(4, "Trigger");
   h_cutflow->GetXaxis()->SetBinLabel(5, "Good Vertex");
   h_cutflow->GetXaxis()->SetBinLabel(6, "Cosmic Muon (not applied)");
-  h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet");
-  h_cutflow->GetXaxis()->SetBinLabel(8, "Skim");
+  h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
+  h_cutflow->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
 
  TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
  h_events->SetDirectory(out_dir);
@@ -134,8 +135,6 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
   // Here you do everything you need to do when we change input files,
   // e.g. resetting branch addresses on trees.  If you are using
   // D3PDReader or a similar service this method is not needed.
-  
-  isDerived = false;
 
   // Check file's metadata:    
   m_event = wk()->xaodEvent(); 
@@ -217,6 +216,20 @@ EL::StatusCode xAODAnalysis::initialize()
 
   m_event = wk()->xaodEvent();
 
+
+  // Data dir
+  m_data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
+  
+  // Config file
+  if (config_file.empty()) {
+    Error(APP_NAME, "No configfile. Exiting... ");
+    return EL::StatusCode::FAILURE;
+  }
+  config_file = m_data_dir + config_file;
+
+  ReadConfiguration();
+  DumpConfiguration();
+
   // ST Options
   ST::ISUSYObjDef_xAODTool::DataSource datasource = (is_data ? ST::ISUSYObjDef_xAODTool::Data : (is_atlfast ? ST::ISUSYObjDef_xAODTool::AtlfastII : ST::ISUSYObjDef_xAODTool::FullSim));
   
@@ -225,15 +238,12 @@ EL::StatusCode xAODAnalysis::initialize()
 
   CHECK(susytools->setProperty("DataSource", datasource)); 
 
-  // Data dir
-  std::string data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
 
-  // Config file
-  std::string config_file = data_dir+"ST_PhotonMet.conf";
 
-  CHECK(susytools->setProperty("ConfigFile", config_file));
 
-  ReadConfiguration(config_file);
+  // ST Config file
+  // std::string st_config_file = m_data_dir+"ST_PhotonMet.conf";
+  CHECK(susytools->setProperty("ConfigFile", m_st_config_file));
 
   // Pile Up Reweighting
   //std::vector<std::string> prwFiles;
@@ -767,17 +777,40 @@ std::vector<std::string> xAODAnalysis::SplitString(TString line){
   return vtokens;
 }
 
-void xAODAnalysis::ReadConfiguration(std::string config_file)
+void xAODAnalysis::ReadConfiguration()
 {
   TEnv env(config_file.c_str());
 
+  m_st_config_file = m_data_dir + env.GetValue("ST.ConfigFile", "");
+  
   TString ilumicalc_files = env.GetValue("PRW.LumiCalcFile", "");
-  m_prw_lumicalc_files = SplitString(ilumicalc_files);
+  for (auto s : SplitString(ilumicalc_files))
+    m_prw_lumicalc_files.push_back(m_data_dir + s);
         
   TString mc_files = env.GetValue("PRW.MCFile", "");
-  m_prw_mc_files = SplitString(mc_files);
+  for (auto s : SplitString(mc_files))
+    m_prw_mc_files.push_back(m_data_dir + s);
 
-  std::string data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/");
-  TString grl_files = data_dir + env.GetValue("GRL.File", "");
-  m_grl_files = SplitString(grl_files);
+  TString grl_files = env.GetValue("GRL.File", "");
+  for (auto s : SplitString(grl_files))
+    m_grl_files.push_back(m_data_dir + s);
+
+}
+
+void xAODAnalysis::DumpConfiguration()
+{
+  Info(APP_NAME, "-- DumpConfiguration");
+
+  Info(APP_NAME, "Using configfile: %s", config_file.c_str());
+
+  Info(APP_NAME, "ST.ConfigFile: %s", m_st_config_file.c_str());
+  
+  for (auto s : m_prw_lumicalc_files)
+    Info(APP_NAME, "PRW.LumiCalcFile: %s", s.c_str());
+
+  for (auto s : m_prw_mc_files)
+    Info(APP_NAME, "PRW.MCFile: %s", s.c_str());
+
+  for (auto s : m_grl_files)
+    Info(APP_NAME, "GRL.File: %s", s.c_str());
 }

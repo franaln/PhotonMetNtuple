@@ -49,23 +49,25 @@ class xAODAnalysis : public EL::Algorithm
 
 private:
 
+  // event variables
   int event_number; //!
   int run_number; //!
-
-  double m_xsec; //!
-  bool isDerived; //!
-
+  float avg_mu; //!
   double weight_mc; //!
   double weight_pu; //!
 
-  Int_t avg_mu; //!
 
+  // configuration
+  std::vector<std::string> SplitString(TString); //!
+  void ReadConfiguration(); //!
+  void DumpConfiguration(); //!
+
+  std::string m_data_dir; //!
+  std::string m_st_config_file; //!
   std::vector<std::string> m_prw_lumicalc_files; //!
   std::vector<std::string> m_prw_mc_files; //!
   std::vector<std::string> m_grl_files; //!
 
-  std::vector<std::string> SplitString(TString); //!
-  void ReadConfiguration(std::string); //!
 
 
 
@@ -73,6 +75,7 @@ private:
   // that way they can be set directly from CINT and python.
 public:
 
+  std::string config_file;
   bool is_data;
   bool is_atlfast;
   bool is_susy;
