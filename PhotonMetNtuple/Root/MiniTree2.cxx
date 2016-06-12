@@ -573,7 +573,9 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
       el_phi_map[sysname]->push_back(el_itr->phi());
       el_ch_map[sysname]->push_back(el_itr->trackParticle()->charge());
       el_w_map[sysname]->push_back( el_itr->auxdata<double>("effscalefact") );
-      total_weight_sf *= el_itr->auxdata<double>("effscalefact");
+
+      if (m_ismc)
+        total_weight_sf *= el_itr->auxdata<double>("effscalefact");
     }
   }
   el_n_map[sysname] = el_n;
@@ -593,9 +595,14 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
       mu_eta_map[sysname]->push_back(mu_itr->eta());
       mu_phi_map[sysname]->push_back(mu_itr->phi());
       mu_ch_map[sysname] ->push_back(mu_itr->primaryTrackParticle()->charge());
-      mu_w_map[sysname]->push_back(mu_itr->auxdata<double>("effscalefact"));
 
-      total_weight_sf *= mu_itr->auxdata<double>("effscalefact");
+      float sf = 1.;
+      if (m_ismc)
+        sf = mu_itr->auxdata<double>("effscalefact");
+
+      mu_w_map[sysname]->push_back(sf);
+      total_weight_sf *= sf;
+
     }
   }
   mu_n_map[sysname] = mu_n;
@@ -616,9 +623,13 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
       jet_eta_map[sysname]->push_back(jet_itr->eta());
       jet_phi_map[sysname]->push_back(jet_itr->phi());
       jet_e_map[sysname]->push_back(jet_itr->e()*IGEV);
-      jet_w_map[sysname]->push_back(jet_itr->auxdata<double>("effscalefact"));
 
-      total_weight_sf *= jet_itr->auxdata<double>("effscalefact");
+      double sf = 1.;
+      if (m_ismc)
+        sf = jet_itr->auxdata<double>("effscalefact");
+      
+      jet_w_map[sysname]->push_back(sf);
+      total_weight_sf *= sf;
 
       int isbjet = int(jet_itr->auxdata<char>("bjet"));
       if (isbjet)
@@ -659,7 +670,10 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
         ph_phi_map[sysname]->push_back(ph_itr->phi());
         ph_iso_map[sysname]->push_back(iso);
 
-        double sf = ph_itr->auxdata<double>("effscalefact");
+        double sf = 1.;
+        if (m_ismc)
+          sf = ph_itr->auxdata<double>("effscalefact");
+        
         ph_w_map[sysname]->push_back(sf);
 
         total_weight_sf *= sf;
@@ -695,7 +709,11 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
         ph_noniso_phi_map[sysname]->push_back(ph_itr->phi());
         ph_noniso_iso_map[sysname]->push_back(iso);
         
-        ph_noniso_w_map[sysname]->push_back(ph_itr->auxdata<double>("effscalefact"));
+        double sf = 1.;
+        if (m_ismc)
+          sf = ph_itr->auxdata<double>("effscalefact");
+
+        ph_noniso_w_map[sysname]->push_back(sf);
       }
       
     }

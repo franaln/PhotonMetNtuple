@@ -96,6 +96,8 @@ public:
 
   TH1D *h_events; //!
   TH1D *h_cutflow; //!
+  TH1D *h_cutflow_w; //!
+
   TH1D *h_events_subproceses; //!
   TH1D *h_sumw_subproceses; //!
 

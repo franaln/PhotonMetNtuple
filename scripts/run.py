@@ -15,8 +15,23 @@ def quite_exit():
     ROOT.gSystem.Exit(0)
 
 
-def get_samples_from_file(file_):
-    
+def get_samples_from_file(file_, dids_str=None):
+
+    dids = []
+    if dids_str is not None:
+
+        try:
+            if '-' in dids_str:
+                first, last = dids_str.split('-')
+                dids = range(int(first), int(last)+1)
+            elif ',' in dids_str:
+                dids = [ int(did) for did in dids_str.split(',') ]
+            else:
+                dids = [int(dids_str),]
+        except:
+            logging.error('bad dids syntax. ignoring...')
+
+
     samples = []
 
     lines = open(args.input_file).read().split('\n')
@@ -24,6 +39,12 @@ def get_samples_from_file(file_):
     for line in lines:
         if not line or line.startswith('#'):
             continue
+
+        if dids:
+            did = int(line.split('.')[1])
+            if did not in dids:
+                continue
+
         samples.append(line)
 
     return samples
@@ -63,6 +84,10 @@ def run_job(sample, driver):
     
 
     if job_name == 'xAODAnalysis':
+
+        if args.config_file is None:
+            logging.error('you need to provide a configfile!')
+
         alg = ROOT.xAODAnalysis()
 
         is_data     = ('data15' in sample)
@@ -113,7 +138,8 @@ def run_job(sample, driver):
         driver.options().setString(ROOT.EL.Job.optGridMergeOutput, 'FALSE')
 
         logging.info('submit job: ' + outname)
-        driver.submitOnly(job, args.output)
+        if not args.dry:
+            driver.submitOnly(job, args.output)
 
     elif driver == 'batch':
 
@@ -145,6 +171,7 @@ def main():
     # run
     parser.add_argument('-i', dest='input_file')
     parser.add_argument('-s', dest='samples')
+    parser.add_argument('-d', dest='dids', type=str)
 
     parser.add_argument('--job', default='xAODAnalysis')
 
@@ -154,7 +181,7 @@ def main():
     parser.add_argument("--dosyst", action='store_true', help="Create systematics blocks")
 
     parser.add_argument('--grid', action='store_true')    
-    parser.add_argument('-d', dest='dry')
+    parser.add_argument('--dry', action='store_true')
 
     # others
     parser.add_argument('--download', action='store_true')
@@ -175,7 +202,7 @@ def main():
     if args.download:
 
         if args.input_file is not None:
-            torun = get_samples_from_file(args.input_file)
+            torun = get_samples_from_file(args.input_file, args.dids)
 
         elif args.samples is not None:
 
@@ -236,7 +263,7 @@ def main():
     if args.grid:
         
         if args.input_file is not None:
-            torun = get_samples_from_file(args.input_file)
+            torun = get_samples_from_file(args.input_file, args.dids)
 
         elif args.samples is not None:
 

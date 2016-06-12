@@ -26,6 +26,14 @@ Bool_t MCFilter::accept_event(uint32_t did, xAOD::TEvent& event)
     return accept_ttgamma_event(event);
   }
 
+  // singletop
+  else if (did == 410011 || did == 410012 || did == 410025 || did == 410026 || did == 410013 || did == 410014) {
+    return accept_singletop_event(event);
+  }
+
+  // else if (did >= 361042 && did <= 361061) {
+  //   return accept_photonjet_event(event, did);
+  // }
 
   return true;
 }
@@ -122,6 +130,78 @@ Bool_t MCFilter::accept_ttgamma_event(xAOD::TEvent& event)
       }
     }
   }
+  
+  return accept;
+}
+
+
+Bool_t MCFilter::accept_singletop_event(xAOD::TEvent& event)
+{
+  // accept events with at least one ME photon with pt>80 GeV
+
+  const xAOD::TruthParticleContainer* particles = 0;
+  RETURN_CHECK("MCFilter", event.retrieve(particles, "TruthParticles"));
+
+  Bool_t accept = false;
+
+  for (auto ip = particles->begin(); ip!=particles->end(); ++ip) {
+    
+    if ((*ip)->pdgId() == 22 && (*ip)->status() == 1 && (*ip)->pt() > 80000.) {
+
+      // check if the the photon is ME
+      Int_t mother_pdg = get_mother(*ip)->absPdgId();
+      if (mother_pdg < 100 && mother_pdg != 11)  {
+        accept = true;
+        break;
+      }
+    }
+  }
+  
+  return accept;
+}
+
+
+Bool_t MCFilter::accept_photonjet_event(xAOD::TEvent& event, uint32_t did)
+{
+  const xAOD::TruthParticleContainer* particles = 0;
+  RETURN_CHECK("MCFilter", event.retrieve(particles, "TruthParticles"));
+
+  Bool_t accept = false;
+
+  Float_t lead_pt = 0.;
+  for (auto ip = particles->begin(); ip!=particles->end(); ++ip) {
+    if ((*ip)->pdgId() == 22 && (*ip)->status() == 1 && (*ip)->pt() > 80000. && (*ip)->pt() > lead_pt) {
+      lead_pt = (*ip)->pt();
+    }
+  }
+
+  if (did == 361042 || did == 361043 || did == 361044) {
+    if (lead_pt >= 70000. && lead_pt < 140000.)
+      accept = true;
+  }
+  else if (did == 361045 || did == 361046 || did == 361047) {
+    if(lead_pt >= 140000. && lead_pt < 280000.)
+      accept = true;
+  }
+  // else if (ph280sh_id == reader->mc_channel_number) { 
+  //   if(truth_pt >= 350 * GeV && truth_pt < 600 * GeV)
+  //     accept = true;
+  // }
+  // else if (ph500sh_id == reader->mc_channel_number) { 
+  //   if(truth_pt >= 600 * GeV && truth_pt < 950 * GeV)
+  //     accept = true;
+  // }
+  // else if (ph800sh_id == reader->mc_channel_number) { 
+  //   if(truth_pt >= 950 * GeV && truth_pt < 1150 * GeV)
+  //     accept = true;
+  // }
+  // else if (ph1000sh_id == reader->mc_channel_number) { 
+  //   if (truth_pt >= 1150 * GeV)
+  //     accept = true;
+  // }
+
+  if (!accept)
+    std::cout << lead_pt << std::endl;
   
   return accept;
 }

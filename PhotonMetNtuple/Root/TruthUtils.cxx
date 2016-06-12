@@ -123,14 +123,14 @@ Bool_t is_stable(const xAOD::TruthParticle* p){
   
 Int_t get_photon_type(const xAOD::TruthParticle *ptcl)
 {
-  int id = abs(ptcl->pdgId()); //reader->ph_truth_type->at(d3pd_index));
+  int pdg_id = ptcl->absPdgId(); //reader->ph_truth_type->at(d3pd_index));
 
   int parent = -1;
   if (ptcl->nParents() > 0)
     parent = ptcl->parent(0)->pdgId();
 
-  //std::cout << "id: " << id << " parent: " << parent << std::endl;
-  if (id == 22) {  // real photons
+  //std::cout << "pdg_id: " << pdg_id << " parent: " << parent << std::endl;
+  if (pdg_id == 22) {  // real photons
     if (parent < 0 || parent == 22) {
       // if (reader->ph_truth_isPhotonFromHardProc->at(d3pd_index)) return 1;     //from hard proc
       // else if(reader->ph_truth_isBrem->at(d3pd_index)) return 2;               //from brems
@@ -142,12 +142,12 @@ Int_t get_photon_type(const xAOD::TruthParticle *ptcl)
     else if (parent < 7)   return 5;  //radiated off from quarks
     else                   return 6;  //from hadron decay
   }
-  else if (id == 11) { // electrons faking photons
+  else if (pdg_id == 11) { // electrons faking photons
     if (parent == 24)      return 7; //from W decay
     else if (parent == 23) return 8; //from Z decay
     else                   return 9; //from other sources
   }
-  else if (id != 0) { // other particles faking photons
+  else if (pdg_id != 0) { // other particles faking photons
      return 10;
   }
   else { // no truth matching found. Impossible to tell

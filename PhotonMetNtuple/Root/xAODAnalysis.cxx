@@ -116,9 +116,20 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
   h_cutflow->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
 
+  h_cutflow_w = new TH1D("cutflow_w", "Cutflow_W", 8, 0.5, 8.5);
+  h_cutflow_w->GetXaxis()->SetBinLabel(1, "All");
+  h_cutflow_w->GetXaxis()->SetBinLabel(2, "GRL/MC filter");
+  h_cutflow_w->GetXaxis()->SetBinLabel(3, "DQ");
+  h_cutflow_w->GetXaxis()->SetBinLabel(4, "Trigger");
+  h_cutflow_w->GetXaxis()->SetBinLabel(5, "Good Vertex");
+  h_cutflow_w->GetXaxis()->SetBinLabel(6, "Cosmic Muon (not applied)");
+  h_cutflow_w->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
+  h_cutflow_w->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
+
  TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
  h_events->SetDirectory(out_dir);
  h_cutflow->SetDirectory(out_dir);
+ h_cutflow_w->SetDirectory(out_dir);
   
   return EL::StatusCode::SUCCESS;
 }
@@ -174,7 +185,6 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
           all_events_cbk = cbk;
           maxCycle = cbk->cycle();
         }
-        
       }
       
       m_initial_events = all_events_cbk->nAcceptedEvents();
@@ -335,8 +345,11 @@ EL::StatusCode xAODAnalysis :: execute ()
     return EL::StatusCode::FAILURE;
   }
 
+  float mc_weight = 1.;
   if (is_mc) {
-    outtree->SetWeightMC(eventInfo->mcEventWeight());
+    mc_weight = eventInfo->mcEventWeight();
+
+    outtree->SetWeightMC(mc_weight);
 
     CHECK(susytools->ApplyPRWTool());  
 	outtree->SetWeightPU(susytools->GetPileupWeight());
@@ -351,6 +364,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   // CLEANING CUTS HERE
   //--------------------
   h_cutflow->Fill(1);
+  h_cutflow_w->Fill(1, mc_weight);
 
   if (is_data && !m_grl->passRunLB(*eventInfo)) {
     return EL::StatusCode::SUCCESS; // go to next event
@@ -359,6 +373,7 @@ EL::StatusCode xAODAnalysis :: execute ()
     return EL::StatusCode::SUCCESS; // go to next event
   }
   h_cutflow->Fill(2);
+  h_cutflow_w->Fill(2, mc_weight);
 
   if (is_data &&
       ((eventInfo->errorState(xAOD::EventInfo::LAr) == xAOD::EventInfo::Error) ||
@@ -367,6 +382,7 @@ EL::StatusCode xAODAnalysis :: execute ()
     return EL::StatusCode::SUCCESS; // go to next event
   }
   h_cutflow->Fill(3);
+  h_cutflow_w->Fill(3, mc_weight);
   
 
   // Trigger
@@ -376,6 +392,7 @@ EL::StatusCode xAODAnalysis :: execute ()
   if (!passed)
     return EL::StatusCode::SUCCESS;
   h_cutflow->Fill(4);
+  h_cutflow_w->Fill(4, mc_weight);
 
 
   //Get the event Vertex
@@ -384,7 +401,8 @@ EL::StatusCode xAODAnalysis :: execute ()
   if (!prim_vx) 
     return EL::StatusCode::SUCCESS;
   h_cutflow->Fill(5);
-    
+  h_cutflow_w->Fill(5, mc_weight);
+
   //---------------------------------
   // RETRIEVE THE NOMINAL CONTAINERS
   //---------------------------------
@@ -637,8 +655,10 @@ EL::StatusCode xAODAnalysis :: execute ()
         mu->auxdata<char>("signal") == 1)
       susytools->GetSignalMuonSF(*mu);
   }
-  if (!skip)
+  if (!skip) {
     h_cutflow->Fill(6);
+    h_cutflow_w->Fill(6, mc_weight);
+  }
 
   // Badj jet veto
   for (const auto& jet : *jets_nominal) {  
@@ -672,6 +692,7 @@ EL::StatusCode xAODAnalysis :: execute ()
 
   if (!skip) {
     h_cutflow->Fill(7);
+    h_cutflow_w->Fill(7, mc_weight);
 
     AnalysisCollections collections;
     collections.photons = photons_nominal;
@@ -690,6 +711,8 @@ EL::StatusCode xAODAnalysis :: execute ()
   
   if (ret > 0) {
     h_cutflow->Fill(8);
+    h_cutflow_w->Fill(8, mc_weight);
+
     CHECK(outtree->FillTree());
   }
 
@@ -733,10 +756,10 @@ EL::StatusCode xAODAnalysis::finalize()
     m_grl = 0;
   }
   
-  if (my_XsecDB) {
-    delete my_XsecDB;
-    my_XsecDB = 0;
-  }
+  // if (my_XsecDB) {
+  //   delete my_XsecDB;
+  //   my_XsecDB = 0;
+  // }
   
   if (susytools) {
     delete susytools;
@@ -814,3 +837,5 @@ void xAODAnalysis::DumpConfiguration()
   for (auto s : m_grl_files)
     Info(APP_NAME, "GRL.File: %s", s.c_str());
 }
+
+
