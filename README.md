@@ -1,19 +1,17 @@
 PhotonMetNtuple
 ===============
 
-## Recommended ST tag for 20.7 
+## Release
 
-    Base,2.4.10 + SUSYTools-00-07-65
-
-* probably this pkg is not compatible with 20.1 anymore, use latest tag
+    Base,2.4.10 + SUSYTools-00-07-65 + METUtilities-00-02-29
 
 
-## To compile:
+## Compile
 
     source setup.sh    
 
-    rc checkout_pkg $SVNOFF/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-07-65
-    rc checkout SUSYTools/doc/packages.txt
+    rc checkout_pkg $SVNOFF/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-07-68
+    rc checkout_pkg atlasoff/Reconstruction/MET/METUtilities/tags/METUtilities-00-02-29
 
     rc find_packages
     rc clean
@@ -46,5 +44,5 @@ PhotonMetNtuple
 
 ## Data 
 
-* data15 (20.7 repro): data15_13TeV.periodAllYear_DetStatus-v75-repro20-01_DQDefects-00-02-02_PHYS_StandardGRL_All_Good_25ns.xml, corresponding to ...
-* data16: data16_13TeV.periodAllYear_DetStatus-v78-pro20-04_DQDefects-00-02-02_PHYS_StandardGRL_All_Good_25ns.xml, corresponding to 2613.83 pb-1
+    data15: (20.7 repro): data15_13TeV.periodAllYear_DetStatus-v75-repro20-01_DQDefects-00-02-02_PHYS_StandardGRL_All_Good_25ns.xml, corresponding to ...
+    data16: data16_13TeV.periodAllYear_DetStatus-v78-pro20-04_DQDefects-00-02-02_PHYS_StandardGRL_All_Good_25ns.xml, corresponding to 2613.83 pb-1

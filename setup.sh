@@ -3,6 +3,6 @@ source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
 
 localSetupPandaClient
 
-rcSetup Base,2.4.10  # and checkout SUSYTools-00-07-65
+rcSetup Base,2.4.11  # and checkout SUSYTools-00-07-68 
 
 export PATH="$PWD/scripts:$PATH"
