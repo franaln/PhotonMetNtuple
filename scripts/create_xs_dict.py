@@ -2,17 +2,22 @@
 
 import os
 import sys
-from samples import all_samples
 
 #xs_file = os.environ['ROOTCOREDIR'] + '/data/SUSYTools/susy_crosssections_13TeV.txt'
-xs_file = sys.argv[1]
+try:
+    xs_file = sys.argv[1]
+    sample_file = sys.argv[2]
+except:
+    print 'usage: create_xs_dict.py [xs_file] [sample_file]'
+    sys.exit(1)
 
-lines = open(xs_file).read().split('\n')
+
+xs_lines = open(xs_file).read().split('\n')
+sample_lines = open(sample_file).read().split('\n')
 
 def get_xs(did):
     
-    
-    for line in lines:
+    for line in xs_lines:
         if not line or line.startswith('#'):
             continue
     
@@ -30,15 +35,15 @@ with open('xs_dict.py', 'w+') as of:
 
     of.write('xs_dict = dict()\n\n')
 
-    for sample in all_samples:
+    for sample in smaple_lines:
 
-        if 'data' in sample:
+        if not line or line.startswith('#'):
             continue
 
         did = sample.split('.')[1]
 
         xs = get_xs(did)
 
-        print did, xs
+        print 'xs for %s: %s' % (did, xs)
         of.write('xs_dict[%s] = %s\n' % (did, xs))
 

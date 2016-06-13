@@ -42,7 +42,7 @@
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
 const char *APP_NAME = "PhotonMetNtuple";
-const char *APP_VERSION = "v31";
+const char *APP_VERSION = "v32";
 
 
 // this is needed to distribute the algorithm to the workers
@@ -167,7 +167,6 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
   if (!is_data) {
 
     if (is_derivation) {
-    
       //Read the CutBookkeeper container
       const xAOD::CutBookkeeperContainer* completeCBC = 0;
       if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
@@ -190,10 +189,8 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
       m_initial_events = all_events_cbk->nAcceptedEvents();
       m_initial_sumw   = all_events_cbk->sumOfEventWeights();
       m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
-      
     }
     else {
-      
       TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
       
       m_initial_events  = CollectionTree->GetEntries(); 
