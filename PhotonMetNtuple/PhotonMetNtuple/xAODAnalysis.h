@@ -15,9 +15,14 @@
 #include "PATInterfaces/SystematicRegistry.h"
 #include "PATInterfaces/SystematicVariation.h"
 #include <SUSYTools/SUSYCrossSection.h>
-//#include <PhotonMetNtuple/MiniTree.h>
-#include <PhotonMetNtuple/MiniTree2.h>
+#include <PhotonMetNtuple/MiniTree.h>
 #include "SUSYTools/ISUSYObjDef_xAODTool.h"
+
+#include "ElectronPhotonSelectorTools/AsgPhotonIsEMSelector.h"
+#include "ElectronPhotonSelectorTools/AsgForwardElectronIsEMSelector.h"
+#include "ElectronPhotonSelectorTools/AsgElectronIsEMSelector.h"
+#include "ElectronPhotonSelectorTools/AsgElectronLikelihoodTool.h"
+
 
 #include <PhotonMetNtuple/MCFilter.h>
 
@@ -39,8 +44,6 @@ class JetVertexTagger;
 class xAODAnalysis : public EL::Algorithm
 {
   
-  SUSY::CrossSectionDB *my_XsecDB;  //!
-
 #ifndef __CINT__
   GoodRunsListSelectionTool *m_grl; //!
   PileupReweightingTool *m_pileupReweightingTool; //!
@@ -57,6 +60,7 @@ private:
   double weight_pu; //!
 
 
+
   // configuration
   std::vector<std::string> SplitString(TString); //!
   void ReadConfiguration(); //!
@@ -69,7 +73,9 @@ private:
   std::vector<std::string> m_grl_files; //!
 
 
-
+  // Medium electrons
+  AsgElectronLikelihoodTool *m_elecMediumLH;
+  bool IsMediumElectron(const xAOD::Electron &input);
 
   // put your configuration variables here as public variables.
   // that way they can be set directly from CINT and python.

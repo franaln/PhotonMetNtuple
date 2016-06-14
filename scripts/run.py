@@ -82,7 +82,6 @@ def run_job(sample, driver):
     # add our algorithm to the job
     logging.info("creating algorithms")
     
-
     if job_name == 'xAODAnalysis':
 
         if args.config_file is None:
@@ -95,11 +94,12 @@ def run_job(sample, driver):
         is_susy_ewk = ('_GGM_mu_' in sample)
         is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
         
-        logging.info('CONFIG: data = %s' % is_data)
-        logging.info('CONFIG: susy = %s' % is_susy)
-        logging.info('CONFIG: susy ewk = %s' % is_susy_ewk)
-        logging.info('CONFIG: atlfast = %s' % is_atlfast)
-        logging.info('CONFIG: dosyst = %s' % args.dosyst)
+        logging.info('config: is data     = %s' % is_data)
+        logging.info('config: is MC       = %s' % (not is_data))
+        logging.info('config: is susy     = %s' % is_susy)
+        logging.info('config: is susy ewk = %s' % is_susy_ewk)
+        logging.info('config: is atlfast  = %s' % is_atlfast)
+        logging.info('config: dosyst      = %s' % args.dosyst)
 
 
         alg.config_file = args.config_file

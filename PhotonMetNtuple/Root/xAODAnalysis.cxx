@@ -42,19 +42,22 @@
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
 const char *APP_NAME = "PhotonMetNtuple";
-const char *APP_VERSION = "v32";
+const char *APP_VERSION = "Version: v32";
+
 
 
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODAnalysis)
 
+static SG::AuxElement::Decorator<char> dec_medium("medium");
 
 bool ptsorter( const xAOD::IParticle* j1, const xAOD::IParticle* j2 ) {
   return ( j1->pt() > j2->pt() );
 }
 
 xAODAnalysis::xAODAnalysis() : 
-  my_XsecDB(0), m_grl(0), susytools(0),
+  m_grl(0), susytools(0),
+  m_elecMediumLH(0),
   config_file(""),
   is_data(false), 
   is_atlfast(false), 
@@ -262,8 +265,6 @@ EL::StatusCode xAODAnalysis::initialize()
     Info(APP_NAME, "SUSYObjDef_xAOD initialized... ");
   }
   
-  // my_XsecDB = new SUSY::CrossSectionDB("susy_crosssections_13TeV.txt");
-  
   // GRL
   m_grl = new GoodRunsListSelectionTool("GoodRunsListSelectionTool");
   // std::vector<std::string> vecStringGRL;
@@ -275,6 +276,10 @@ EL::StatusCode xAODAnalysis::initialize()
     return EL::StatusCode::FAILURE;
   }
 
+  // Electron selector: for medium electrons
+  m_elecMediumLH = new AsgElectronLikelihoodTool ("MediumLH");
+  CHECK(m_elecMediumLH->setProperty("WorkingPoint", "MediumLHElectron"));
+  CHECK(m_elecMediumLH->initialize());
 
   // Now we can look at systematics:    
   if (do_syst) {
@@ -530,6 +535,10 @@ EL::StatusCode xAODAnalysis :: execute ()
         met_aux = met_syst_aux;
         
         for (const auto& el : *electrons) {
+          if (is_data && el->auxdata<char>("baseline") == 1 &&
+              el->auxdata<char>("passOR") == 1)
+            IsMediumElectron(*el);
+          
           if (is_mc && el->auxdata<char>("baseline") == 1 &&
               el->auxdata<char>("passOR") == 1 &&
               el->auxdata<char>("signal") == 1)
@@ -623,6 +632,10 @@ EL::StatusCode xAODAnalysis :: execute ()
 
   // electrons
   for (const auto& el : *electrons_nominal) {
+    if (is_data && el->auxdata<char>("baseline") == 1 &&
+        el->auxdata<char>("passOR") == 1)
+      IsMediumElectron(*el);
+
     if (is_mc && el->auxdata<char>("baseline") == 1 &&
         el->auxdata<char>("passOR") == 1 &&
         el->auxdata<char>("signal") == 1)
@@ -746,14 +759,14 @@ EL::StatusCode xAODAnalysis::finalize()
     m_grl = 0;
   }
   
-  // if (my_XsecDB) {
-  //   delete my_XsecDB;
-  //   my_XsecDB = 0;
-  // }
-  
   if (susytools) {
     delete susytools;
     susytools = 0;
+  }
+
+  if (m_elecMediumLH) {
+    delete m_elecMediumLH;
+    m_elecMediumLH = 0;
   }
   
   return EL::StatusCode::SUCCESS;
@@ -829,3 +842,25 @@ void xAODAnalysis::DumpConfiguration()
 }
 
 
+bool xAODAnalysis::IsMediumElectron(const xAOD::Electron &input) 
+{
+  float etcut = 25000.;
+  float d0sigcut = 5.;
+  float z0cut = 0.5;
+
+  dec_medium(input) = false;
+
+  if (!m_elecMediumLH->accept(input)) return false;
+
+  if (input.p4().Perp2() <= etcut * etcut || input.p4().Perp2() == 0) return false; // eT cut (might be necessary for leading electron to pass trigger)
+  
+  if (input.auxdata<float>("d0sig") != 0) {
+    if (d0sigcut > 0.0 && fabs(input.auxdata<float>("d0sig")) > d0sigcut) return false; // transverse IP cut
+  }
+
+  if (z0cut > 0.0 && fabs(input.auxdata<float>("z0sinTheta")) > z0cut) return false; // longitudinal IP cut
+
+  dec_medium(input) = true;
+  
+  return true;
+}

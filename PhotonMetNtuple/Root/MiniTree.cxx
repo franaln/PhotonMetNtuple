@@ -1,13 +1,13 @@
-#include "PhotonMetNtuple/MiniTree2.h"
+#include "PhotonMetNtuple/MiniTree.h"
 #include "PhotonMetNtuple/Utils.h"
 
 #include "xAODTruth/xAODTruthHelpers.h"
 #include "FourMomUtils/xAODP4Helpers.h"
 
-
 #define IGEV 0.001
 
-MiniTree2::MiniTree2(const std::string& name): 
+
+MiniTree::MiniTree(const std::string& name): 
   asg::AsgMetadataTool(name)
 {
   declareProperty("SystematicList", m_sysList); //pass here the list of systematics
@@ -17,7 +17,7 @@ MiniTree2::MiniTree2(const std::string& name):
   tree = 0;
 }
 
-MiniTree2::~MiniTree2()
+MiniTree::~MiniTree()
 {
   
   for(const auto& sys : m_sysList) {
@@ -51,6 +51,11 @@ MiniTree2::~MiniTree2()
       delete el_phi_map[sys_name];
       delete el_ch_map[sys_name];
       delete el_w_map[sys_name];
+
+      delete el_medium_pt_map[sys_name];
+      delete el_medium_eta_map[sys_name];
+      delete el_medium_phi_map[sys_name];
+      delete el_medium_ch_map[sys_name];
 
       delete mu_pt_map[sys_name];
       delete mu_eta_map[sys_name];
@@ -86,6 +91,11 @@ MiniTree2::~MiniTree2()
   delete el_ch_map["Nominal"];
   delete el_w_map["Nominal"];
 
+  delete el_medium_pt_map ["Nominal"];
+  delete el_medium_eta_map["Nominal"];
+  delete el_medium_phi_map["Nominal"];
+  delete el_medium_ch_map ["Nominal"];
+
   delete mu_pt_map["Nominal"];
   delete mu_eta_map["Nominal"];
   delete mu_phi_map["Nominal"];
@@ -93,22 +103,15 @@ MiniTree2::~MiniTree2()
   delete mu_w_map["Nominal"];
 }
 
-TString MiniTree2::BookName(TString branch, TString sys_name) 
+TString MiniTree::BookName(TString branch, TString sys_name) 
 {
   TString ret = branch + "_" + sys_name ;
   return ret;
 }
 
-StatusCode MiniTree2::initialize() 
+StatusCode MiniTree::initialize() 
 {
   //Init the nominal tree
-  // ph_loose_pt = new std::vector<float>(); 
-  // ph_loose_eta = new std::vector<float>();
-  // ph_loose_phi = new std::vector<float>();
-  // ph_loose_isem = new std::vector<unsigned int>();
-  // ph_loose_iso20 = new std::vector<float>();
-  // ph_loose_iso40 = new std::vector<float>();
-
   ph_pt = new std::vector<float>(); 
   ph_eta = new std::vector<float>();
   ph_etas2 = new std::vector<float>();
@@ -141,6 +144,11 @@ StatusCode MiniTree2::initialize()
   el_phi = new std::vector<float>();
   el_ch = new std::vector<int>();
   el_w = new std::vector<float>();
+
+  el_medium_pt = new std::vector<float>(); 
+  el_medium_eta = new std::vector<float>();
+  el_medium_phi = new std::vector<float>();
+  el_medium_ch = new std::vector<int>();
   
   mu_pt = new std::vector<float>(); 
   mu_eta = new std::vector<float>();
@@ -212,7 +220,15 @@ StatusCode MiniTree2::initialize()
   tree->Branch("el_pt",  el_pt);
   tree->Branch("el_ch",  el_ch);
   tree->Branch("el_w",   el_w);
-  
+
+  if (!m_ismc) {
+    tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_n/I");
+    tree->Branch("el_medium_eta", el_medium_eta);
+    tree->Branch("el_medium_phi", el_medium_phi);
+    tree->Branch("el_medium_pt",  el_medium_pt);
+    tree->Branch("el_medium_ch",  el_medium_ch);
+  }
+
   tree->Branch("mu_n", &mu_n_map["Nominal"], "mu_n/I");
   tree->Branch("mu_eta", mu_eta);
   tree->Branch("mu_phi", mu_phi);
@@ -269,6 +285,14 @@ StatusCode MiniTree2::initialize()
   el_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_phi));
   el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
   el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
+
+  if (!m_ismc) {
+    el_medium_n_map.insert (std::pair<std::string, int>(sys_name, 0));
+    el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
+    el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
+    el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
+    el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
+  }
 
   mu_n_map.insert (std::pair<std::string, int>(sys_name, 0));  
   mu_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, mu_pt));
@@ -331,6 +355,11 @@ StatusCode MiniTree2::initialize()
       el_phi = new std::vector<float>();
       el_ch = new std::vector<int>();
       el_w = new std::vector<float>();
+
+      el_medium_pt = new std::vector<float>(); 
+      el_medium_eta = new std::vector<float>();
+      el_medium_phi = new std::vector<float>();
+      el_medium_ch = new std::vector<int>();
 
       mu_pt = new std::vector<float>(); 
       mu_eta = new std::vector<float>();
@@ -459,6 +488,13 @@ StatusCode MiniTree2::initialize()
       el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
       el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
 
+      if (!m_ismc) {
+        el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
+        el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
+        el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
+        el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
+      }
+
       mu_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, mu_pt));
       mu_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_eta));
       mu_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_phi));
@@ -486,7 +522,7 @@ StatusCode MiniTree2::initialize()
   return StatusCode::SUCCESS;
 }
 
-void MiniTree2::clear()
+void MiniTree::clear()
 {
   event_number = 0;
   run_number = 0;
@@ -503,7 +539,7 @@ void MiniTree2::clear()
   PRWHash = 0;
 }
 
-bool MiniTree2::process(AnalysisCollections collections, std::string sysname) 
+bool MiniTree::process(AnalysisCollections collections, std::string sysname) 
 {
   // clear
   ph_pt_map[sysname]->clear();
@@ -540,6 +576,13 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
   el_phi_map[sysname]->clear();
   el_ch_map[sysname]->clear();
   el_w_map[sysname]->clear();
+
+  if (!m_ismc) {
+    el_medium_pt_map[sysname]->clear();
+    el_medium_eta_map[sysname]->clear();
+    el_medium_phi_map[sysname]->clear();
+    el_medium_ch_map[sysname]->clear();
+  }
 
   mu_pt_map[sysname]->clear();
   mu_eta_map[sysname]->clear();
@@ -579,6 +622,29 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
     }
   }
   el_n_map[sysname] = el_n;
+
+  // medium electrons
+  int el_medium_n = 0;;
+  if (!m_ismc) {
+
+    for (const auto& el_itr : *collections.electrons) {
+
+      if (el_itr->auxdata<char>("baseline") == 1 &&
+          el_itr->auxdata<char>("passOR") == 1 &&
+          el_itr->auxdata<char>("medium") == 1 && 
+          el_itr->auxdata<char>("isol") == 1 && 
+          PassEtaCut(el_itr, true)) {
+
+        el_medium_n += 1;
+        el_medium_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
+        el_medium_eta_map[sysname]->push_back(el_itr->eta());
+        el_medium_phi_map[sysname]->push_back(el_itr->phi());
+        el_medium_ch_map[sysname]->push_back(el_itr->trackParticle()->charge());
+      }
+    }
+    el_medium_n_map[sysname] = el_medium_n;
+
+  }
 
   // muons
   int mu_n = 0;
@@ -799,19 +865,19 @@ bool MiniTree2::process(AnalysisCollections collections, std::string sysname)
   if (m_ismc) 
     pass_skim = (photons_baseline > 0);
   else
-    pass_skim = (photons_baseline > 0 || el_n > 0);
+    pass_skim = (photons_baseline > 0 || el_medium_n > 0);
 
   return pass_skim;
 }
 
 // Call after all the syst have been processed and ONLY IF one of them passed the event selection criteria
-StatusCode MiniTree2::FillTree()
+StatusCode MiniTree::FillTree()
 {
   tree->Fill();
   return StatusCode::SUCCESS;
 }
 
-bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, Float_t maxeta)
+bool MiniTree::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, Float_t maxeta)
 {
   Double_t eta = fabs(part->eta());
 
@@ -824,7 +890,7 @@ bool MiniTree2::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, 
   return true;
 }
 
-bool MiniTree2::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Float_t maxeta) 
+bool MiniTree::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Float_t maxeta) 
 {
   Double_t eta = fabs(part->caloCluster()->etaBE(2));
 
@@ -836,3 +902,4 @@ bool MiniTree2::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Flo
 
   return true;
 }
+

@@ -1,5 +1,5 @@
-#ifndef MiniTree2_h
-#define MiniTree2_h
+#ifndef MiniTree_h
+#define MiniTree_h
 
 #include <vector>
 #include <map>
@@ -40,11 +40,11 @@ struct AnalysisCollections {
   TLorentzVector truth_met;
 };
 
-class MiniTree2 : public asg::AsgMetadataTool {
+class MiniTree : public asg::AsgMetadataTool {
 
  public:
-  MiniTree2(const std::string& name);
-  ~MiniTree2();
+  MiniTree(const std::string& name);
+  ~MiniTree();
 
   StatusCode initialize();
   void clear();
@@ -108,6 +108,13 @@ class MiniTree2 : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<int>*>   el_ch_map;
   std::map<const std::string, std::vector<float>*> el_w_map;
 
+  std::map<const std::string, int> el_medium_n_map;
+  std::map<const std::string, std::vector<float>*> el_medium_pt_map;
+  std::map<const std::string, std::vector<float>*> el_medium_eta_map;
+  std::map<const std::string, std::vector<float>*> el_medium_phi_map;
+  std::map<const std::string, std::vector<int>*>   el_medium_ch_map;
+
+
   std::map<const std::string, float> met_phi_map;
   std::map<const std::string, float> met_et_map;
 
@@ -131,14 +138,6 @@ protected:
   TDirectory *m_outfile;    
   std::vector<ST::SystInfo> m_sysList;
   Bool_t m_ismc;
-
-  int ph_loose_n;
-  std::vector<float> *ph_loose_pt; 
-  std::vector<float> *ph_loose_eta;
-  std::vector<float> *ph_loose_phi;
-  std::vector<unsigned int> *ph_loose_isem;
-  std::vector<float> *ph_loose_iso20;
-  std::vector<float> *ph_loose_iso40;
 
   std::vector<float> *ph_pt; 
   std::vector<float> *ph_eta;
@@ -172,7 +171,12 @@ protected:
   std::vector<float> *el_phi;
   std::vector<int>   *el_ch;
   std::vector<float> *el_w;
-  
+
+  std::vector<float> *el_medium_pt; 
+  std::vector<float> *el_medium_eta;
+  std::vector<float> *el_medium_phi;
+  std::vector<int>   *el_medium_ch;
+    
   std::vector<float> *mu_pt; 
   std::vector<float> *mu_eta;
   std::vector<float> *mu_phi;
