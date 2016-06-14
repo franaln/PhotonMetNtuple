@@ -96,7 +96,7 @@ public:
   // protected from being send from the submission node to the worker
   // node (done by the //!)
 public:
-  MiniTree2 *outtree; //!
+  MiniTree *outtree; //!
 
   MCFilter *mc_filter; //!
 

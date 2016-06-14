@@ -9,7 +9,7 @@
 #include <PhotonMetNtuple/xAODAnalysis.h>
 #include <PhotonMetNtuple/xAODTruthAnalysis.h>
 #include <PhotonMetNtuple/xAODCountEwkProcesses.h>
-#include <PhotonMetNtuple/MiniTree2.h>
+#include <PhotonMetNtuple/MiniTree.h>
 #include <PhotonMetNtuple/TruthTree.h>
 
 #ifdef __CINT__
@@ -25,7 +25,7 @@
 #pragma link C++ class xAODAnalysis+;
 #pragma link C++ class xAODTruthAnalysis+;
 #pragma link C++ class xAODCountEwkProcesses+;
-#pragma link C++ class MiniTree2+;
+#pragma link C++ class MiniTree+;
 #pragma link C++ class TruthTree+;
 #pragma link C++ class pair<std::string,TTree >+;
 #endif

@@ -295,7 +295,7 @@ EL::StatusCode xAODAnalysis::initialize()
 
   TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
   
-  outtree = new MiniTree2("MiniTree");
+  outtree = new MiniTree("MiniTree");
 
   //Here you can select a subsect of the systematic uncertainties
   CHECK(outtree->setProperty("SystematicList", systInfoList));
