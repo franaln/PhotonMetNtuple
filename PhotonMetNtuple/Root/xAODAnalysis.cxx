@@ -246,17 +246,10 @@ EL::StatusCode xAODAnalysis::initialize()
   CHECK(susytools->setProperty("DataSource", datasource)); 
 
 
-
-
   // ST Config file
-  // std::string st_config_file = m_data_dir+"ST_PhotonMet.conf";
   CHECK(susytools->setProperty("ConfigFile", m_st_config_file));
 
   // Pile Up Reweighting
-  //std::vector<std::string> prwFiles;
-  //prwFiles.push_back(data_dir+"merged_prw_mc15c.root");
-  //  std::vector<std::string> lumicalcFiles;
-  //  lumicalcFiles.push_back(data_dir+"ilumicalc_histograms_None_276262-284154.root");
   CHECK(susytools->setProperty("PRWConfigFiles", m_prw_mc_files));
   CHECK(susytools->setProperty("PRWLumiCalcFiles", m_prw_lumicalc_files));
  

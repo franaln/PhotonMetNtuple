@@ -95,11 +95,11 @@ def run_job(sample, driver):
         is_susy_ewk = ('_GGM_mu_' in sample)
         is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
         
-        print 'CONFIG: data =', is_data
-        print 'CONFIG: susy =', is_susy
-        print 'CONFIG: susy ewk =', is_susy_ewk
-        print 'CONFIG: atlfast =', is_atlfast
-        print 'CONFIG: dosyst =', args.dosyst
+        logging.info('CONFIG: data = %s' % is_data)
+        logging.info('CONFIG: susy = %s' % is_susy)
+        logging.info('CONFIG: susy ewk = %s' % is_susy_ewk)
+        logging.info('CONFIG: atlfast = %s' % is_atlfast)
+        logging.info('CONFIG: dosyst = %s' % args.dosyst)
 
 
         alg.config_file = args.config_file
