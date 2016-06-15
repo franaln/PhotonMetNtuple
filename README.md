@@ -36,7 +36,7 @@ PhotonMetNtuple
 * And to run in the grid:
 
     ```
-    run.py -i input.txt --grid -v XX -c PhotonMetNtuple_20.7_std.conf
+    run.py -i input.txt -d [DIDS] --grid -v XX -c PhotonMetNtuple_20.7_std.conf
     ```
 
 ## Samples
