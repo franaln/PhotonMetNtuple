@@ -243,7 +243,9 @@ StatusCode MiniTree::initialize()
 
   tree->Branch("ht", &ht_map["Nominal"]);				
   tree->Branch("meff", &meff_map["Nominal"]);				
+  tree->Branch("rt1", &rt1_map["Nominal"]);				
   tree->Branch("rt2", &rt2_map["Nominal"]);				
+  tree->Branch("rt3", &rt3_map["Nominal"]);				
   tree->Branch("rt4", &rt4_map["Nominal"]);				
 
   tree->Branch("dphi_gamjet", &dphi_gamjet_map["Nominal"]);
@@ -308,7 +310,9 @@ StatusCode MiniTree::initialize()
 
   ht_map.insert(std::pair<std::string, float>(sys_name, 0.));
   meff_map.insert(std::pair<std::string, float>(sys_name, 0.));
+  rt1_map.insert(std::pair<std::string, float>(sys_name, 0.));
   rt2_map.insert(std::pair<std::string, float>(sys_name, 0.));
+  rt3_map.insert(std::pair<std::string, float>(sys_name, 0.));
   rt4_map.insert(std::pair<std::string, float>(sys_name, 0.));
 
   dphi_jetmet_map.insert(std::pair<std::string, float>(sys_name, 0.));
@@ -453,7 +457,9 @@ StatusCode MiniTree::initialize()
       
         tree->Branch(BookName("ht", sys_name), &ht_map[sys_name]);
         tree->Branch(BookName("meff", sys_name), &meff_map[sys_name]);
+        tree->Branch(BookName("rt1", sys_name), &rt1_map[sys_name]);
         tree->Branch(BookName("rt2", sys_name), &rt2_map[sys_name]);
+        tree->Branch(BookName("rt3", sys_name), &rt3_map[sys_name]);
         tree->Branch(BookName("rt4", sys_name), &rt4_map[sys_name]);
       
         tree->Branch(BookName("dphi_gamjet", sys_name), &dphi_gamjet_map[sys_name]);
@@ -508,7 +514,10 @@ StatusCode MiniTree::initialize()
 
       ht_map.insert(std::pair<std::string, float>(sys_name, -99.));
       meff_map.insert(std::pair<std::string, float>(sys_name, -99.));
+
+      rt1_map.insert(std::pair<std::string, float>(sys_name, -99.));
       rt2_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      rt3_map.insert(std::pair<std::string, float>(sys_name, -99.));
       rt4_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
       dphi_gamjet_map.insert(std::pair<std::string, float>(sys_name, -99.));
@@ -608,7 +617,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
         el_itr->auxdata<char>("passOR") == 1 &&
         el_itr->auxdata<char>("signal") == 1 && 
         el_itr->auxdata<char>("isol") == 1 && 
-        PassEtaCut(el_itr, true)) {
+        PassEtaCut(el_itr)) {
       
       el_n += 1;
       el_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
@@ -633,7 +642,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
           el_itr->auxdata<char>("passOR") == 1 &&
           el_itr->auxdata<char>("medium") == 1 && 
           el_itr->auxdata<char>("isol") == 1 && 
-          PassEtaCut(el_itr, true)) {
+          PassEtaCut(el_itr)) {
 
         el_medium_n += 1;
         el_medium_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
@@ -681,7 +690,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
     if (jet_itr->auxdata<char>("baseline") == 1  &&
         jet_itr->auxdata<char>("passOR") == 1 &&
         jet_itr->auxdata<char>("signal") == 1 &&
-        PassEtaCut(jet_itr, false, 2.5) && 
+        PassEtaCut(jet_itr, 2.5) && 
         jet_itr->pt()>30000.) {
       
       jet_n++;
@@ -712,11 +721,11 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   int ph_noniso_n = 0;
 
   for (const auto& ph_itr : *collections.photons) {
-   
+
     if (ph_itr->auxdata<char>("baseline") == 1 &&
         ph_itr->auxdata<char>("signal")   == 1 &&
         ph_itr->auxdata<char>("passOR")   == 1 &&
-        PassEtaCut(ph_itr, true, 2.37)) {
+        PassEtaCut(ph_itr, 2.37)) {
       
       // separate iso and noniso photons
       float iso40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
@@ -727,8 +736,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
       // }
 
       // isolated
-      if (iso < 2.45) {
-
+      if (ph_itr->auxdata<char>("isol") == 1) {
         ph_n += 1;
         ph_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_eta_map[sysname]->push_back(ph_itr->eta());
@@ -766,7 +774,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
         }
       }
       // noniso photons
-      else if (iso > 5.45 && iso < 29.45) {
+      else {
 
         ph_noniso_n += 1;
 
@@ -801,19 +809,25 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   
   // Extra variables
   Double_t sum_jet_pt = 0.0;
+  Double_t sum_jet1_pt = 0.0;
   Double_t sum_jet2_pt = 0.0;
+  Double_t sum_jet3_pt = 0.0;
   Double_t sum_jet4_pt = 0.0;
 
   for (int i=0; i<jet_n; i++) {
 
     Double_t pt = (*jet_pt_map[sysname])[i];
 
-    if (jet_n >= 2 && i < 2) 
-      sum_jet2_pt += pt;
-    if (jet_n >= 4 && i < 4) 
-      sum_jet4_pt += pt;
-    
     sum_jet_pt += pt;
+
+    if (i < 1) 
+      sum_jet1_pt += pt;
+    if (i < 2) 
+      sum_jet2_pt += pt;
+    if (i < 3) 
+      sum_jet3_pt += pt;
+    if (i < 4) 
+      sum_jet4_pt += pt;
   }
   
   // Ht
@@ -827,9 +841,19 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   meff_map[sysname] = ht + met_et_map[sysname];
   
   // Rt
-  rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
-  rt4_map[sysname] = sum_jet4_pt/sum_jet_pt;
-  
+  if (jet_n) {
+    rt1_map[sysname] = sum_jet1_pt/sum_jet_pt;
+    rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
+    rt3_map[sysname] = sum_jet3_pt/sum_jet_pt;
+    rt4_map[sysname] = sum_jet4_pt/sum_jet_pt;
+  }
+  else {
+    rt1_map[sysname] = 1.;
+    rt2_map[sysname] = 1.;
+    rt3_map[sysname] = 1.;
+    rt4_map[sysname] = 1.;
+  }
+
   // min dphi between met and the first two jets
   Double_t dphi1 = 4.;
   Double_t dphi2 = 4.;
@@ -850,12 +874,10 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   weight_sf_map[sysname] = total_weight_sf;
 
   
-  // Skim: at least one baseline photon with pt>75 or an electron
+  // Skim: at least one baseline photon with pt>75 (or a medium electron for data)
   int photons_baseline = 0;
   for (const auto& ph_itr : *collections.photons) {
     if (ph_itr->auxdata<char>("baseline") == 1  &&
-        ph_itr->auxdata<char>("passOR") == 1  &&
-        PassEtaCut(ph_itr, 2.37) &&
         ph_itr->pt()*IGEV > 75) {
       photons_baseline += 1;
     }
@@ -877,27 +899,37 @@ StatusCode MiniTree::FillTree()
   return StatusCode::SUCCESS;
 }
 
-bool MiniTree::PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut, Float_t maxeta)
+bool MiniTree::PassEtaCut(const xAOD::IParticle *part, Float_t maxeta)
 {
   Double_t eta = fabs(part->eta());
 
   if (eta > maxeta)
     return false;
 
-  if (apply_crack_cut && eta >= 1.37 && eta < 1.52)
-    return false;
-
   return true;
 }
 
-bool MiniTree::PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut, Float_t maxeta) 
+bool MiniTree::PassEtaCut(const xAOD::Photon *part, Float_t maxeta) 
 {
   Double_t eta = fabs(part->caloCluster()->etaBE(2));
 
   if (eta > maxeta)
     return false;
 
-  if (apply_crack_cut && eta >= 1.37 && eta < 1.52)
+  if (eta > 1.37 && eta < 1.52)
+    return false;
+
+  return true;
+}
+
+bool MiniTree::PassEtaCut(const xAOD::Electron *part, Float_t maxeta) 
+{
+  Double_t eta = fabs(part->caloCluster()->etaBE(2));
+
+  if (eta > maxeta)
+    return false;
+
+  if (eta > 1.37 && eta < 1.52)
     return false;
 
   return true;

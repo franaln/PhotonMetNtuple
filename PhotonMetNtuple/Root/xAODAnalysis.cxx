@@ -26,14 +26,13 @@
 #include "xAODBTagging/BTagging.h"
 #include "FourMomUtils/xAODP4Helpers.h"
 
-// GRL
+// Tools
+#include "ElectronPhotonSelectorTools/AsgElectronLikelihoodTool.h"
 #include "GoodRunsLists/GoodRunsListSelectionTool.h"
-
-//PU Reweighting
 #include "PileupReweighting/PileupReweightingTool.h"
-
 #include "CPAnalysisExamples/errorcheck.h"
 #include "SUSYTools/SUSYObjDef_xAOD.h"
+#include "SUSYTools/SUSYCrossSection.h"
 
 // Amg include
 #include "EventPrimitives/EventPrimitivesHelpers.h"
@@ -43,7 +42,6 @@
 
 const char *APP_NAME = "PhotonMetNtuple";
 const char *APP_VERSION = "Version: v32";
-
 
 
 // this is needed to distribute the algorithm to the workers
@@ -167,46 +165,43 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
   Double_t m_initial_sumw = 0.;
   Double_t m_initial_sumw2 = 0.;
 
-  if (!is_data) {
-
-    if (is_derivation) {
-      //Read the CutBookkeeper container
-      const xAOD::CutBookkeeperContainer* completeCBC = 0;
-      if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
-        Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
-        return EL::StatusCode::FAILURE;
-      }
-      
-      // Now, let's actually find the right one that contains all the needed info...
-      const xAOD::CutBookkeeper* all_events_cbk = 0;
-      //const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
-      
-      int maxCycle = -1;
-      for (const auto& cbk :  *completeCBC) {
-        if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
-          all_events_cbk = cbk;
-          maxCycle = cbk->cycle();
-        }
-      }
-      
-      m_initial_events = all_events_cbk->nAcceptedEvents();
-      m_initial_sumw   = all_events_cbk->sumOfEventWeights();
-      m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
-    }
-    else {
-      TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
-      
-      m_initial_events  = CollectionTree->GetEntries(); 
-      m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
-      m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
+  if (is_derivation) {
+    //Read the CutBookkeeper container
+    const xAOD::CutBookkeeperContainer* completeCBC = 0;
+    if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
+      Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
+      return EL::StatusCode::FAILURE;
     }
     
-    std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
-    
-    h_events->Fill(1, m_initial_events);
-    h_events->Fill(3, m_initial_sumw);
-    h_events->Fill(5, m_initial_sumw2);
+    // Now, let's actually find the right one that contains all the needed info...
+    const xAOD::CutBookkeeper* all_events_cbk = 0;
+    //const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
+      
+    int maxCycle = -1;
+    for (const auto& cbk :  *completeCBC) {
+      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
+        all_events_cbk = cbk;
+        maxCycle = cbk->cycle();
+      }
+    }
+      
+    m_initial_events = all_events_cbk->nAcceptedEvents();
+    m_initial_sumw   = all_events_cbk->sumOfEventWeights();
+    m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
   }
+  else {
+    TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
+    
+    m_initial_events  = CollectionTree->GetEntries(); 
+    m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
+    m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
+  }
+  
+  std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
+  
+  h_events->Fill(1, m_initial_events);
+  h_events->Fill(3, m_initial_sumw);
+  h_events->Fill(5, m_initial_sumw2);
 
   return EL::StatusCode::SUCCESS;
 }
@@ -225,7 +220,6 @@ EL::StatusCode xAODAnalysis::initialize()
   Info(APP_NAME, APP_VERSION);
 
   m_event = wk()->xaodEvent();
-
 
   // Data dir
   m_data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
@@ -267,8 +261,6 @@ EL::StatusCode xAODAnalysis::initialize()
   
   // GRL
   m_grl = new GoodRunsListSelectionTool("GoodRunsListSelectionTool");
-  // std::vector<std::string> vecStringGRL;
-  //vecStringGRL.push_back(data_dir +  "grl.xml");
   CHECK(m_grl->setProperty("GoodRunsListVec", m_grl_files));
   CHECK(m_grl->setProperty("PassThrough", false) ); // if true (default) will ignore result of GRL and will just pass all events
   if (!m_grl->initialize().isSuccess()) { // check this isSuccess

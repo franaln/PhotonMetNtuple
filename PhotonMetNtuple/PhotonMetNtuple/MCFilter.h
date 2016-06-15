@@ -1,6 +1,10 @@
 #ifndef MCFilter_h
 #define MCFilter_h
 
+#include "xAODRootAccess/Init.h"
+#include "xAODRootAccess/TEvent.h"
+#include "xAODRootAccess/TStore.h"
+#include "xAODTruth/TruthParticleContainer.h"
 
 class MCFilter {
 

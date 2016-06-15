@@ -6,11 +6,14 @@
 #include <map>
 #include <utility>
 
+#include <PhotonMetNtuple/MCFilter.h>
+#include <PhotonMetNtuple/TruthUtils.h>
+#include <PhotonMetNtuple/Utils.h>
+#include <PhotonMetNtuple/MiniTree.h>
+#include <PhotonMetNtuple/TruthTree.h>
 #include <PhotonMetNtuple/xAODAnalysis.h>
 #include <PhotonMetNtuple/xAODTruthAnalysis.h>
 #include <PhotonMetNtuple/xAODCountEwkProcesses.h>
-#include <PhotonMetNtuple/MiniTree.h>
-#include <PhotonMetNtuple/TruthTree.h>
 
 #ifdef __CINT__
 

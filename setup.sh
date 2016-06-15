@@ -5,4 +5,6 @@ localSetupPandaClient
 
 rcSetup Base,2.4.11  # and checkout SUSYTools-00-07-69
 
+export ROOTCORE_NCPUS="4"
+
 export PATH="$PWD/scripts:$PATH"

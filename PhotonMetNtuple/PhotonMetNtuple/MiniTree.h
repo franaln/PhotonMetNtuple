@@ -52,8 +52,9 @@ class MiniTree : public asg::AsgMetadataTool {
   StatusCode FillTree();
   TString BookName(TString branch, TString sys_name);
 
-  bool PassEtaCut(const xAOD::IParticle *part, Bool_t apply_crack_cut=false, Float_t maxeta=99.);
-  bool PassEtaCut(const xAOD::Photon *part, Bool_t apply_crack_cut=false, Float_t maxeta=99.);
+  bool PassEtaCut(const xAOD::IParticle *part, Float_t maxeta=99.);
+  bool PassEtaCut(const xAOD::Photon *part, Float_t maxeta=99.);
+  bool PassEtaCut(const xAOD::Electron *part, Float_t maxeta=99.);
 
   void SetEventNumber(int en) { event_number = en; };
   void SetRunNumber(int en) { run_number = en; };
@@ -123,7 +124,10 @@ class MiniTree : public asg::AsgMetadataTool {
 
   std::map<const std::string, float> ht_map;
   std::map<const std::string, float> meff_map;
+
+  std::map<const std::string, float> rt1_map;
   std::map<const std::string, float> rt2_map;
+  std::map<const std::string, float> rt3_map;
   std::map<const std::string, float> rt4_map;
 
   std::map<const std::string, float> dphi_jetmet_map;
