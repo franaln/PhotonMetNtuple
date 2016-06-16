@@ -19,17 +19,23 @@ def get_samples_from_file(file_, dids_str=None):
 
     logging.info('get samples from %s with dids = %s' % (file_, dids_str))
 
-    dids = []
+    include_dids = []
+    exclude_dids = []
     if dids_str is not None:
 
         try:
             if '-' in dids_str:
                 first, last = dids_str.split('-')
-                dids = range(int(first), int(last)+1)
+                if first:
+                    include_dids = range(int(first), int(last)+1)
+                else:
+                    exclude_dids = [int(last), ]
+
             elif ',' in dids_str:
-                dids = [ int(did) for did in dids_str.split(',') ]
+                include_dids = [ int(did) for did in dids_str.split(',') ]
             else:
-                dids = [int(dids_str),]
+                include_dids = [int(dids_str),]
+                
         except:
             logging.error('bad dids syntax. ignoring...')
 
@@ -42,18 +48,20 @@ def get_samples_from_file(file_, dids_str=None):
         if not line or line.startswith('#'):
             continue
 
-        if dids:
+        if include_dids or exclude_dids:
             did = int(line.split('.')[1])
-            if did not in dids:
+
+            if include_dids and did not in include_dids:
+                continue
+            if exclude_dids and did in exclude_dids:
                 continue
 
-        samples.append(line)
+        samples.append(line.strip())
 
     if not samples:
         logging.error('not samples to run')
 
     return samples
-
 
 
 def run_job(sample, driver):
@@ -64,12 +72,10 @@ def run_job(sample, driver):
         args.output = 'output'
     shutil.rmtree(args.output, True)
 
-
     # create a new sample handler to describe the data files we use
     sh = ROOT.SH.SampleHandler()
-
     if driver == 'grid':
-        ROOT.SH.scanDQ2(sh, sample)
+        ROOT.SH.scanRucio(sh, sample)
     else:
         ROOT.SH.scanDir(sh, sample)
 
@@ -88,7 +94,7 @@ def run_job(sample, driver):
 
         alg = ROOT.xAODAnalysis()
 
-        is_data     = ('data15' in sample)
+        is_data     = ('data15' in sample or 'data16' in sample)
         is_susy     = ('_GGM_' in sample)
         is_susy_ewk = ('_GGM_mu_' in sample)
         is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
@@ -115,15 +121,12 @@ def run_job(sample, driver):
 
     # make the driver we want to use:
     # this one works by running the algorithm directly
-    logging.info("creating driver")
-
     if driver == 'grid':
 
         logging.info('running on Grid') 
 
         driver = ROOT.EL.PrunDriver() 
         
-
         # output name
         splitted_sample = sample.split('.')
 
@@ -146,6 +149,13 @@ def run_job(sample, driver):
         driver.options().setString(ROOT.EL.Job.optGridExcludedSite, 'ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6')
         driver.options().setString(ROOT.EL.Job.optGridNGBPerJob, 'MAX')
         driver.options().setString(ROOT.EL.Job.optGridMergeOutput, 'FALSE')
+        driver.options().setDouble(ROOT.EL.Job.optRemoveSubmitDir, 1)
+
+        # if args.do_tarball:
+        #     driver.options().setString(ROOT.EL.Job.optSubmitFlags, '--outTarBall=grid_tarball.tar --noSubmit')
+        # elif args.use_tarball:
+        #     os.system('cp grid_tarball.tar output/elg/')
+        #     driver.options().setString(ROOT.EL.Job.optSubmitFlags, '--inTarBall=grid_tarball.tar')
 
         # submit 
         logging.info('submit job: ' + outname)
@@ -190,6 +200,8 @@ def main():
 
     parser.add_argument('--grid', action='store_true')    
     parser.add_argument('--dry', action='store_true')
+    # parser.add_argument('--dotar', dest='do_tarball', action='store_true')
+    # parser.add_argument('--usetar', dest='use_tarball', action='store_true')
 
     # others
     parser.add_argument('--download', action='store_true')
@@ -211,7 +223,6 @@ def main():
             torun = get_samples_from_file(args.input_file, args.dids)
 
         elif args.samples is not None:
-
             try:
                 torun = []
                 for s in args.samples.split(','):
@@ -221,14 +232,19 @@ def main():
                 torun = []
 
         for sample in torun:
-            s = '.'.join(sample.split('.')[:3])
-            outname = 'user.falonso.%s.mini_v%s_output.root/' % (s, args.version)
+            splitted_sample = sample.split('.')
+
+            short_name = '.'.join(splitted_sample[:3])
+
+            tags = splitted_sample[-1]
+            ptag = tags.split('_')[-1] if tags.split('_')[-1].startswith('p') else ''
+
+            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.' + ptag + '.v' + args.version + '_output.root'
+
             print 'rucio download %s' % outname
 
         return 0
 
-
-    ROOT.gROOT.Macro("$ROOTCOREDIR/scripts/load_packages.C")
 
     global job_name
     job_name = args.job
@@ -237,7 +253,7 @@ def main():
         logging.error('you need to provide a configfile!')
 
 
-    #Set up the job for xAOD access:
+    ROOT.gROOT.Macro("$ROOTCOREDIR/scripts/load_packages.C")
     ROOT.xAOD.Init().ignore()
 
     if args.grid:
