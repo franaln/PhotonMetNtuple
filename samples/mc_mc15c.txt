@@ -1,7 +1,7 @@
 # photonjet
 # 35-70 missing
 #
-#
+mc15_13TeV.361041.Sherpa_CT10_SinglePhotonPt35_70_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7725_r7676_p2666
 mc15_13TeV.361042.Sherpa_CT10_SinglePhotonPt70_140_CVetoBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7725_r7676_p2622
 mc15_13TeV.361043.Sherpa_CT10_SinglePhotonPt70_140_CFilterBVeto.merge.DAOD_SUSY1.e3587_s2608_s2183_r7725_r7676_p2622
 mc15_13TeV.361044.Sherpa_CT10_SinglePhotonPt70_140_BFilter.merge.DAOD_SUSY1.e3587_s2608_s2183_r7725_r7676_p2622
@@ -26,7 +26,7 @@ mc15_13TeV.361061.Sherpa_CT10_SinglePhotonPt4000_CFilterBVeto.merge.DAOD_SUSY1.e
 # vgamma
 
 # ttgamma
-
+mc15_13TeV.410084.MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma80_noallhad.merge.DAOD_SUSY1.e4418_a766_a821_r7676_p2666
 # single top
 mc15_13TeV.410011.PowhegPythiaEvtGen_P2012_singletop_tchan_lept_top.merge.DAOD_SUSY1.e3824_s2608_s2183_r7725_r7676_p2622
 mc15_13TeV.410012.PowhegPythiaEvtGen_P2012_singletop_tchan_lept_antitop.merge.DAOD_SUSY1.e3824_s2608_s2183_r7725_r7676_p2622
