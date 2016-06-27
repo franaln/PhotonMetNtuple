@@ -117,7 +117,7 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
   h_cutflow->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
 
-  h_cutflow_w = new TH1D("cutflow_w", "Cutflow_W", 8, 0.5, 8.5);
+  h_cutflow_w = new TH1D("cutflow_w", "Cutflow_w", 8, 0.5, 8.5);
   h_cutflow_w->GetXaxis()->SetBinLabel(1, "All");
   h_cutflow_w->GetXaxis()->SetBinLabel(2, "GRL/MC filter");
   h_cutflow_w->GetXaxis()->SetBinLabel(3, "DQ");
@@ -242,7 +242,6 @@ EL::StatusCode xAODAnalysis::initialize()
 
   CHECK(susytools->setProperty("DataSource", datasource)); 
 
-
   // ST Config file
   CHECK(susytools->setProperty("ConfigFile", m_st_config_file));
 
@@ -285,6 +284,10 @@ EL::StatusCode xAODAnalysis::initialize()
     systInfoList.push_back(infodef);
   } 
 
+  if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
+    Error(APP_NAME, "Cannot reset SUSYTools systematics" );
+  }
+      
   TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
   
   outtree = new MiniTree("MiniTree");
@@ -300,7 +303,7 @@ EL::StatusCode xAODAnalysis::initialize()
   return EL::StatusCode::SUCCESS;
 }
 
-EL::StatusCode xAODAnalysis :: execute ()
+EL::StatusCode xAODAnalysis::execute ()
 {
   // Here you do everything that needs to be done on every single
   // events, e.g. read input variables, apply cuts, and fill
@@ -335,7 +338,6 @@ EL::StatusCode xAODAnalysis :: execute ()
   float mc_weight = 1.;
   if (is_mc) {
     mc_weight = eventInfo->mcEventWeight();
-
     outtree->SetWeightMC(mc_weight);
 
     CHECK(susytools->ApplyPRWTool());  
@@ -436,9 +438,11 @@ EL::StatusCode xAODAnalysis :: execute ()
       
     if (sysInfo.affectsKinematics || sysInfo.affectsWeights) {
       const CP::SystematicSet& sys = sysInfo.systset;
+
       if (susytools->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
       }
+
       else {
         //Info(APP_NAME, "SUSYTools configured for systematic var. %s", (sys.name()).c_str() );
 
@@ -459,13 +463,19 @@ EL::StatusCode xAODAnalysis :: execute ()
         // If necessary (kinematics affected), make a shallow copy with the variation applied
         bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sysInfo.affectsType);
         bool syst_affectsMuons = ST::testAffectsObject(xAOD::Type::Muon, sysInfo.affectsType);
-        bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sysInfo.affectsType);
+        //bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sysInfo.affectsType);
         bool syst_affectsPhotons = ST::testAffectsObject(xAOD::Type::Photon, sysInfo.affectsType);
         bool syst_affectsJets = ST::testAffectsObject(xAOD::Type::Jet, sysInfo.affectsType);
         bool syst_affectsBTag = ST::testAffectsObject(xAOD::Type::BTag, sysInfo.affectsType);
         
-        if (syst_affectsTaus) 
-          continue;
+        if ( !syst_affectsPhotons && 
+             !syst_affectsElectrons && 
+             !syst_affectsMuons &&
+             !syst_affectsJets && 
+             !syst_affectsBTag ) 
+        continue;
+        // if (syst_affectsTaus) 
+        //   continue;
         
         if (syst_affectsElectrons) {
           xAOD::ElectronContainer* electrons_syst(0);
@@ -621,6 +631,8 @@ EL::StatusCode xAODAnalysis :: execute ()
     outtree->SetPassTSTCleaning(1);
   else
     outtree->SetPassTSTCleaning(0);
+
+  outtree->SetYear(susytools->treatAsYear());
 
   // electrons
   for (const auto& el : *electrons_nominal) {

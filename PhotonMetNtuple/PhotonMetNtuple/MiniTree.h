@@ -68,7 +68,8 @@ class MiniTree : public asg::AsgMetadataTool {
   void SetPRWHash(ULong64_t hash) { PRWHash = hash; };
 
   void SetPassTSTCleaning(int w) { pass_tst_cleaning = w; };
-  
+  void SetYear(unsigned int y) { year = y; };
+
   TTree* tree;
   
   std::map<const std::string, int> ph_n_map;
@@ -105,6 +106,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, int> el_n_map;
   std::map<const std::string, std::vector<float>*> el_pt_map;
   std::map<const std::string, std::vector<float>*> el_eta_map;
+  std::map<const std::string, std::vector<float>*> el_etas2_map;
   std::map<const std::string, std::vector<float>*> el_phi_map;
   std::map<const std::string, std::vector<int>*>   el_ch_map;
   std::map<const std::string, std::vector<float>*> el_w_map;
@@ -112,9 +114,9 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, int> el_medium_n_map;
   std::map<const std::string, std::vector<float>*> el_medium_pt_map;
   std::map<const std::string, std::vector<float>*> el_medium_eta_map;
+  std::map<const std::string, std::vector<float>*> el_medium_etas2_map;
   std::map<const std::string, std::vector<float>*> el_medium_phi_map;
   std::map<const std::string, std::vector<int>*>   el_medium_ch_map;
-
 
   std::map<const std::string, float> met_phi_map;
   std::map<const std::string, float> met_et_map;
@@ -172,12 +174,14 @@ protected:
   
   std::vector<float> *el_pt; 
   std::vector<float> *el_eta;
+  std::vector<float> *el_etas2;
   std::vector<float> *el_phi;
   std::vector<int>   *el_ch;
   std::vector<float> *el_w;
 
   std::vector<float> *el_medium_pt; 
   std::vector<float> *el_medium_eta;
+  std::vector<float> *el_medium_etas2;
   std::vector<float> *el_medium_phi;
   std::vector<int>   *el_medium_ch;
     
@@ -193,6 +197,7 @@ protected:
 
   unsigned int final_state;
   unsigned int pass_tst_cleaning;
+  unsigned int year;
 
   float weight_mc;
   float weight_pu;

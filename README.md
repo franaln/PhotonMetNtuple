@@ -3,15 +3,14 @@ PhotonMetNtuple
 
 ## Release
 
-    Base,2.4.11 + SUSYTools-00-07-69 + METUtilities-00-02-29
+    Base,2.4.12 + SUSYTools-00-07-77
 
 
 ## Compile
 
     source setup.sh    
 
-    rc checkout_pkg $SVNOFF/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-07-69
-    rc checkout_pkg atlasoff/Reconstruction/MET/METUtilities/tags/METUtilities-00-02-29
+    rc checkout_pkg $SVNOFF/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-07-78
 
     rc find_packages
     rc clean

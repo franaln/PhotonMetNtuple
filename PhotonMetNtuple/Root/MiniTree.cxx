@@ -48,12 +48,14 @@ MiniTree::~MiniTree()
       
       delete el_pt_map[sys_name];
       delete el_eta_map[sys_name];
+      delete el_etas2_map[sys_name];
       delete el_phi_map[sys_name];
       delete el_ch_map[sys_name];
       delete el_w_map[sys_name];
 
       delete el_medium_pt_map[sys_name];
       delete el_medium_eta_map[sys_name];
+      delete el_medium_etas2_map[sys_name];
       delete el_medium_phi_map[sys_name];
       delete el_medium_ch_map[sys_name];
 
@@ -87,12 +89,14 @@ MiniTree::~MiniTree()
 
   delete el_pt_map["Nominal"];
   delete el_eta_map["Nominal"];
+  delete el_etas2_map["Nominal"];
   delete el_phi_map["Nominal"];
   delete el_ch_map["Nominal"];
   delete el_w_map["Nominal"];
 
   delete el_medium_pt_map ["Nominal"];
   delete el_medium_eta_map["Nominal"];
+  delete el_medium_etas2_map["Nominal"];
   delete el_medium_phi_map["Nominal"];
   delete el_medium_ch_map ["Nominal"];
 
@@ -141,12 +145,14 @@ StatusCode MiniTree::initialize()
   
   el_pt = new std::vector<float>(); 
   el_eta = new std::vector<float>();
+  el_etas2 = new std::vector<float>();
   el_phi = new std::vector<float>();
   el_ch = new std::vector<int>();
   el_w = new std::vector<float>();
 
   el_medium_pt = new std::vector<float>(); 
   el_medium_eta = new std::vector<float>();
+  el_medium_etas2 = new std::vector<float>();
   el_medium_phi = new std::vector<float>();
   el_medium_ch = new std::vector<int>();
   
@@ -173,13 +179,14 @@ StatusCode MiniTree::initialize()
   }
 
   tree->Branch("pass_tst_cleaning", &pass_tst_cleaning, "pass_tst_cleaning/i");
-
-  tree->Branch("PRWHash", &PRWHash, "PRWHash/l");
+  tree->Branch("year", &year, "year/i");
 
   tree->Branch("weight_mc", &weight_mc);
   tree->Branch("weight_pu", &weight_pu);
   tree->Branch("weight_sf", &weight_sf_map["Nominal"]);
   tree->Branch("weight_btag", &weight_btag_map["Nominal"]);
+
+  tree->Branch("PRWHash", &PRWHash, "PRWHash/l");
  
   tree->Branch("ph_n", &ph_n_map["Nominal"], "ph_n/I");
   tree->Branch("ph_pt",  ph_pt);
@@ -216,14 +223,16 @@ StatusCode MiniTree::initialize()
   
   tree->Branch("el_n", &el_n_map["Nominal"], "el_n/I");
   tree->Branch("el_eta", el_eta);
+  tree->Branch("el_etas2", el_etas2);
   tree->Branch("el_phi", el_phi);
   tree->Branch("el_pt",  el_pt);
   tree->Branch("el_ch",  el_ch);
   tree->Branch("el_w",   el_w);
 
   if (!m_ismc) {
-    tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_n/I");
+    tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_medium_n/I");
     tree->Branch("el_medium_eta", el_medium_eta);
+    tree->Branch("el_medium_etas2", el_medium_etas2);
     tree->Branch("el_medium_phi", el_medium_phi);
     tree->Branch("el_medium_pt",  el_medium_pt);
     tree->Branch("el_medium_ch",  el_medium_ch);
@@ -284,6 +293,7 @@ StatusCode MiniTree::initialize()
   el_n_map.insert (std::pair<std::string, int>(sys_name, 0));
   el_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_pt));
   el_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_eta));
+  el_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_etas2));
   el_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_phi));
   el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
   el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
@@ -292,6 +302,7 @@ StatusCode MiniTree::initialize()
     el_medium_n_map.insert (std::pair<std::string, int>(sys_name, 0));
     el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
     el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
+    el_medium_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_etas2));
     el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
     el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
   }
@@ -328,11 +339,16 @@ StatusCode MiniTree::initialize()
       bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sys.affectsType);
       bool syst_affectsMuons = ST::testAffectsObject(xAOD::Type::Muon, sys.affectsType);
       bool syst_affectsJets = ST::testAffectsObject(xAOD::Type::Jet, sys.affectsType);
-      bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sys.affectsType);
+      //bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sys.affectsType);
       bool syst_affectsBTag = ST::testAffectsObject(xAOD::Type::BTag, sys.affectsType);
 
       //if (syst_affectsPhotons && !syst_affectsElectrons) continue;
-      if (syst_affectsTaus) continue;
+      if ( !syst_affectsPhotons && 
+           !syst_affectsElectrons && 
+           !syst_affectsMuons &&
+           !syst_affectsJets && 
+           !syst_affectsBTag ) 
+        continue;
       
       ph_pt = new std::vector<float>(); 
       ph_eta = new std::vector<float>();
@@ -356,12 +372,14 @@ StatusCode MiniTree::initialize()
 
       el_pt = new std::vector<float>(); 
       el_eta = new std::vector<float>();
+      el_etas2 = new std::vector<float>();
       el_phi = new std::vector<float>();
       el_ch = new std::vector<int>();
       el_w = new std::vector<float>();
 
       el_medium_pt = new std::vector<float>(); 
       el_medium_eta = new std::vector<float>();
+      el_medium_etas2 = new std::vector<float>();
       el_medium_phi = new std::vector<float>();
       el_medium_ch = new std::vector<int>();
 
@@ -373,8 +391,6 @@ StatusCode MiniTree::initialize()
 
       const CP::SystematicSet& sysSet = sys.systset;
       sys_name = sysSet.name().c_str();
-
-      TString tree_name = "mini_" + sys_name;
 
       // total sf weight
       if (sys.affectsWeights) {
@@ -430,6 +446,7 @@ StatusCode MiniTree::initialize()
           tree->Branch(BookName("el_n", sys_name), &el_n_map[sys_name]);
           tree->Branch(BookName("el_pt", sys_name), el_pt);
           tree->Branch(BookName("el_eta", sys_name), el_eta);
+          tree->Branch(BookName("el_etas2", sys_name), el_etas2);
           tree->Branch(BookName("el_phi", sys_name), el_phi);
           tree->Branch(BookName("el_ch", sys_name), el_ch);
 	  	}
@@ -490,6 +507,7 @@ StatusCode MiniTree::initialize()
 
       el_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_pt));
       el_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_eta));
+      el_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_etas2));
       el_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_phi));
       el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
       el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
@@ -497,6 +515,7 @@ StatusCode MiniTree::initialize()
       if (!m_ismc) {
         el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
         el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
+        el_medium_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_etas2));
         el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
         el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
       }
@@ -539,6 +558,7 @@ void MiniTree::clear()
 
   final_state = 0;
   pass_tst_cleaning = 0;
+  year = 0;
 
   weight_mc = 1.;
   weight_pu = 1.;
@@ -582,6 +602,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   
   el_pt_map[sysname]->clear();
   el_eta_map[sysname]->clear();
+  el_etas2_map[sysname]->clear();
   el_phi_map[sysname]->clear();
   el_ch_map[sysname]->clear();
   el_w_map[sysname]->clear();
@@ -589,6 +610,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   if (!m_ismc) {
     el_medium_pt_map[sysname]->clear();
     el_medium_eta_map[sysname]->clear();
+    el_medium_etas2_map[sysname]->clear();
     el_medium_phi_map[sysname]->clear();
     el_medium_ch_map[sysname]->clear();
   }
@@ -598,7 +620,8 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   mu_phi_map[sysname]->clear();
   mu_ch_map[sysname]->clear();
   mu_w_map[sysname]->clear();
-  
+
+
   // Setting up some basic filtering rule
   collections.photons->setStore(collections.photons_aux);
   collections.electrons->setStore(collections.electrons_aux);
@@ -622,6 +645,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
       el_n += 1;
       el_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
       el_eta_map[sysname]->push_back(el_itr->eta());
+      el_etas2_map[sysname]->push_back(el_itr->caloCluster()->etaBE(2));
       el_phi_map[sysname]->push_back(el_itr->phi());
       el_ch_map[sysname]->push_back(el_itr->trackParticle()->charge());
       el_w_map[sysname]->push_back( el_itr->auxdata<double>("effscalefact") );
@@ -647,6 +671,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
         el_medium_n += 1;
         el_medium_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
         el_medium_eta_map[sysname]->push_back(el_itr->eta());
+        el_medium_etas2_map[sysname]->push_back(el_itr->caloCluster()->etaBE(2));
         el_medium_phi_map[sysname]->push_back(el_itr->phi());
         el_medium_ch_map[sysname]->push_back(el_itr->trackParticle()->charge());
       }
@@ -841,7 +866,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   meff_map[sysname] = ht + met_et_map[sysname];
   
   // Rt
-  if (jet_n) {
+  if (jet_n > 0) {
     rt1_map[sysname] = sum_jet1_pt/sum_jet_pt;
     rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
     rt3_map[sysname] = sum_jet3_pt/sum_jet_pt;
@@ -873,7 +898,6 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   // weigths
   weight_sf_map[sysname] = total_weight_sf;
 
-  
   // Skim: at least one baseline photon with pt>75 (or a medium electron for data)
   int photons_baseline = 0;
   for (const auto& ph_itr : *collections.photons) {

@@ -6,6 +6,7 @@ import logging
 import shutil
 import argparse
 import samples
+import subprocess
 
 logging.basicConfig(level=logging.INFO)
 
@@ -13,6 +14,35 @@ import atexit
 @atexit.register
 def quite_exit():
     ROOT.gSystem.Exit(0)
+
+def get_grid_name(sample, version):
+
+    splitted_sample = sample.split('.')
+
+    short_name = '.'.join(splitted_sample[:3])
+
+    tags = splitted_sample[-1]
+    ptag = tags.split('_')[-1] if tags.split('_')[-1].startswith('p') else ''
+
+    if ptag:
+        outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.' + ptag + '.v' + args.version
+    else:
+        outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.v' + args.version
+
+    return outname
+
+def check_grid_exists(sample, version):
+
+    grid_name = get_grid_name(sample, version) + '_output.root'
+
+    cmd = 'rucio ls --short --filter type=CONTAINER %s | sort -r ' % grid_name
+    cmd_output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    query_result = cmd_output.stdout
+
+    lines = [line.rstrip() for line in query_result.readlines()]
+    print lines
+    return True if lines else False
 
 
 def get_samples_from_file(file_, dids_str=None):
@@ -60,6 +90,9 @@ def get_samples_from_file(file_, dids_str=None):
 
     if not samples:
         logging.error('not samples to run')
+
+    # for s in samples:
+    #     print check_grid_exists(s, args.version)
 
     return samples
 
@@ -132,14 +165,8 @@ def run_job(sample, driver):
 
         short_name = '.'.join(splitted_sample[0:3])
 
-        tags = splitted_sample[-1]
-        ptag = tags.split('_')[-1] if tags.split('_')[-1].startswith('p') else ''
-
         if job_name == 'xAODAnalysis':
-            if ptag:
-                outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.' + ptag + '.v' + args.version
-            else:
-                outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.v' + args.version
+            outname = get_grid_name(sample, args.version)
 
         elif job_name == 'xAODCountEwkProcesses':
             outname = 'user.' + os.environ['USER'] + '.' + short_name + '.ewk_v' + args.version
@@ -233,14 +260,8 @@ def main():
 
         print 'rucio download \\'
         for i, sample in enumerate(torun):
-            splitted_sample = sample.split('.')
-
-            short_name = '.'.join(splitted_sample[:3])
-
-            tags = splitted_sample[-1]
-            ptag = tags.split('_')[-1] if tags.split('_')[-1].startswith('p') else ''
-
-            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.' + ptag + '.v' + args.version + '_output.root'
+            
+            outname = get_grid_name(sample, args.version) + '_output.root'
 
             if i == len(torun) - 1:
                 print '    %s' % outname
