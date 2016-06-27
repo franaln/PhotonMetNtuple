@@ -463,19 +463,13 @@ EL::StatusCode xAODAnalysis::execute ()
         // If necessary (kinematics affected), make a shallow copy with the variation applied
         bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sysInfo.affectsType);
         bool syst_affectsMuons = ST::testAffectsObject(xAOD::Type::Muon, sysInfo.affectsType);
-        //bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sysInfo.affectsType);
+        bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sysInfo.affectsType);
         bool syst_affectsPhotons = ST::testAffectsObject(xAOD::Type::Photon, sysInfo.affectsType);
         bool syst_affectsJets = ST::testAffectsObject(xAOD::Type::Jet, sysInfo.affectsType);
         bool syst_affectsBTag = ST::testAffectsObject(xAOD::Type::BTag, sysInfo.affectsType);
         
-        if ( !syst_affectsPhotons && 
-             !syst_affectsElectrons && 
-             !syst_affectsMuons &&
-             !syst_affectsJets && 
-             !syst_affectsBTag ) 
-        continue;
-        // if (syst_affectsTaus) 
-        //   continue;
+        if (syst_affectsTaus) 
+          continue;
         
         if (syst_affectsElectrons) {
           xAOD::ElectronContainer* electrons_syst(0);

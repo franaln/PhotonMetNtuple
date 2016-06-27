@@ -339,15 +339,10 @@ StatusCode MiniTree::initialize()
       bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sys.affectsType);
       bool syst_affectsMuons = ST::testAffectsObject(xAOD::Type::Muon, sys.affectsType);
       bool syst_affectsJets = ST::testAffectsObject(xAOD::Type::Jet, sys.affectsType);
-      //bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sys.affectsType);
+      bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sys.affectsType);
       bool syst_affectsBTag = ST::testAffectsObject(xAOD::Type::BTag, sys.affectsType);
 
-      //if (syst_affectsPhotons && !syst_affectsElectrons) continue;
-      if ( !syst_affectsPhotons && 
-           !syst_affectsElectrons && 
-           !syst_affectsMuons &&
-           !syst_affectsJets && 
-           !syst_affectsBTag ) 
+      if (syst_affectsTau)
         continue;
       
       ph_pt = new std::vector<float>(); 
