@@ -335,14 +335,14 @@ StatusCode MiniTree::initialize()
 
     if (sys.affectsKinematics || sys.affectsWeights ) {
 
-      bool syst_affectsPhotons = ST::testAffectsObject(xAOD::Type::Photon, sys.affectsType);
+      bool syst_affectsPhotons   = ST::testAffectsObject(xAOD::Type::Photon, sys.affectsType);
       bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sys.affectsType);
-      bool syst_affectsMuons = ST::testAffectsObject(xAOD::Type::Muon, sys.affectsType);
-      bool syst_affectsJets = ST::testAffectsObject(xAOD::Type::Jet, sys.affectsType);
-      bool syst_affectsTaus = ST::testAffectsObject(xAOD::Type::Tau, sys.affectsType);
-      bool syst_affectsBTag = ST::testAffectsObject(xAOD::Type::BTag, sys.affectsType);
+      bool syst_affectsMuons     = ST::testAffectsObject(xAOD::Type::Muon, sys.affectsType);
+      bool syst_affectsJets      = ST::testAffectsObject(xAOD::Type::Jet, sys.affectsType);
+      bool syst_affectsTaus      = ST::testAffectsObject(xAOD::Type::Tau, sys.affectsType);
+      bool syst_affectsBTag      = ST::testAffectsObject(xAOD::Type::BTag, sys.affectsType);
 
-      if (syst_affectsTau)
+      if (syst_affectsTaus)
         continue;
       
       ph_pt = new std::vector<float>(); 
