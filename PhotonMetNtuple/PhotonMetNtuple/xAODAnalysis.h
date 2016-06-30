@@ -102,7 +102,7 @@ public:
   std::vector<ST::SystInfo> systInfoList; //!
 
   // this is a standard constructor
-  xAODAnalysis ();
+  xAODAnalysis();
 
   // these are the functions inherited from Algorithm
   virtual EL::StatusCode setupJob (EL::Job& job);

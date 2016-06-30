@@ -1,9 +1,17 @@
 # Versions (tags)
 
+* PhotonMetNtuple v34
+
+    - AnalysisBase,2.4.13 + SUSYTools-00-07-82 (+ TauAnalysisTools-00-02-14) 
+    - Fixed systematics (including MET)
+    - Use JES NP Scenario 1
+    - Final GRL for 2015 data
+    
+
 * PhotonMetNtuple v33
 
     - Base,2.4.12 + SUSYTools-00-07-78
-    - TODO: Fix el_medium_n
+    - Fix el_medium_n
 
 
 * PhotonMetNtuple v32

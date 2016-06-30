@@ -123,7 +123,7 @@ def run_job(sample, driver):
         job.options().setDouble(ROOT.EL.Job.optMaxEvents, args.nevents)
     
     # add our algorithm to the job
-    if job_name == 'xAODAnalysis':
+    if alg_name == 'xAODAnalysis':
 
         alg = ROOT.xAODAnalysis()
 
@@ -145,9 +145,11 @@ def run_job(sample, driver):
         alg.is_atlfast = is_atlfast
         alg.do_syst = args.dosyst
 
-    elif job_name == 'xAODCountEwkProcesses':
+    elif alg_name == 'xAODCountEwkProcesses':
         alg = ROOT.xAODCountEwkProcesses()
 
+    elif alg_name == 'xAODTruthAnalysis':
+        alg = ROOT.xAODTruthAnalysis()
 
     logging.info("adding algorithms")
     job.algsAdd(alg)
@@ -165,11 +167,14 @@ def run_job(sample, driver):
 
         short_name = '.'.join(splitted_sample[0:3])
 
-        if job_name == 'xAODAnalysis':
+        if alg_name == 'xAODAnalysis':
             outname = get_grid_name(sample, args.version)
 
-        elif job_name == 'xAODCountEwkProcesses':
-            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.ewk_v' + args.version
+        elif alg_name == 'xAODCountEwkProcesses':
+            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.ewk.v' + args.version
+
+        elif alg_name == 'xAODTruthAnalysis':
+            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.truth.v' + args.version
 
         # driver options
         driver.options().setString('nc_outputSampleName', outname)
@@ -177,12 +182,6 @@ def run_job(sample, driver):
         driver.options().setString(ROOT.EL.Job.optGridNGBPerJob, 'MAX')
         driver.options().setString(ROOT.EL.Job.optGridMergeOutput, 'FALSE')
         driver.options().setDouble(ROOT.EL.Job.optRemoveSubmitDir, 1)
-
-        # if args.do_tarball:
-        #     driver.options().setString(ROOT.EL.Job.optSubmitFlags, '--outTarBall=grid_tarball.tar --noSubmit')
-        # elif args.use_tarball:
-        #     os.system('cp grid_tarball.tar output/elg/')
-        #     driver.options().setString(ROOT.EL.Job.optSubmitFlags, '--inTarBall=grid_tarball.tar')
 
         # submit 
         logging.info('submit job: ' + outname)
@@ -218,7 +217,7 @@ def main():
     parser.add_argument('-s', dest='samples')
     parser.add_argument('-d', dest='dids', type=str)
 
-    parser.add_argument('--job', default='xAODAnalysis')
+    parser.add_argument('--alg', default='xAODAnalysis')
 
     parser.add_argument('-c', dest='config_file', default='PhotonMetNtuple_20.7_std.conf', help='Config file')
     parser.add_argument('-v', dest='version')
@@ -271,10 +270,10 @@ def main():
         return 0
 
 
-    global job_name
-    job_name = args.job
+    global alg_name
+    alg_name = args.alg
 
-    if job_name == 'xAODAnalysis' and args.config_file is None:
+    if alg_name == 'xAODAnalysis' and args.config_file is None:
         logging.error('you need to provide a configfile!')
 
 

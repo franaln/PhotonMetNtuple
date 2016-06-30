@@ -25,6 +25,8 @@ private:
 public:
   TruthTree *ntuple; //!
 
+  TH1D *h_events; //!
+
   xAOD::TEvent *m_event;  //!
 
   // this is a standard constructor

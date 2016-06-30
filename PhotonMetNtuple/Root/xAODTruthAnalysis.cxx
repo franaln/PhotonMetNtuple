@@ -32,6 +32,9 @@
 #include "xAODTruth/TruthEventContainer.h"
 #include "xAODTruth/TruthParticle.h"
 
+#include "xAODCutFlow/CutBookkeeper.h"
+#include "xAODCutFlow/CutBookkeeperContainer.h"
+
 #include "EventPrimitives/EventPrimitivesHelpers.h"
 
 #include "PhotonMetNtuple/Utils.h"
@@ -74,6 +77,17 @@ EL::StatusCode xAODTruthAnalysis::histInitialize()
   // beginning on each worker node, e.g. create histograms and output
   // trees.  This method gets called before any input files are
   // connected.
+
+  h_events = new TH1D("events", "Events", 6, 0.5, 6.5);
+  h_events->GetXaxis()->SetBinLabel(1, "# events initial");
+  h_events->GetXaxis()->SetBinLabel(2, "# events selected");
+  h_events->GetXaxis()->SetBinLabel(3, "sumw initial");
+  h_events->GetXaxis()->SetBinLabel(4, "sumw selected");
+  h_events->GetXaxis()->SetBinLabel(5, "sumw2 initial");
+  h_events->GetXaxis()->SetBinLabel(6, "sumw2 selected");
+
+ TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
+ h_events->SetDirectory(out_dir);
   
   return EL::StatusCode::SUCCESS;
 }
@@ -91,11 +105,8 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
   // e.g. resetting branch addresses on trees.  If you are using
   // D3PDReader or a similar service this method is not needed.
   
-  //  isDerived = false;
-
-  // Check file's metadata:    
   m_event = wk()->xaodEvent(); 
-  
+
   // TTree *metadata = dynamic_cast<TTree*>(wk()->inputFile()->Get("MetaData"));
   // if (!metadata) {
   //   Error(APP_NAME, "MetaData tree not found! Exiting.");
@@ -106,54 +117,47 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
   // //check if file is from a DxAOD
   // bool is_derivation = !metadata->GetBranch("StreamAOD");
 
-  // ULong64_t m_initial_events = 0;
-  // Double_t m_initial_sumw = 0.;
-  // Double_t m_initial_sumw2 = 0.;
+  ULong64_t m_initial_events = 0;
+  Double_t m_initial_sumw = 0.;
+  Double_t m_initial_sumw2 = 0.;
 
-  // if (!isData) {
-
-  //   if (is_derivation) {
-    
-  //     //Read the CutBookkeeper container
-  //     const xAOD::CutBookkeeperContainer* completeCBC = 0;
-  //     if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
-  //       Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
-  //       return EL::StatusCode::FAILURE;
-  //     }
-      
-  //     // Now, let's actually find the right one that contains all the needed info...
-  //     const xAOD::CutBookkeeper* all_events_cbk = 0;
-  //     const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
-      
-  //     int maxCycle = -1;
-  //     for (const auto& cbk :  *completeCBC) {
-  //       if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
-  //         all_events_cbk = cbk;
-  //         maxCycle = cbk->cycle();
-  //       }
-        
-  //     }
-      
-  //     m_initial_events = all_events_cbk->nAcceptedEvents();
-  //     m_initial_sumw   = all_events_cbk->sumOfEventWeights();
-  //     m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
-      
-  //   }
-  //   else {
-      
-  //     TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
-      
-  //     m_initial_events  = CollectionTree->GetEntries(); 
-  //     m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
-  //     m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
+  // if (is_derivation) {
+  //   //Read the CutBookkeeper container
+  //   const xAOD::CutBookkeeperContainer* completeCBC = 0;
+  //   if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
+  //     Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
+  //     return EL::StatusCode::FAILURE;
   //   }
     
-  //   std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
-    
-  //   h_events->Fill(1, m_initial_events);
-  //   h_events->Fill(3, m_initial_sumw);
-  //   h_events->Fill(5, m_initial_sumw2);
+  //   // Now, let's actually find the right one that contains all the needed info...
+  //   const xAOD::CutBookkeeper* all_events_cbk = 0;
+  //   //const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
+      
+  //   int maxCycle = -1;
+  //   for (const auto& cbk :  *completeCBC) {
+  //     if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
+  //       all_events_cbk = cbk;
+  //       maxCycle = cbk->cycle();
+  //     }
+  //   }
+      
+  //   m_initial_events = all_events_cbk->nAcceptedEvents();
+  //   m_initial_sumw   = all_events_cbk->sumOfEventWeights();
+  //   m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
   // }
+  // else {
+  TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
+    
+  m_initial_events  = CollectionTree->GetEntries(); 
+  m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
+  m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
+  // }
+  
+  std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
+  
+  h_events->Fill(1, m_initial_events);
+  h_events->Fill(3, m_initial_sumw);
+  h_events->Fill(5, m_initial_sumw2);
 
   return EL::StatusCode::SUCCESS;
 }
@@ -407,7 +411,8 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   
   
   // fill ntuple
-  ntuple->Fill();
+  if (photons.size()>0)
+    ntuple->Fill();
 
   return EL::StatusCode::SUCCESS;
 }
@@ -429,9 +434,4 @@ EL::StatusCode xAODTruthAnalysis::histFinalize()
   return EL::StatusCode::SUCCESS;
 }
 
-//   ntuple->Save();
-//   ntuple->Close();
-  
-//   return 0;
-// }
 

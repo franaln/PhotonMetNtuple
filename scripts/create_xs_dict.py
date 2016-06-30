@@ -35,12 +35,12 @@ with open('xs_dict.py', 'w+') as of:
 
     of.write('xs_dict = dict()\n\n')
 
-    for sample in smaple_lines:
+    for line in sample_lines:
 
         if not line or line.startswith('#'):
             continue
 
-        did = sample.split('.')[1]
+        did = line.split('.')[1]
 
         xs = get_xs(did)
 
