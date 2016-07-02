@@ -3,8 +3,7 @@ PhotonMetNtuple
 
 ## Release
 
-    AnalysisBase,2.4.13 + SUSYTools-00-07-82 (+ TauAnalysisTools-00-02-14) 
-    Base,2.4.12 + SUSYTools-00-07-78
+    AnalysisBase,2.4.13 + SUSYTools-00-07-83 
 
 
 ## Compile
