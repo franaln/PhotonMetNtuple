@@ -123,9 +123,12 @@ def run_job(sample, driver):
         job.options().setDouble(ROOT.EL.Job.optMaxEvents, args.nevents)
     
     # add our algorithm to the job
-    if alg_name == 'xAODAnalysis':
+    if alg_name == 'xAODAnalysis' or alg_name == 'xAODBaselineAnalysis':
 
-        alg = ROOT.xAODAnalysis()
+        if alg_name == 'xAODAnalysis':
+            alg = ROOT.xAODAnalysis()
+        elif alg_name == 'xAODBaselineAnalysis':
+            alg = ROOT.xAODBaselineAnalysis()
 
         is_data     = ('data15' in sample or 'data16' in sample)
         is_susy     = ('_GGM_' in sample)
@@ -169,6 +172,9 @@ def run_job(sample, driver):
 
         if alg_name == 'xAODAnalysis':
             outname = get_grid_name(sample, args.version)
+
+        elif alg_name == 'xAODBaselineAnalysis':
+            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.base.v' + args.version
 
         elif alg_name == 'xAODCountEwkProcesses':
             outname = 'user.' + os.environ['USER'] + '.' + short_name + '.ewk.v' + args.version
