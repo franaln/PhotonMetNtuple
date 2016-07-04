@@ -24,11 +24,20 @@ BaselineTree::~BaselineTree()
   delete ph_phi;
   delete ph_iso;
 
+  delete ph_baseline;
+  delete ph_passOR;
+  delete ph_signal;
+  delete ph_isol;
+
   delete jet_pt;
   delete jet_eta;
   delete jet_phi;
   delete jet_e;
   delete jet_isb;
+
+  delete jet_baseline;
+  delete jet_passOR;
+  delete jet_signal;
 
   delete el_pt;
   delete el_eta;
@@ -36,10 +45,20 @@ BaselineTree::~BaselineTree()
   delete el_phi;
   delete el_ch;
 
+  delete el_baseline;
+  delete el_passOR;
+  delete el_signal;
+  delete el_isol;
+
   delete mu_pt;
   delete mu_eta;
   delete mu_phi;
   delete mu_ch;
+
+  delete mu_baseline;
+  delete mu_passOR;
+  delete mu_signal;
+  delete mu_isol;
 
 }
 
@@ -51,6 +70,7 @@ StatusCode BaselineTree::initialize()
   ph_etas2 = new std::vector<float>();
   ph_phi = new std::vector<float>();
   ph_iso = new std::vector<float>();
+  ph_baseline = new std::vector<int>();
   ph_passOR = new std::vector<int>();
   ph_signal = new std::vector<int>();
   ph_isol = new std::vector<int>();
@@ -60,6 +80,7 @@ StatusCode BaselineTree::initialize()
   jet_phi = new std::vector<float>();
   jet_e = new std::vector<float>();
   jet_isb = new std::vector<bool>();
+  jet_baseline = new std::vector<int>();
   jet_passOR = new std::vector<int>();
   jet_signal = new std::vector<int>();
   
@@ -68,6 +89,7 @@ StatusCode BaselineTree::initialize()
   el_etas2 = new std::vector<float>();
   el_phi = new std::vector<float>();
   el_ch = new std::vector<int>();
+  el_baseline = new std::vector<int>();
   el_passOR = new std::vector<int>();
   el_signal = new std::vector<int>();
   el_isol = new std::vector<int>();
@@ -76,6 +98,7 @@ StatusCode BaselineTree::initialize()
   mu_eta = new std::vector<float>();
   mu_phi = new std::vector<float>();
   mu_ch = new std::vector<int>();
+  mu_baseline = new std::vector<int>();
   mu_passOR = new std::vector<int>();
   mu_signal = new std::vector<int>();
   mu_isol = new std::vector<int>();
@@ -96,6 +119,7 @@ StatusCode BaselineTree::initialize()
   tree->Branch("ph_etas2", ph_etas2);
   tree->Branch("ph_phi", ph_phi);
   tree->Branch("ph_iso", ph_iso);
+  tree->Branch("ph_baseline",   ph_baseline);
   tree->Branch("ph_passOR",   ph_passOR);
   tree->Branch("ph_signal",   ph_signal);
   tree->Branch("ph_isol",   ph_isol);
@@ -107,6 +131,7 @@ StatusCode BaselineTree::initialize()
   tree->Branch("jet_pt",  jet_pt);
   tree->Branch("jet_e",   jet_e);
   tree->Branch("jet_isb", jet_isb);
+  tree->Branch("jet_baseline",  jet_baseline);
   tree->Branch("jet_passOR",  jet_passOR);
   tree->Branch("jet_signal",  jet_signal);
   
@@ -116,6 +141,7 @@ StatusCode BaselineTree::initialize()
   tree->Branch("el_phi", el_phi);
   tree->Branch("el_pt",  el_pt);
   tree->Branch("el_ch",  el_ch);
+  tree->Branch("el_baseline",   el_baseline);
   tree->Branch("el_passOR",   el_passOR);
   tree->Branch("el_signal",   el_signal);
   tree->Branch("el_isol",   el_isol);
@@ -125,6 +151,7 @@ StatusCode BaselineTree::initialize()
   tree->Branch("mu_phi", mu_phi);
   tree->Branch("mu_pt",  mu_pt);
   tree->Branch("mu_ch",  mu_ch);
+  tree->Branch("mu_baseline",   mu_baseline);
   tree->Branch("mu_passOR",   mu_passOR);
   tree->Branch("mu_signal",   mu_signal);
   tree->Branch("mu_isol",   mu_isol);
@@ -150,6 +177,7 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
   ph_phi->clear();
   ph_iso->clear();
 
+  ph_baseline->clear();
   ph_passOR->clear();
   ph_signal->clear();
   ph_isol->clear();
@@ -160,6 +188,7 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
   jet_e->clear();
   jet_isb->clear();
 
+  jet_baseline->clear();
   jet_passOR->clear();
   jet_signal->clear();
   
@@ -169,6 +198,7 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
   el_phi->clear();
   el_ch->clear();
 
+  el_baseline->clear();
   el_passOR->clear();
   el_signal->clear();
   el_isol->clear();
@@ -178,6 +208,7 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
   mu_phi->clear();
   mu_ch->clear();
 
+  mu_baseline->clear();
   mu_passOR->clear();
   mu_signal->clear();
   mu_isol->clear();
@@ -195,35 +226,31 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
   el_n = 0;;
   for (const auto& el_itr : *collections.electrons) {
 
-    if (el_itr->auxdata<char>("baseline") != 1)
-      continue;
-
-      el_n += 1;
-      el_pt->push_back(el_itr->pt()*IGEV);
-      el_eta->push_back(el_itr->eta());
-      el_etas2->push_back(el_itr->caloCluster()->etaBE(2));
-      el_phi->push_back(el_itr->phi());
-      el_ch->push_back(el_itr->trackParticle()->charge());
-
-      el_passOR->push_back(el_itr->auxdata<char>("passOR"));
-      el_signal->push_back(el_itr->auxdata<char>("signal"));
-      el_isol->push_back(el_itr->auxdata<char>("isol"));
-
+    el_n += 1;
+    el_pt->push_back(el_itr->pt()*IGEV);
+    el_eta->push_back(el_itr->eta());
+    el_etas2->push_back(el_itr->caloCluster()->etaBE(2));
+    el_phi->push_back(el_itr->phi());
+    el_ch->push_back(el_itr->trackParticle()->charge());
+    
+    el_baseline->push_back(el_itr->auxdata<char>("baseline"));
+    el_passOR->push_back(el_itr->auxdata<char>("passOR"));
+    el_signal->push_back(el_itr->auxdata<char>("signal"));
+    el_isol->push_back(el_itr->auxdata<char>("isol"));
+    
   }
 
   // muons
   mu_n = 0;
   for (const auto& mu_itr : *collections.muons) {
     
-    if (mu_itr->auxdata<char>("baseline") != 1)
-      continue;
-
     mu_n += 1;      
     mu_pt->push_back(mu_itr->pt()*IGEV);
     mu_eta->push_back(mu_itr->eta());
     mu_phi->push_back(mu_itr->phi());
     mu_ch ->push_back(mu_itr->primaryTrackParticle()->charge());
 
+    mu_baseline->push_back(mu_itr->auxdata<char>("baseline"));
     mu_passOR->push_back(mu_itr->auxdata<char>("passOR"));
     mu_signal->push_back(mu_itr->auxdata<char>("signal"));
     mu_isol->push_back(mu_itr->auxdata<char>("isol"));
@@ -233,9 +260,6 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
   jet_n = 0;
   bjet_n = 0;
   for (const auto& jet_itr : *collections.jets) {     
-
-    if (jet_itr->auxdata<char>("baseline") != 1)
-      continue;
 
     jet_n++;
     jet_pt->push_back(jet_itr->pt()*IGEV);
@@ -249,6 +273,7 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
       
     jet_isb->push_back(isbjet);
 
+    jet_baseline->push_back(jet_itr->auxdata<char>("baseline"));
     jet_passOR->push_back(jet_itr->auxdata<char>("passOR"));
     jet_signal->push_back(jet_itr->auxdata<char>("signal"));
   }
@@ -257,9 +282,6 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
   ph_n = 0;
   for (const auto& ph_itr : *collections.photons) {
 
-    if (ph_itr->auxdata<char>("baseline") != 1)
-      continue;
-      
     // separate iso and noniso photons
     float iso40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
     float iso = iso40 - 0.022 * ph_itr->pt()*IGEV;
@@ -271,6 +293,7 @@ bool BaselineTree::process(AnalysisBaselineCollections collections)
     ph_phi->push_back(ph_itr->phi());
     ph_iso->push_back(iso);
     
+    ph_baseline->push_back(ph_itr->auxdata<char>("baseline"));
     ph_passOR->push_back(ph_itr->auxdata<char>("passOR"));
     ph_signal->push_back(ph_itr->auxdata<char>("signal"));
     ph_isol->push_back(ph_itr->auxdata<char>("isol"));

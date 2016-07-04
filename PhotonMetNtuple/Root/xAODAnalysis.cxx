@@ -445,8 +445,6 @@ EL::StatusCode xAODAnalysis::execute ()
       }
 
       else {
-        //Info(APP_NAME, "SUSYTools configured for systematic var. %s", (sys.name()).c_str() );
-
         // Generic pointers for either nominal or systematics copy
         xAOD::ElectronContainer* electrons(electrons_nominal);
         xAOD::PhotonContainer* photons(photons_nominal);
@@ -471,7 +469,7 @@ EL::StatusCode xAODAnalysis::execute ()
         
         if (syst_affectsTaus) 
           continue;
-        
+
         if (syst_affectsElectrons) {
           xAOD::ElectronContainer* electrons_syst(0);
           xAOD::ShallowAuxContainer* electrons_syst_aux(0);

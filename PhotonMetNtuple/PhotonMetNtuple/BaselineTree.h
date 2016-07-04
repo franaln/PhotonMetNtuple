@@ -68,6 +68,7 @@ protected:
   std::vector<float> *ph_etas2;
   std::vector<float> *ph_phi;
   std::vector<float> *ph_iso;
+  std::vector<int> *ph_baseline;
   std::vector<int> *ph_passOR;
   std::vector<int> *ph_signal;
   std::vector<int> *ph_isol;
@@ -78,6 +79,7 @@ protected:
   std::vector<float> *jet_e;
   std::vector<float> *jet_w;
   std::vector<bool>  *jet_isb;
+  std::vector<int> *jet_baseline;
   std::vector<int>  *jet_passOR;
   std::vector<int>  *jet_signal;
   
@@ -86,13 +88,16 @@ protected:
   std::vector<float> *el_etas2;
   std::vector<float> *el_phi;
   std::vector<int>   *el_ch;
+  std::vector<int> *el_baseline;
   std::vector<int> *el_passOR;
   std::vector<int> *el_signal;
   std::vector<int> *el_isol;
+
   std::vector<float> *mu_pt; 
   std::vector<float> *mu_eta;
   std::vector<float> *mu_phi;
   std::vector<int>   *mu_ch;
+  std::vector<int> *mu_baseline;
   std::vector<int> *mu_passOR;
   std::vector<int> *mu_signal;
   std::vector<int> *mu_isol;
