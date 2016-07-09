@@ -1,16 +1,18 @@
 PhotonMetNtuple
 ===============
 
-## Release
+## Current Release (see versions.md)
 
-    AnalysisBase,2.4.13 + SUSYTools-00-07-83 
+    AnalysisBase,2.4.14 + SUSYTools-00-07-87
 
 
 ## Compile
 
     source setup.sh    
 
-    rc checkout_pkg $SVNOFF/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-07-78
+    rc checkout_pkg $SVNOFF/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-07-87
+
+    rc checkout SUSYTools/doc/packages.txt
 
     rc find_packages
     rc clean

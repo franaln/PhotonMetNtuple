@@ -749,13 +749,9 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
       
       // separate iso and noniso photons
       float iso40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
-      float iso = iso40 - 0.022 * ph_itr->pt()*IGEV;
+      float iso = iso40 - 0.022 * ph_itr->pt()*IGEV; // iso without pt dependence
 
-      // if ((iso < 2.45 && !ph_itr->auxdata<char>("isol")) || (iso > 2.45 && ph_itr->auxdata<char>("isol"))) {
-      //     std::cout << "** something is wrong with the isolation cut" << std::endl;
-      // }
-
-      // isolated
+      // isolated (iso<2.45)
       if (ph_itr->auxdata<char>("isol") == 1) {
         ph_n += 1;
         ph_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
@@ -889,6 +885,8 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   // dphi between leading photon and MET
   if (ph_n > 0)
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*met_it)->phi());
+
+
 
   // weigths
   weight_sf_map[sysname] = total_weight_sf;

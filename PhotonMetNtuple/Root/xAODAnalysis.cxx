@@ -41,8 +41,7 @@
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
 const char *APP_NAME = "PhotonMetNtuple";
-const char *APP_VERSION = "Version: v32";
-
+const char *APP_VERSION = "Version: v35";
 
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODAnalysis)
@@ -627,6 +626,7 @@ EL::StatusCode xAODAnalysis::execute ()
 
   outtree->SetYear(susytools->treatAsYear());
 
+  // Get SF and apply medium electron id
   // electrons
   for (const auto& el : *electrons_nominal) {
     if (is_data && el->auxdata<char>("baseline") == 1 &&
@@ -647,7 +647,6 @@ EL::StatusCode xAODAnalysis::execute ()
       susytools->GetSignalPhotonSF(*ph, true, false);
   }
   
-  bool skip = false;
   // muons
   for (const auto& mu : *muons_nominal) {
     if (is_mc && mu->auxdata<char>("baseline") == 1 &&
@@ -655,12 +654,12 @@ EL::StatusCode xAODAnalysis::execute ()
         mu->auxdata<char>("signal") == 1)
       susytools->GetSignalMuonSF(*mu);
   }
-  if (!skip) {
-    h_cutflow->Fill(6);
-    h_cutflow_w->Fill(6, mc_weight);
-  }
+  h_cutflow->Fill(6);
+  h_cutflow_w->Fill(6, mc_weight);
+
 
   // Badj jet veto
+  bool skip = false;
   for (const auto& jet : *jets_nominal) {  
     if (jet->auxdata<char>("baseline") == 1 &&
         jet->auxdata<char>("passOR") == 1 &&
@@ -784,6 +783,29 @@ EL::StatusCode xAODAnalysis::histFinalize()
   return EL::StatusCode::SUCCESS;
 }
 
+bool xAODAnalysis::IsMediumElectron(const xAOD::Electron &input) 
+{
+  float etcut = 25000.;
+  float d0sigcut = 5.;
+  float z0cut = 0.5;
+
+  dec_medium(input) = false;
+
+  if (!m_elecMediumLH->accept(input)) return false;
+
+  if (input.p4().Perp2() <= etcut * etcut || input.p4().Perp2() == 0) return false; // eT cut (might be necessary for leading electron to pass trigger)
+  
+  if (input.auxdata<float>("d0sig") != 0) {
+    if (d0sigcut > 0.0 && fabs(input.auxdata<float>("d0sig")) > d0sigcut) return false; // transverse IP cut
+  }
+
+  if (z0cut > 0.0 && fabs(input.auxdata<float>("z0sinTheta")) > z0cut) return false; // longitudinal IP cut
+
+  dec_medium(input) = true;
+  
+  return true;
+}
+
 std::vector<std::string> xAODAnalysis::SplitString(TString line){
   
   std::vector<std::string> vtokens;
@@ -814,9 +836,10 @@ void xAODAnalysis::ReadConfiguration()
   for (auto s : SplitString(mc_files))
     m_prw_mc_files.push_back(m_data_dir + s);
 
-  TString grl_files = env.GetValue("GRL.File", "");
-  for (auto s : SplitString(grl_files))
-    m_grl_files.push_back(m_data_dir + s);
+  std::string grl_file_2015 = env.GetValue("GRL.File2015", "");
+  std::string grl_file_2016 = env.GetValue("GRL.File2016", "");
+  m_grl_files.push_back(m_data_dir + grl_file_2015);
+  m_grl_files.push_back(m_data_dir + grl_file_2016);
 
 }
 
@@ -834,30 +857,7 @@ void xAODAnalysis::DumpConfiguration()
   for (auto s : m_prw_mc_files)
     Info(APP_NAME, "PRW.MCFile: %s", s.c_str());
 
-  for (auto s : m_grl_files)
-    Info(APP_NAME, "GRL.File: %s", s.c_str());
-}
-
-
-bool xAODAnalysis::IsMediumElectron(const xAOD::Electron &input) 
-{
-  float etcut = 25000.;
-  float d0sigcut = 5.;
-  float z0cut = 0.5;
-
-  dec_medium(input) = false;
-
-  if (!m_elecMediumLH->accept(input)) return false;
-
-  if (input.p4().Perp2() <= etcut * etcut || input.p4().Perp2() == 0) return false; // eT cut (might be necessary for leading electron to pass trigger)
-  
-  if (input.auxdata<float>("d0sig") != 0) {
-    if (d0sigcut > 0.0 && fabs(input.auxdata<float>("d0sig")) > d0sigcut) return false; // transverse IP cut
-  }
-
-  if (z0cut > 0.0 && fabs(input.auxdata<float>("z0sinTheta")) > z0cut) return false; // longitudinal IP cut
-
-  dec_medium(input) = true;
-  
-  return true;
+  //for (auto s : m_grl_files)
+  Info(APP_NAME, "GRL.File2015: %s", m_grl_files[0].c_str());
+  Info(APP_NAME, "GRL.File2015: %s", m_grl_files[1].c_str());
 }
