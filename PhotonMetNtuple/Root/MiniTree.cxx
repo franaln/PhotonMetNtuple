@@ -628,7 +628,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   Double_t total_weight_sf = 1.;
 
   // electrons
-  int el_n = 0;;
+  int el_n = 0;
   for (const auto& el_itr : *collections.electrons) {
     
     if (el_itr->auxdata<char>("baseline") == 1 &&
@@ -719,7 +719,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
       jet_phi_map[sysname]->push_back(jet_itr->phi());
       jet_e_map[sysname]->push_back(jet_itr->e()*IGEV);
 
-      double sf = 1.;
+      float sf = 1.;
       if (m_ismc)
         sf = jet_itr->auxdata<double>("effscalefact");
       
@@ -753,6 +753,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
       // isolated (iso<2.45)
       if (ph_itr->auxdata<char>("isol") == 1) {
+
         ph_n += 1;
         ph_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_eta_map[sysname]->push_back(ph_itr->eta());
@@ -789,6 +790,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
           ph_truth_origin->push_back(xAOD::TruthHelpers::getParticleTruthOrigin(*ph_itr));
         }
       }
+
       // noniso photons
       else {
 
@@ -857,18 +859,17 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   meff_map[sysname] = ht + met_et_map[sysname];
   
   // Rt
+  rt1_map[sysname] = 1.;
+  rt2_map[sysname] = 1.;
+  rt3_map[sysname] = 1.;
+  rt4_map[sysname] = 1.;
   if (jet_n > 0) {
     rt1_map[sysname] = sum_jet1_pt/sum_jet_pt;
     rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
     rt3_map[sysname] = sum_jet3_pt/sum_jet_pt;
     rt4_map[sysname] = sum_jet4_pt/sum_jet_pt;
   }
-  else {
-    rt1_map[sysname] = 1.;
-    rt2_map[sysname] = 1.;
-    rt3_map[sysname] = 1.;
-    rt4_map[sysname] = 1.;
-  }
+
 
   // min dphi between met and the first two jets
   Double_t dphi1 = 4.;
@@ -887,8 +888,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*met_it)->phi());
 
 
-
-  // weigths
+  // SF weigth
   weight_sf_map[sysname] = total_weight_sf;
 
   // Skim: at least one baseline photon with pt>75 (or a medium electron for data)
