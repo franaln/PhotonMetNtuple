@@ -1,5 +1,9 @@
 # Versions (tags)
 
+* PhotonMetNtuple v36 (*)
+    - AnalysisBase,2.4.15 + SUSYTools-00-07-90 + packages.txt
+    - DS2 GRL for data 16
+
 * PhotonMetNtuple v35
     - AnalysisBase,2.4.14 + SUSYTools-00-07-88
     - DS1.2 GRL for data16    
