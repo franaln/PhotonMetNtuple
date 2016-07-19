@@ -7,7 +7,6 @@
 #include "AthContainers/ConstDataVector.h"
 #include <TLorentzVector.h>
 
-
 class TruthParticle : public TLorentzVector {
 
  public:
@@ -30,10 +29,13 @@ class TruthParticle : public TLorentzVector {
 
 };
 
+namespace TruthUtils {
+  Double_t GetDeltaPhi(Double_t phi1, Double_t phi2);
+  Double_t GetDeltaR(const TruthParticle &p, const TruthParticle &q);
+  Bool_t OverlapsOthers(TruthParticle &p, std::vector<TruthParticle> &others, Double_t deltaR_cut);
+  void CleanBads(std::vector<TruthParticle> &vector);
+}
 
-/// print details about the truth particle to the screen
-//void print_truth_ptcl(const xAOD::TruthParticle *ptcl, TString comment="", 
-//                      int NchildDepth=0, int NparentDepth=0, int currentDepth=0);
   
 Bool_t is_stable(const xAOD::TruthParticle*);
 

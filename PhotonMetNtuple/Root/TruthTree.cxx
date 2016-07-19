@@ -12,10 +12,6 @@ TruthTree::TruthTree(const std::string& name): asg::AsgMetadataTool( name )
 
 TruthTree::~TruthTree()
 {
-  // if (file->IsOpen()) file->Close();
-  // if (file) delete file;
-  // if (tree) delete tree;
-
   delete ph_pt;
   delete ph_iso;
   delete ph_eta;
@@ -32,76 +28,19 @@ TruthTree::~TruthTree()
   delete jet_phi;
 }
 
-StatusCode TruthTree::initialize() //TString file_name, TString tree_name)
+StatusCode TruthTree::initialize()
 {
-  // if (file_name.IsNull()) 
-  //   MsgError("TruthTree", "No filename for the output file");
-  
-  // CreateFile(file_name);
   CreateTree("mini");
   CreateBranches();
 
   return StatusCode::SUCCESS;
 }
 
-// void TruthTree::CreateFile(TString file_name)
-// {
-//   file = new TFile(file_name, "update");
-  
-//   if (file->IsZombie() && file->GetListOfKeys()->GetSize()==0) {
-//     if(file->IsOpen())
-//       file->Close();
-    
-//     MsgWarning("TruthTree", "Error opening the file or is empty or does not exist.. File will be created.");
-//     file = new TFile(file_name, "recreate");
-//   }
-// }
-
 void TruthTree::CreateTree(TString tree_name)
 {
-  // if(!file->IsOpen()) {
-  //   MsgError("TruthTree", "File is not open");
-  //   return;
-  // }
-
-  // RemoveObjectIfExists(tree_name);
-
   tree = new TTree(tree_name, tree_name);
   tree->SetDirectory(m_outfile);
 }
-
-// void TruthTree::Save()
-// {
-//   file->cd();
-//   tree->SetDirectory(file);
-//   tree->Write(0, TObject::kOverwrite);
-//   tree->SetDirectory(0);
-// }
-
-// void TruthTree::SaveHist(TH1* hist)
-// {
-//   file->cd();
-//   hist->SetDirectory(file);
-//   hist->Write(0, TObject::kOverwrite);
-//   hist->SetDirectory(0);
-// }
-
-// void TruthTree::SaveFloat(TVectorF n, TString name)
-// {
-//   file->cd();
-//   n.Write(name);
-// }
-
-// void TruthTree::RemoveObjectIfExists(TString name)
-// {
-//   if(file->GetListOfKeys()->FindObject(name)){
-//     MsgInfo("TruthTree", "Removing existing object: " << name.Data());
-//     TString temp = name + ";*";
-//     file->Delete(temp.Data());
-//   }
-  
-//   return;
-// }
 
 void TruthTree::CreateBranches()
 {

@@ -15,12 +15,6 @@
 #include "EventLoop/OutputStream.h"
 #include <TTreeFormula.h>
 
-// xAOD include(s):
-// #include "xAODRootAccess/Init.h"
-// #include "xAODRootAccess/TEvent.h"
-// #include "xAODRootAccess/tools/ReturnCheck.h"
-// #include "xAODRootAccess/tools/Message.h"
-
 #include "CPAnalysisExamples/errorcheck.h"
 #include "SUSYTools/SUSYObjDef_xAOD.h"
 
@@ -107,51 +101,16 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
   
   m_event = wk()->xaodEvent(); 
 
-  // TTree *metadata = dynamic_cast<TTree*>(wk()->inputFile()->Get("MetaData"));
-  // if (!metadata) {
-  //   Error(APP_NAME, "MetaData tree not found! Exiting.");
-  //   return EL::StatusCode::FAILURE;
-  // }
-  // metadata->LoadTree(0);
-
-  // //check if file is from a DxAOD
-  // bool is_derivation = !metadata->GetBranch("StreamAOD");
+  TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
+  
 
   ULong64_t m_initial_events = 0;
   Double_t m_initial_sumw = 0.;
   Double_t m_initial_sumw2 = 0.;
-
-  // if (is_derivation) {
-  //   //Read the CutBookkeeper container
-  //   const xAOD::CutBookkeeperContainer* completeCBC = 0;
-  //   if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
-  //     Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
-  //     return EL::StatusCode::FAILURE;
-  //   }
-    
-  //   // Now, let's actually find the right one that contains all the needed info...
-  //   const xAOD::CutBookkeeper* all_events_cbk = 0;
-  //   //const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
-      
-  //   int maxCycle = -1;
-  //   for (const auto& cbk :  *completeCBC) {
-  //     if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
-  //       all_events_cbk = cbk;
-  //       maxCycle = cbk->cycle();
-  //     }
-  //   }
-      
-  //   m_initial_events = all_events_cbk->nAcceptedEvents();
-  //   m_initial_sumw   = all_events_cbk->sumOfEventWeights();
-  //   m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
-  // }
-  // else {
-  TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
-    
+  
   m_initial_events  = CollectionTree->GetEntries(); 
   m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
   m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
-  // }
   
   std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
   
@@ -164,7 +123,6 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
 
 EL::StatusCode xAODTruthAnalysis::initialize()
 {
-
   // create "mini" ntuple
   TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
   
@@ -178,12 +136,6 @@ EL::StatusCode xAODTruthAnalysis::initialize()
 EL::StatusCode xAODTruthAnalysis::execute ()
 {
   
-  // Load the event:
-  // if (event.getEntry(entry) < 0) {
-  //   Error(APP_NAME, XAOD_MESSAGE("Failed to load entry %i"), static_cast<int>(entry));
-  //     return 1;
-  //   }
-    
   const xAOD::TruthParticleContainer* truth_particles = 0;
   if(!m_event->retrieve(truth_particles, "TruthParticles").isSuccess()) {
     Error(APP_NAME, "Failed to retrieve truth particles collection. Exiting." );
@@ -202,6 +154,9 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     return EL::StatusCode::FAILURE;
   }
 
+  const xAOD::MissingET* met_truth = 0;
+  if( truth_met ) met_truth = (*truth_met)["NonInt"];
+
   ntuple->Clear();
 
   std::vector<TruthParticle> b_photons;
@@ -215,7 +170,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   std::vector<TruthParticle> jets;
   
   //-- Baseline selection
-  //for (auto truth : truth_particles) {
   for (auto truth = truth_particles->begin(); truth!=truth_particles->end(); ++truth) {
 
     if (!is_stable(*truth))
@@ -335,8 +289,41 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   std::vector<TruthParticle>::iterator mu_it;
   std::vector<TruthParticle>::iterator jet_it;
   
-  
+ 
   //-- Overlap Removal
+  Double_t ph_el_deltaR_cut    = 0.01;
+  Double_t ph_jet_deltaR_cut   = 0.2;
+  Double_t el_jet_deltaR_cut   = 0.2;
+  Double_t jet_egmu_deltaR_cut = 0.4;
+  
+  // Remove photons overlapping with electrons
+  for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
+    if (TruthUtils::OverlapsOthers((*ph_it), b_electrons, ph_el_deltaR_cut) ) (*ph_it).good=false;
+  }
+  TruthUtils::CleanBads(b_photons);
+  
+  /// Remove jets overlapping with electrons and photons
+  for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
+    if (TruthUtils::OverlapsOthers((*jet_it), b_electrons, el_jet_deltaR_cut)) (*jet_it).good=false;
+    if (TruthUtils::OverlapsOthers((*jet_it), b_photons, ph_jet_deltaR_cut)) (*jet_it).good=false;  
+  }
+  TruthUtils::CleanBads(b_jets);
+  
+  /// Remove electrons and photons comming from jets
+  for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
+      if (TruthUtils::OverlapsOthers((*el_it), b_jets, jet_egmu_deltaR_cut)) (*el_it).good = false;
+  }
+  for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
+    if (TruthUtils::OverlapsOthers((*ph_it), b_jets, jet_egmu_deltaR_cut)) (*ph_it).good = false;
+  }
+  TruthUtils::CleanBads(b_electrons);
+  TruthUtils::CleanBads(b_photons);
+  
+  /// Remove muons overlapping with remaining jets
+  for(mu_it=b_muons.begin(); mu_it!=b_muons.end(); ++mu_it) {
+    if (TruthUtils::OverlapsOthers((*mu_it), b_jets, jet_egmu_deltaR_cut)) (*mu_it).good=false;
+  }
+  TruthUtils::CleanBads(b_muons);
   
 
   //-- Construct event variables
@@ -365,15 +352,15 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   Double_t met_et  = TMath::Hypot(ex, ey);
   Double_t met_phi = TMath::ATan2(ey, ex);
   
-  ntuple->met_et = met_et;
-  ntuple->met_phi = met_phi;
+  ntuple->met_truth_et = met_et;
+  ntuple->met_truth_phi = met_phi;
   
   // Met truth
-  ex = truth_met->at(0)->mpx() * 0.001;
-  ey = truth_met->at(0)->mpy() * 0.001;
+  ex = met_truth->mpx() * 0.001;
+  ey = met_truth->mpy() * 0.001;
   
-  ntuple->met_truth_et = TMath::Hypot(ex, ey);
-  ntuple->met_truth_phi = TMath::ATan2(ey, ex);
+  ntuple->met_et = TMath::Hypot(ex, ey);
+  ntuple->met_phi = TMath::ATan2(ey, ex);
   
   /// Ht
   Double_t sum_jet_pt = 0.;
@@ -408,7 +395,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   
   // dphi beteen leading photon and MET
   if (photons.size() > 0) ntuple->dphi_gammet = get_dphi(photons[0].Phi(), met_phi);
-  
   
   // fill ntuple
   if (photons.size()>0)

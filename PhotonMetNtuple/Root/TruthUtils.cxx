@@ -10,35 +10,42 @@ TruthParticle::TruthParticle(const xAOD::Jet *ptcl) :
 {
 }
 
-// Double_t TruthUtils::GetDeltaR(const TruthParticle &p, const TruthParticle &q)
-// {
-//   float dphi = GetDeltaPhi(p.Phi(), q.Phi());
-//   float deta = p.Eta() - q.Eta();
-//   return TMath::Hypot(deta, dphi);
-// }
+Double_t GetDeltaPhi(Double_t phi1, Double_t phi2)
+{
+  Double_t  phi = fabs(phi1 - phi2);
+  if(phi <= TMath::Pi())  return phi;
+  else                    return (2 * TMath::Pi() - phi);
+}
 
-// Bool_t TruthUtils::OverlapsOthers(TruthParticle &p, vector<TruthParticle> &others, Double_t deltaR_cut) 
-// {
-//   vector<TruthParticle>::const_iterator p_it;
-//   for (p_it=others.begin(); p_it!=others.end(); ++p_it) {
-//     if ((*p_it).good && GetDeltaR(p, (*p_it)) < deltaR_cut) 
-//       return true;
-//   }
-  
-//   return false;
-// }
+Double_t TruthUtils::GetDeltaR(const TruthParticle &p, const TruthParticle &q)
+{
+  float dphi = GetDeltaPhi(p.Phi(), q.Phi());
+  float deta = p.Eta() - q.Eta();
+  return TMath::Hypot(deta, dphi);
+}
 
-// void TruthUtils::CleanBads(vector<TruthParticle> &vector)
-// {
-//   std::vector<TruthParticle>::iterator p_it;
+Bool_t TruthUtils::OverlapsOthers(TruthParticle &p, std::vector<TruthParticle> &others, Double_t deltaR_cut) 
+{
+  std::vector<TruthParticle>::const_iterator p_it;
+  for (p_it=others.begin(); p_it!=others.end(); ++p_it) {
+    if ((*p_it).good && GetDeltaR(p, (*p_it)) < deltaR_cut) 
+      return true;
+  }
   
-//   for (p_it=vector.begin(); p_it!=vector.end();) {
-//     if (!(*p_it).good)
-//       p_it = vector.erase(p_it);
-//     else
-//       ++p_it;
-//   }
-// }
+  return false;
+}
+
+void TruthUtils::CleanBads(std::vector<TruthParticle> &vector)
+{
+  std::vector<TruthParticle>::iterator p_it;
+  
+  for (p_it=vector.begin(); p_it!=vector.end();) {
+    if (!(*p_it).good)
+      p_it = vector.erase(p_it);
+    else
+      ++p_it;
+  }
+}
 
 
 
