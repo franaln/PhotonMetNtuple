@@ -56,8 +56,9 @@ class MiniTree : public asg::AsgMetadataTool {
   bool PassEtaCut(const xAOD::Photon *part, Float_t maxeta=99.);
   bool PassEtaCut(const xAOD::Electron *part, Float_t maxeta=99.);
 
-  void SetEventNumber(int en) { event_number = en; };
   void SetRunNumber(int en) { run_number = en; };
+  void SetLumiBlock(int lb) { lumi_block = lb; };
+  void SetEventNumber(int en) { event_number = en; };
   void SetAvgMu(float mu) { avg_mu = mu; };
 
   void SetMCFinalState(unsigned int fs) { final_state = fs; };
@@ -77,6 +78,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> ph_eta_map;
   std::map<const std::string, std::vector<float>*> ph_etas2_map;
   std::map<const std::string, std::vector<float>*> ph_phi_map;
+  std::map<const std::string, std::vector<float>*> ph_iso40_map;
   std::map<const std::string, std::vector<float>*> ph_iso_map;
   std::map<const std::string, std::vector<float>*> ph_w_map;
 
@@ -149,6 +151,7 @@ protected:
   std::vector<float> *ph_eta;
   std::vector<float> *ph_etas2;
   std::vector<float> *ph_phi;
+  std::vector<float> *ph_iso40;
   std::vector<float> *ph_iso;
   std::vector<float> *ph_w;
 
@@ -191,8 +194,9 @@ protected:
   std::vector<int>   *mu_ch;
   std::vector<float> *mu_w;
   
-  int event_number;
   int run_number;
+  int lumi_block;
+  int event_number;
   float avg_mu;
 
   unsigned int final_state;

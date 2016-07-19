@@ -287,7 +287,7 @@ EL::StatusCode xAODAnalysis::initialize()
   if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
     Error(APP_NAME, "Cannot reset SUSYTools systematics" );
   }
-      
+
   TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
   
   outtree = new MiniTree("MiniTree");
@@ -323,8 +323,9 @@ EL::StatusCode xAODAnalysis::execute ()
     return EL::StatusCode::FAILURE;
   }
   
-  outtree->SetEventNumber(eventInfo->eventNumber());
   outtree->SetRunNumber(eventInfo->runNumber());
+  outtree->SetLumiBlock(eventInfo->lumiBlock());
+  outtree->SetEventNumber(eventInfo->eventNumber());
   outtree->SetAvgMu(eventInfo->averageInteractionsPerCrossing());
 
   // check if the event is data or MC
@@ -439,6 +440,10 @@ EL::StatusCode xAODAnalysis::execute ()
     if (sysInfo.affectsKinematics || sysInfo.affectsWeights) {
       const CP::SystematicSet& sys = sysInfo.systset;
 
+      if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
+        Error(APP_NAME, "Cannot reset SUSYTools systematics" );
+      }
+
       if (susytools->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
       }
@@ -516,6 +521,10 @@ EL::StatusCode xAODAnalysis::execute ()
         //-----------------
         // OVERLAP REMOVAL
         //-----------------
+        if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
+          Error(APP_NAME, "Cannot reset SUSYTools systematics" );
+        }
+
         CHECK(susytools->OverlapRemoval(electrons, muons, jets, photons));
         
         xAOD::MissingETContainer*    met_syst = new xAOD::MissingETContainer;
@@ -840,7 +849,6 @@ void xAODAnalysis::ReadConfiguration()
   std::string grl_file_2016 = env.GetValue("GRL.File2016", "");
   m_grl_files.push_back(m_data_dir + grl_file_2015);
   m_grl_files.push_back(m_data_dir + grl_file_2016);
-
 }
 
 void xAODAnalysis::DumpConfiguration()
