@@ -6,5 +6,4 @@ localSetupPandaClient
 rcSetup Base,2.4.15
 
 export ROOTCORE_NCPUS="4"
-
 export PATH="$PWD/scripts:$PATH"
