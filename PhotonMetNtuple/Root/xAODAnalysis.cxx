@@ -41,7 +41,7 @@
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
 const char *APP_NAME = "PhotonMetNtuple";
-const char *APP_VERSION = "Version: v35";
+const char *APP_VERSION = "Version: v36";
 
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODAnalysis)
@@ -443,7 +443,6 @@ EL::StatusCode xAODAnalysis::execute ()
       if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot reset SUSYTools systematics" );
       }
-
       if (susytools->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
       }
@@ -521,10 +520,6 @@ EL::StatusCode xAODAnalysis::execute ()
         //-----------------
         // OVERLAP REMOVAL
         //-----------------
-        if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
-          Error(APP_NAME, "Cannot reset SUSYTools systematics" );
-        }
-
         CHECK(susytools->OverlapRemoval(electrons, muons, jets, photons));
         
         xAOD::MissingETContainer*    met_syst = new xAOD::MissingETContainer;
@@ -620,6 +615,9 @@ EL::StatusCode xAODAnalysis::execute ()
   //-------------------------
   // NOMINAL TREE PROCESSING
   //-------------------------
+  if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
+    Error(APP_NAME, "Cannot reset SUSYTools systematics" );
+  }
   
   // Overlap removal
   CHECK(susytools->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
@@ -758,7 +756,6 @@ EL::StatusCode xAODAnalysis::finalize()
   // merged.  This is different from histFinalize() in that it only
   // gets called on worker nodes that processed input events.
   
-  // GRL
   if (m_grl) {
     delete m_grl;
     m_grl = 0;
@@ -867,5 +864,5 @@ void xAODAnalysis::DumpConfiguration()
 
   //for (auto s : m_grl_files)
   Info(APP_NAME, "GRL.File2015: %s", m_grl_files[0].c_str());
-  Info(APP_NAME, "GRL.File2015: %s", m_grl_files[1].c_str());
+  Info(APP_NAME, "GRL.File2016: %s", m_grl_files[1].c_str());
 }
