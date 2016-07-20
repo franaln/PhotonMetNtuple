@@ -3,7 +3,7 @@ source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
 
 localSetupPandaClient
 
-rcSetup Base,2.4.15
+rcSetup Base,2.4.16
 
 export ROOTCORE_NCPUS="4"
 export PATH="$PWD/scripts:$PATH"

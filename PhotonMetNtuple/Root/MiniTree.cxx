@@ -185,8 +185,14 @@ StatusCode MiniTree::initialize()
   tree->Branch("pass_tst_cleaning", &pass_tst_cleaning, "pass_tst_cleaning/i");
   tree->Branch("year", &year, "year/i");
 
+  tree->Branch("mcveto",    &mcveto   , "mcveto/i");
+  tree->Branch("pass_g120", &pass_g120, "pass_g120/i");
+  tree->Branch("pass_g140", &pass_g140, "pass_g140/i");
+
   tree->Branch("weight_mc", &weight_mc);
   tree->Branch("weight_pu", &weight_pu);
+  tree->Branch("weight_pu_down", &weight_pu_down);
+  tree->Branch("weight_pu_up", &weight_pu_up);
   tree->Branch("weight_sf", &weight_sf_map["Nominal"]);
   tree->Branch("weight_btag", &weight_btag_map["Nominal"]);
 
@@ -573,8 +579,15 @@ void MiniTree::clear()
   pass_tst_cleaning = 0;
   year = 0;
 
+  mcveto = 0;
+  pass_g120 = 0;
+  pass_g140 = 0;
+
+
   weight_mc = 1.;
   weight_pu = 1.;
+  weight_pu_down = 1.;
+  weight_pu_up = 1.;
   weight_sf = 1.;
   weight_btag = 1.;
 

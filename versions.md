@@ -1,6 +1,10 @@
 # Versions (tags)
 
-* PhotonMetNtuple v36 (*)
+* PhotonMetNtuple v37 (*)
+    - AnalysisBase,2.4.16 + SUSYTools-00-07-90
+    - Updated ilumicalc files for 2015 and 2016 and prw file
+
+* PhotonMetNtuple v36
     - AnalysisBase,2.4.15 + SUSYTools-00-07-90 + packages.txt
     - DS2 GRL for data 16
 

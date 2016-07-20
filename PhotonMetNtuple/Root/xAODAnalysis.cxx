@@ -342,12 +342,12 @@ EL::StatusCode xAODAnalysis::execute ()
     outtree->SetWeightMC(mc_weight);
 
     CHECK(susytools->ApplyPRWTool());  
-	outtree->SetWeightPU(susytools->GetPileupWeight());
+	outtree->set_weight_pu(susytools->GetPileupWeight());
     outtree->SetPRWHash(susytools->GetPileupWeightHash());
   }
   else {
     outtree->SetWeightMC(1.);
-    outtree->SetWeightPU(1.);
+    outtree->set_weight_pu(1.);
   }
   
   //--------------------
@@ -359,9 +359,11 @@ EL::StatusCode xAODAnalysis::execute ()
   if (is_data && !m_grl->passRunLB(*eventInfo)) {
     return EL::StatusCode::SUCCESS; // go to next event
   }
+
   if (is_mc && !mc_filter->accept_event(eventInfo->mcChannelNumber(), *m_event)) {
-    return EL::StatusCode::SUCCESS; // go to next event
+    outtree->set_mcveto(1); // only flag as mcveto
   }
+
   h_cutflow->Fill(2);
   h_cutflow_w->Fill(2, mc_weight);
 
@@ -376,9 +378,14 @@ EL::StatusCode xAODAnalysis::execute ()
   
 
   // Trigger
-  bool passed = susytools->IsTrigPassed("HLT_g140_loose") || susytools->IsTrigPassed("HLT_g120_loose");
-  //float prescale = susytools->GetTrigPrescale(trigitem);
-  //Info(APP_NAME, "passing %s trigger? %d, prescale %f", trigitem.c_str(), (int)passed, prescale);
+  bool pass_g120 = susytools->IsTrigPassed("HLT_g140_loose");
+  bool pass_g140 = susytools->IsTrigPassed("HLT_g120_loose");
+
+  outtree->set_pass_g120(pass_g120);
+  outtree->set_pass_g140(pass_g140);
+
+  bool passed = pass_g120 || pass_g140;
+
   if (!passed)
     return EL::StatusCode::SUCCESS;
   h_cutflow->Fill(4);
@@ -443,6 +450,7 @@ EL::StatusCode xAODAnalysis::execute ()
       if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot reset SUSYTools systematics" );
       }
+
       if (susytools->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
       }
@@ -472,6 +480,16 @@ EL::StatusCode xAODAnalysis::execute ()
         
         if (syst_affectsTaus) 
           continue;
+
+        if (sysInfo.affectsWeights && sys.name() == "PRW_DATASF__1down") {
+          outtree->set_weight_pu_down(susytools->GetPileupWeight());
+          //continue;
+        }
+        else if (sysInfo.affectsWeights && sys.name() == "PRW_DATASF__1up") {
+          outtree->set_weight_pu_up(susytools->GetPileupWeight());
+          //continue;
+        }
+
 
         if (syst_affectsElectrons) {
           xAOD::ElectronContainer* electrons_syst(0);
@@ -860,9 +878,8 @@ void xAODAnalysis::DumpConfiguration()
     Info(APP_NAME, "PRW.LumiCalcFile: %s", s.c_str());
 
   for (auto s : m_prw_mc_files)
-    Info(APP_NAME, "PRW.MCFile: %s", s.c_str());
+    Info(APP_NAME, "PRW.MCFile      : %s", s.c_str());
 
-  //for (auto s : m_grl_files)
   Info(APP_NAME, "GRL.File2015: %s", m_grl_files[0].c_str());
   Info(APP_NAME, "GRL.File2016: %s", m_grl_files[1].c_str());
 }

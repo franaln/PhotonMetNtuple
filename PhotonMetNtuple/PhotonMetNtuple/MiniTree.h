@@ -64,12 +64,19 @@ class MiniTree : public asg::AsgMetadataTool {
   void SetMCFinalState(unsigned int fs) { final_state = fs; };
   
   void SetWeightMC(float w) { weight_mc = w; };
-  void SetWeightPU(float w) { weight_pu = w; };
   void SetWeightBtag(std::string sysname, float w) { weight_btag_map[sysname] = w; };
   void SetPRWHash(ULong64_t hash) { PRWHash = hash; };
 
+  void set_weight_pu(float w) { weight_pu = w; };
+  void set_weight_pu_down(float w) { weight_pu_down = w; };
+  void set_weight_pu_up  (float w) { weight_pu_up = w; };
+
   void SetPassTSTCleaning(int w) { pass_tst_cleaning = w; };
   void SetYear(unsigned int y) { year = y; };
+
+  void set_pass_g120(unsigned int fs) { pass_g120 = fs; };
+  void set_pass_g140(unsigned int fs) { pass_g140 = fs; };
+  void set_mcveto(unsigned int fs) { mcveto = fs; };
 
   TTree* tree;
   
@@ -203,10 +210,17 @@ protected:
   unsigned int pass_tst_cleaning;
   unsigned int year;
 
+  unsigned int pass_g120;
+  unsigned int pass_g140;
+
+  unsigned int mcveto;
+
   float weight_mc;
-  float weight_pu;
   float weight_sf;
   float weight_btag;
+  float weight_pu;
+  float weight_pu_down;
+  float weight_pu_up;
 
   ULong64_t PRWHash;
 
