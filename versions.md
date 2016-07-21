@@ -3,6 +3,7 @@
 * PhotonMetNtuple v37 (*)
     - AnalysisBase,2.4.16 + SUSYTools-00-07-90
     - Updated ilumicalc files for 2015 and 2016 and prw file
+    - Add pass_trigger info, mcveto as flag, fix (?) prw syst
 
 * PhotonMetNtuple v36
     - AnalysisBase,2.4.15 + SUSYTools-00-07-90 + packages.txt
