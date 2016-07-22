@@ -169,7 +169,7 @@ def main():
     dsids = [line.rstrip('\n') for line in f]
 
     if args.projectTag.startswith('data'):
-        dsids = [ '00%s' % i for i in dsids ]
+        dsids = [ '00%s' % i for i in dsids if i and not i.startswith('#') ]
 
     samples = OrderedDict()
 
