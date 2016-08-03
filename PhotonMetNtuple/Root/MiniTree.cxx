@@ -174,7 +174,7 @@ StatusCode MiniTree::initialize()
   // Nominal blocks
   tree->Branch("run", &run_number, "run/I");
   tree->Branch("lb", &lumi_block, "lb/I");
-  tree->Branch("event", &event_number, "event/I");
+  tree->Branch("event", &event_number, "event/l");
   
   tree->Branch("avgmu", &avg_mu, "avgmu/F");
 
@@ -256,17 +256,17 @@ StatusCode MiniTree::initialize()
   tree->Branch("mu_ch",  mu_ch);
   tree->Branch("mu_w",   mu_w);
   
-  tree->Branch("met_et", &met_et_map["Nominal"]);
+  tree->Branch("met_et",  &met_et_map["Nominal"]);
   tree->Branch("met_phi", &met_phi_map["Nominal"]);
-  tree->Branch("tst_et", &tst_et_map["Nominal"]);
+  tree->Branch("tst_et",  &tst_et_map["Nominal"]);
   tree->Branch("tst_phi", &tst_phi_map["Nominal"]);
 
-  tree->Branch("ht", &ht_map["Nominal"]);				
+  tree->Branch("ht",   &ht_map["Nominal"]);				
   tree->Branch("meff", &meff_map["Nominal"]);				
-  tree->Branch("rt1", &rt1_map["Nominal"]);				
-  tree->Branch("rt2", &rt2_map["Nominal"]);				
-  tree->Branch("rt3", &rt3_map["Nominal"]);				
-  tree->Branch("rt4", &rt4_map["Nominal"]);				
+  tree->Branch("rt1",  &rt1_map["Nominal"]);				
+  tree->Branch("rt2",  &rt2_map["Nominal"]);				
+  tree->Branch("rt3",  &rt3_map["Nominal"]);				
+  tree->Branch("rt4",  &rt4_map["Nominal"]);				
 
   tree->Branch("dphi_gamjet", &dphi_gamjet_map["Nominal"]);
   tree->Branch("dphi_jetmet", &dphi_jetmet_map["Nominal"]);

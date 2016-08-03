@@ -41,7 +41,7 @@
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
 const char *APP_NAME = "PhotonMetNtuple";
-const char *APP_VERSION = "Version: v36";
+const char *APP_VERSION = "Version: v37";
 
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODAnalysis)

@@ -56,10 +56,10 @@ class MiniTree : public asg::AsgMetadataTool {
   bool PassEtaCut(const xAOD::Photon *part, Float_t maxeta=99.);
   bool PassEtaCut(const xAOD::Electron *part, Float_t maxeta=99.);
 
-  void SetRunNumber(int en) { run_number = en; };
-  void SetLumiBlock(int lb) { lumi_block = lb; };
-  void SetEventNumber(int en) { event_number = en; };
-  void SetAvgMu(float mu) { avg_mu = mu; };
+  void SetRunNumber(int arg)    { run_number = arg; };
+  void SetLumiBlock(int arg)    { lumi_block = arg; };
+  void SetEventNumber(ULong64_t arg) { event_number = arg; };
+  void SetAvgMu(float arg)      { avg_mu = arg; };
 
   void SetMCFinalState(unsigned int fs) { final_state = fs; };
   
@@ -203,7 +203,7 @@ protected:
   
   int run_number;
   int lumi_block;
-  int event_number;
+  ULong64_t event_number;
   float avg_mu;
 
   unsigned int final_state;
