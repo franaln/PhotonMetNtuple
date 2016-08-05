@@ -10,7 +10,7 @@ TruthParticle::TruthParticle(const xAOD::Jet *ptcl) :
 {
 }
 
-Double_t GetDeltaPhi(Double_t phi1, Double_t phi2)
+Double_t TruthUtils::GetDeltaPhi(Double_t phi1, Double_t phi2)
 {
   Double_t  phi = fabs(phi1 - phi2);
   if(phi <= TMath::Pi())  return phi;

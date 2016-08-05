@@ -6,6 +6,7 @@
 TruthTree::TruthTree(const std::string& name): asg::AsgMetadataTool( name )
 {
   declareProperty("OutFile", m_outfile); 
+  declareProperty("SavePDF", m_pdfrw); 
 
   tree = 0;
 }
@@ -110,6 +111,15 @@ void TruthTree::CreateBranches()
 
   // tree->Branch("weight_feg", &weight_feg);
 
+  if (m_pdfrw) {
+    weight_pdf1 = new std::vector<float>;
+    weight_pdf2 = new std::vector<float>;
+    weight_pdf3 = new std::vector<float>;
+    tree->Branch("weight_pdf1", &weight_pdf1);
+    tree->Branch("weight_pdf2", &weight_pdf2);
+    tree->Branch("weight_pdf3", &weight_pdf3);
+  }
+
   Clear();
 }
 
@@ -153,6 +163,12 @@ void TruthTree::Clear()
   dphi_jetmet = -1.;
   dphi_gamjet = -1.;
   dphi_gammet = -1.;
+
+  if (m_pdfrw) {
+    weight_pdf1->clear();
+    weight_pdf2->clear();
+    weight_pdf3->clear();
+  }
 
 }
 

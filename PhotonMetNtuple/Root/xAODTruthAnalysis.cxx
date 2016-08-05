@@ -35,11 +35,16 @@
 #include "PhotonMetNtuple/TruthUtils.h"
 #include "PhotonMetNtuple/TruthTree.h"
 
+// pdf reweighting
+#include "LHAPDF/PDFSet.h"
+#include "LHAPDF/Reweighting.h"
+
 static const char* APP_NAME = "xAODTruthAnalysis";
 
 ClassImp(xAODTruthAnalysis)
 
-xAODTruthAnalysis::xAODTruthAnalysis() 
+xAODTruthAnalysis::xAODTruthAnalysis() :
+do_pdfrw(false)
 {
 
 }
@@ -80,9 +85,27 @@ EL::StatusCode xAODTruthAnalysis::histInitialize()
   h_events->GetXaxis()->SetBinLabel(5, "sumw2 initial");
   h_events->GetXaxis()->SetBinLabel(6, "sumw2 selected");
 
- TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
- h_events->SetDirectory(out_dir);
+  TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
+  h_events->SetDirectory(out_dir);
+
+  if (do_pdfrw) {
+    pdf1 = "CT10";
+    pdf2 = "NNPDF30_lo_as_0130";
+    pdf3 = "MMHT2014lo68cl"; //cteq66"; // MMHT2014
+
+    Info(APP_NAME, "Loading PDF set %s", pdf1.c_str());
+    const LHAPDF::PDFSet pdf_set_1(pdf1);
+    m_pdfs_1 = pdf_set_1.mkPDFs();
+ 
+    Info(APP_NAME, "Loading PDF set %s", pdf2.c_str());
+    const LHAPDF::PDFSet pdf_set_2(pdf2);
+    m_pdfs_2 = pdf_set_2.mkPDFs();
   
+    Info(APP_NAME, "Loading PDF set %s", pdf3.c_str());
+    const LHAPDF::PDFSet pdf_set_3(pdf3);
+    m_pdfs_3 = pdf_set_3.mkPDFs();
+  }
+
   return EL::StatusCode::SUCCESS;
 }
 
@@ -395,7 +418,30 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   
   // dphi beteen leading photon and MET
   if (photons.size() > 0) ntuple->dphi_gammet = get_dphi(photons[0].Phi(), met_phi);
-  
+
+
+  // pdf
+  if (do_pdfrw) { 
+    const xAOD::TruthEventContainer* truthEvent = 0;
+    if( m_event->retrieve( truthEvent, "TruthEvents" ).isFailure()) {
+      Error("Execute()", "TruthEvent not found! pdf calculation will be wrong");
+    } 
+    
+    xAOD::TruthEvent::PdfInfo pdata = truthEvent->at(0)->pdfInfo();
+    
+    for (size_t iPdf=0; iPdf<m_pdfs_1.size(); iPdf++) {
+      ntuple->weight_pdf1->push_back( LHAPDF::weightxxQ(pdata.pdgId1, pdata.pdgId2, pdata.x1, pdata.x2, pdata.Q, m_pdfs_1[0], m_pdfs_1[iPdf]) );
+    }
+    
+    for (size_t iPdf=0; iPdf<m_pdfs_2.size(); iPdf++) {
+      ntuple->weight_pdf2->push_back( LHAPDF::weightxxQ(pdata.pdgId1,pdata.pdgId2,pdata.x1,pdata.x2,pdata.Q,m_pdfs_2[0],m_pdfs_2[iPdf]) );
+    }
+    
+    for (size_t iPdf=0; iPdf<m_pdfs_3.size(); iPdf++) {
+      ntuple->weight_pdf3->push_back( LHAPDF::weightxxQ(pdata.pdgId1,pdata.pdgId2,pdata.x1,pdata.x2,pdata.Q,m_pdfs_3[0],m_pdfs_3[iPdf]) );
+    }
+  }
+
   // fill ntuple
   if (photons.size()>0)
     ntuple->Fill();

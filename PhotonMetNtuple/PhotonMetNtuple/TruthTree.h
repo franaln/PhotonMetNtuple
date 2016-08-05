@@ -28,15 +28,7 @@ class TruthTree : public asg::AsgMetadataTool {
 
   TTree *tree;
 
-  // void Create(TString, TString);
-  // void CreateFile(TString);
   void CreateTree(TString); 
-
-  // inline void Fill() { tree->Fill(); };
-  // void Save();
-  // inline void Close() { file->Close(); };
-  // void SaveHist(TH1*);
-  // void RemoveObjectIfExists(TString);
 
   void CreateBranches();
   void Clear();
@@ -89,19 +81,13 @@ class TruthTree : public asg::AsgMetadataTool {
   Float_t dphi_jetmet;
   Float_t dphi_gammet;
 
-  // Long64_t event;
-  // Int_t smeared;
-
-  // // weights
-  // Float_t weight;
-  // Float_t weight_prwdn;
-  // Float_t weight_prwup;
-  // Float_t weight_feg;
-  // vector<float> *btag_weight;
+  std::vector<float> *weight_pdf1;
+  std::vector<float> *weight_pdf2;
+  std::vector<float> *weight_pdf3;
 
  protected:
   TDirectory *m_outfile;    
-  // TFile *file;
+  bool m_pdfrw;
 
 };
 #endif
