@@ -129,9 +129,11 @@ class MiniTree : public asg::AsgMetadataTool {
 
   std::map<const std::string, float> met_phi_map;
   std::map<const std::string, float> met_et_map;
+  std::map<const std::string, float> met_sumet_map;
+  std::map<const std::string, float> met_sig_map;
 
-  std::map<const std::string, float> tst_phi_map;
   std::map<const std::string, float> tst_et_map;
+  std::map<const std::string, float> tst_phi_map;
 
   std::map<const std::string, float> ht_map;
   std::map<const std::string, float> meff_map;

@@ -256,8 +256,10 @@ StatusCode MiniTree::initialize()
   tree->Branch("mu_ch",  mu_ch);
   tree->Branch("mu_w",   mu_w);
   
-  tree->Branch("met_et",  &met_et_map["Nominal"]);
-  tree->Branch("met_phi", &met_phi_map["Nominal"]);
+  tree->Branch("met_et",    &met_et_map["Nominal"]);
+  tree->Branch("met_phi",   &met_phi_map["Nominal"]);
+  tree->Branch("met_sumet", &met_sumet_map["Nominal"]);
+  tree->Branch("met_sig",   &met_sig_map["Nominal"]);
   tree->Branch("tst_et",  &tst_et_map["Nominal"]);
   tree->Branch("tst_phi", &tst_phi_map["Nominal"]);
 
@@ -479,6 +481,8 @@ StatusCode MiniTree::initialize()
       if (sys.affectsKinematics) {
         tree->Branch(BookName("met_et", sys_name), &met_et_map[sys_name]);
         tree->Branch(BookName("met_phi", sys_name), &met_phi_map[sys_name]);
+        tree->Branch(BookName("met_sumet", sys_name), &met_sumet_map[sys_name]);
+        tree->Branch(BookName("met_sig", sys_name), &met_sig_map[sys_name]);
         tree->Branch(BookName("tst_et", sys_name), &tst_et_map[sys_name]);
         tree->Branch(BookName("tst_phi", sys_name), &tst_phi_map[sys_name]);
       
@@ -546,6 +550,8 @@ StatusCode MiniTree::initialize()
 
       met_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
       met_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_sumet_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_sig_map.insert(std::pair<std::string, float>(sys_name, -99.));
       tst_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
       tst_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
@@ -853,11 +859,17 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
     Error("PhotonMetNtuple:MiniTree", "No RefFinal inside MET container");
   }
 
-  met_et_map[sysname] = (*met_it)->met() * IGEV; 
-  met_phi_map[sysname] = (*met_it)->phi(); 
+  met_et_map[sysname]    = (*met_it)->met() * IGEV; 
+  met_phi_map[sysname]   = (*met_it)->phi(); 
+  met_sumet_map[sysname] = (*met_it)->sumet() * IGEV; 
+  met_sig_map[sysname] = ((*met_it)->met() * IGEV) / sqrt((*met_it)->sumet() * IGEV); 
 
-  tst_et_map[sysname] = (*collections.met)["PVSoftTrk"]->met() * IGEV;
-  tst_phi_map[sysname] = (*collections.met)["PVSoftTrk"]->phi();
+  met_it = collections.met->find("PVSoftTrk");
+  if (met_it == collections.met->end()) {
+    Error("PhotonMetNtuple:MiniTree", "No PVSoftTrk inside MET container");
+  }
+  tst_et_map[sysname]    = (*met_it)->met() * IGEV;
+  tst_phi_map[sysname]   = (*met_it)->phi();
   
   // Extra variables
   Double_t sum_jet_pt = 0.0;

@@ -1,6 +1,10 @@
 # Versions (tags)
 
-* PhotonMetNtuple v37 (*)
+* PhotonMetNtuple v38 
+    - AnalysisBase,2.4.18 + SUSYTools-00-07-96 + packages.txt
+
+
+* PhotonMetNtuple v37 (ICHEP analysis 13.3 fb-1)
     - AnalysisBase,2.4.16 + SUSYTools-00-07-90
     - Updated ilumicalc files for 2015 and 2016 and prw file
     - Add pass_trigger info, mcveto as flag, fix (?) prw syst

@@ -60,6 +60,7 @@ private:
 
   std::string m_data_dir; //!
   std::string m_st_config_file; //!
+  bool m_ignore_prw; //!
   std::vector<std::string> m_prw_lumicalc_files; //!
   std::vector<std::string> m_prw_mc_files; //!
   std::vector<std::string> m_grl_files; //!

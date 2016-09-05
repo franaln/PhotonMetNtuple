@@ -246,9 +246,13 @@ EL::StatusCode xAODAnalysis::initialize()
   CHECK(susytools->setProperty("ConfigFile", m_st_config_file));
 
   // Pile Up Reweighting
+  m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15ab_defaults.NotRecommended.prw.root"); // FIX
+  m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15c_v2_defaults.NotRecommended.prw.root");
+
   CHECK(susytools->setProperty("PRWConfigFiles", m_prw_mc_files));
   CHECK(susytools->setProperty("PRWLumiCalcFiles", m_prw_lumicalc_files));
  
+
   if (susytools->initialize() != StatusCode::SUCCESS) {
     Error(APP_NAME, "Cannot intialize SUSYObjDef_xAOD...");
     Error(APP_NAME, "Exiting... ");
@@ -341,9 +345,11 @@ EL::StatusCode xAODAnalysis::execute ()
     mc_weight = eventInfo->mcEventWeight();
     outtree->SetWeightMC(mc_weight);
 
+    // if (!m_ignore_prw) {
     CHECK(susytools->ApplyPRWTool());  
-	outtree->set_weight_pu(susytools->GetPileupWeight());
+    outtree->set_weight_pu(susytools->GetPileupWeight());
     outtree->SetPRWHash(susytools->GetPileupWeightHash());
+    // }
   }
   else {
     outtree->SetWeightMC(1.);
@@ -851,6 +857,8 @@ void xAODAnalysis::ReadConfiguration()
   TEnv env(config_file.c_str());
 
   m_st_config_file = m_data_dir + env.GetValue("ST.ConfigFile", "");
+
+  m_ignore_prw = env.GetValue("PRW.Ignore", 0);
   
   TString ilumicalc_files = env.GetValue("PRW.LumiCalcFile", "");
   for (auto s : SplitString(ilumicalc_files))
@@ -864,6 +872,7 @@ void xAODAnalysis::ReadConfiguration()
   std::string grl_file_2016 = env.GetValue("GRL.File2016", "");
   m_grl_files.push_back(m_data_dir + grl_file_2015);
   m_grl_files.push_back(m_data_dir + grl_file_2016);
+
 }
 
 void xAODAnalysis::DumpConfiguration()
@@ -874,6 +883,8 @@ void xAODAnalysis::DumpConfiguration()
 
   Info(APP_NAME, "ST.ConfigFile: %s", m_st_config_file.c_str());
   
+  Info(APP_NAME, "PRW.Ignore: %d", m_ignore_prw);
+
   for (auto s : m_prw_lumicalc_files)
     Info(APP_NAME, "PRW.LumiCalcFile: %s", s.c_str());
 
