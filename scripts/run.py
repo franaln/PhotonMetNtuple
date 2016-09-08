@@ -132,11 +132,12 @@ def run_job(sample, driver):
 
         is_data     = ('data15' in sample or 'data16' in sample)
         is_susy     = ('_GGM_' in sample)
-        is_susy_ewk = ('_GGM_mu_' in sample)
+        is_susy_ewk = ('_GGM_mu' in sample)
         is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
         
         logging.info('-- Configuration to use. Please check if it is ok!')
-        logging.info('-- configfile  = %s' % args.config_file)
+        logging.info('-- Configfile  = %s' % args.config_file)
+        logging.info('-- Sample = %s' % sample)
         logging.info('-- is data=%s, is MC=%s, is atlfast=%s, is susy=%s, is susy ewk=%s' % (is_data, (not is_data), is_atlfast, is_susy, is_susy_ewk))
         logging.info('-- do systematics = %s' % args.dosyst)
         logging.info('--')

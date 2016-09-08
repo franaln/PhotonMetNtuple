@@ -3,7 +3,7 @@ PhotonMetNtuple
 
 ## Current Base and SUSYTools release (see versions.md for more)
 
-    AnalysisBase,2.4.18 + SUSYTools-00-07-96 + packages.txt
+    AnalysisBase,2.4.18 + SUSYTools-00-07-96 + packages.txt + ElectronEfficiencyCorrection-00-01-69
 
 
 ## Compile

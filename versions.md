@@ -1,8 +1,7 @@
 # Versions (tags)
 
-* PhotonMetNtuple v38 
-    - AnalysisBase,2.4.18 + SUSYTools-00-07-96 + packages.txt
-
+* PhotonMetNtuple v39
+    - AnalysisBase,2.4.18 + SUSYTools-00-07-96 + packages.txt + ElectronEfficiencyCorrection-00-01-69
 
 * PhotonMetNtuple v37 (ICHEP analysis 13.3 fb-1)
     - AnalysisBase,2.4.16 + SUSYTools-00-07-90

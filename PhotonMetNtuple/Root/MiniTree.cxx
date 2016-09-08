@@ -240,14 +240,14 @@ StatusCode MiniTree::initialize()
   tree->Branch("el_ch",  el_ch);
   tree->Branch("el_w",   el_w);
 
-  if (!m_ismc) {
-    tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_medium_n/I");
-    tree->Branch("el_medium_eta", el_medium_eta);
-    tree->Branch("el_medium_etas2", el_medium_etas2);
-    tree->Branch("el_medium_phi", el_medium_phi);
-    tree->Branch("el_medium_pt",  el_medium_pt);
-    tree->Branch("el_medium_ch",  el_medium_ch);
-  }
+  //if (!m_ismc) {
+  tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_medium_n/I");
+  tree->Branch("el_medium_eta", el_medium_eta);
+  tree->Branch("el_medium_etas2", el_medium_etas2);
+  tree->Branch("el_medium_phi", el_medium_phi);
+  tree->Branch("el_medium_pt",  el_medium_pt);
+  tree->Branch("el_medium_ch",  el_medium_ch);
+  //}
 
   tree->Branch("mu_n", &mu_n_map["Nominal"], "mu_n/I");
   tree->Branch("mu_eta", mu_eta);
@@ -312,14 +312,14 @@ StatusCode MiniTree::initialize()
   el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
   el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
 
-  if (!m_ismc) {
+  // //if (!m_ismc) {
     el_medium_n_map.insert (std::pair<std::string, int>(sys_name, 0));
     el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
     el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
     el_medium_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_etas2));
     el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
     el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
-  }
+  // }
 
   mu_n_map.insert (std::pair<std::string, int>(sys_name, 0));  
   mu_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, mu_pt));
@@ -532,14 +532,14 @@ StatusCode MiniTree::initialize()
       el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
       el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
 
-      if (!m_ismc) {
-        el_medium_n_map.insert (std::pair<std::string, int>(sys_name, 0));
-        el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
-        el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
-        el_medium_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_etas2));
-        el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
-        el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
-      }
+      // if (!m_ismc) {
+      el_medium_n_map.insert (std::pair<std::string, int>(sys_name, 0));
+      el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
+      el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
+      el_medium_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_etas2));
+      el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
+      el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
+      // }
 
       mu_n_map.insert (std::pair<std::string, int>(sys_name, 0));  
       mu_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, mu_pt));
@@ -640,14 +640,14 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   el_ch_map[sysname]->clear();
   el_w_map[sysname]->clear();
 
-  if (!m_ismc) {
+  if (sysname == "Nominal") {
     el_medium_pt_map[sysname]->clear();
     el_medium_eta_map[sysname]->clear();
     el_medium_etas2_map[sysname]->clear();
     el_medium_phi_map[sysname]->clear();
     el_medium_ch_map[sysname]->clear();
   }
-
+  
   mu_pt_map[sysname]->clear();
   mu_eta_map[sysname]->clear();
   mu_phi_map[sysname]->clear();
@@ -691,8 +691,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
   // medium electrons
   int el_medium_n = 0;;
-  if (!m_ismc) {
-
+  if (sysname == "Nominal") {
     for (const auto& el_itr : *collections.electrons) {
 
       if (el_itr->auxdata<char>("baseline") == 1 &&
@@ -700,7 +699,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
           el_itr->auxdata<char>("medium") == 1 && 
           el_itr->auxdata<char>("isol") == 1 && 
           PassEtaCut(el_itr)) {
-
+        
         el_medium_n += 1;
         el_medium_pt_map[sysname]->push_back(el_itr->pt()*IGEV);
         el_medium_eta_map[sysname]->push_back(el_itr->eta());
@@ -710,7 +709,6 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
       }
     }
     el_medium_n_map[sysname] = el_medium_n;
-
   }
 
   // muons
@@ -826,7 +824,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
             ph_truth_id->push_back(-99);
           }
 
-          ph_truth_type->push_back(xAOD::TruthHelpers::getParticleTruthType(*ph_itr));
+          ph_truth_type  ->push_back(xAOD::TruthHelpers::getParticleTruthType(*ph_itr));
           ph_truth_origin->push_back(xAOD::TruthHelpers::getParticleTruthOrigin(*ph_itr));
         }
       }
@@ -858,7 +856,6 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   if (met_it == collections.met->end()) {
     Error("PhotonMetNtuple:MiniTree", "No RefFinal inside MET container");
   }
-
   met_et_map[sysname]    = (*met_it)->met() * IGEV; 
   met_phi_map[sysname]   = (*met_it)->phi(); 
   met_sumet_map[sysname] = (*met_it)->sumet() * IGEV; 
@@ -949,10 +946,10 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   }
 
   bool pass_skim = false;
-  if (m_ismc) 
-    pass_skim = (photons_skim > 0);
-  else
+  if (sysname == "Nominal")
     pass_skim = (photons_skim > 0 || el_medium_n > 0);
+  else
+    pass_skim = (photons_skim > 0);
 
   return pass_skim;
 }
