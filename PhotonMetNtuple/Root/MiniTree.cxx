@@ -179,7 +179,7 @@ StatusCode MiniTree::initialize()
   tree->Branch("avgmu", &avg_mu, "avgmu/F");
 
   if (m_ismc) {
-    tree->Branch("fs", &final_state, "final_state/i");
+    tree->Branch("fs", &final_state, "fs/i");
   }
 
   tree->Branch("pass_tst_cleaning", &pass_tst_cleaning, "pass_tst_cleaning/i");
