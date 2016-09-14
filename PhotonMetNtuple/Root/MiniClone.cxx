@@ -2,6 +2,7 @@
 
 #include <PhotonMetNtuple/MiniClone.h>
 
+#include <iostream>
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -11,7 +12,8 @@ MiniClone::MiniClone(TString orig_path, TString clone_path) :
   clone_tree(0),
   m_ismc(false),
   m_efake_sample(false),
-  m_jfake_sample(false)
+  m_jfake_sample(false),
+  m_is_old_version(false)
 {
   orig_file = new TFile(orig_path);
   orig_file->GetObject("mini", orig_tree);
@@ -33,23 +35,10 @@ MiniClone::~MiniClone()
 
 Int_t MiniClone::GetEntry(Long64_t entry)
 {
-// Read contents of entry.
+  // Read contents of entry.
    if (!orig_tree) return 0;
    return orig_tree->GetEntry(entry);
 }
-
-// Long64_t mini::LoadTree(Long64_t entry)
-// {
-//   // Set the environment to read one entry
-//   if (!orig_tree) return -5;
-//   Long64_t centry = orig_tree->LoadTree(entry);
-//   if (centry < 0) return centry;
-//   if (fChain->GetTreeNumber() != fCurrent) {
-//     fCurrent = fChain->GetTreeNumber();
-//     Notify();
-//   }
-//   return centry;
-// }
 
 void MiniClone::InitOriginalTree()
 {
@@ -100,12 +89,13 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("lb", &lb, &b_lb);
    orig_tree->SetBranchAddress("event", &event, &b_event);
    orig_tree->SetBranchAddress("avgmu", &avgmu, &b_avgmu);
-   orig_tree->SetBranchAddress("fs", &fs, &b_final_state);
    orig_tree->SetBranchAddress("pass_tst_cleaning", &pass_tst_cleaning, &b_pass_tst_cleaning);
    orig_tree->SetBranchAddress("year", &year, &b_year);
    orig_tree->SetBranchAddress("mcveto", &mcveto, &b_mcveto);
    orig_tree->SetBranchAddress("pass_g120", &pass_g120, &b_pass_g120);
    orig_tree->SetBranchAddress("pass_g140", &pass_g140, &b_pass_g140);
+   if (m_ismc)    orig_tree->SetBranchAddress("fs", &fs, &b_final_state);
+
 
    orig_tree->SetBranchAddress("weight_mc", &weight_mc, &b_weight_mc);
    orig_tree->SetBranchAddress("weight_pu", &weight_pu, &b_weight_pu);
@@ -132,14 +122,19 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("ph_etas2", &ph_etas2, &b_ph_etas2);
    orig_tree->SetBranchAddress("ph_phi", &ph_phi, &b_ph_phi);
    orig_tree->SetBranchAddress("ph_iso40", &ph_iso40, &b_ph_iso40);
+   
    orig_tree->SetBranchAddress("ph_iso", &ph_iso, &b_ph_iso);
    orig_tree->SetBranchAddress("ph_w", &ph_w, &b_ph_w);
-   orig_tree->SetBranchAddress("ph_truth_pt", &ph_truth_pt, &b_ph_truth_pt);
-   orig_tree->SetBranchAddress("ph_truth_eta", &ph_truth_eta, &b_ph_truth_eta);
-   orig_tree->SetBranchAddress("ph_truth_phi", &ph_truth_phi, &b_ph_truth_phi);
-   orig_tree->SetBranchAddress("ph_truth_id", &ph_truth_id, &b_ph_truth_id);
-   orig_tree->SetBranchAddress("ph_truth_type", &ph_truth_type, &b_ph_truth_type);
-   orig_tree->SetBranchAddress("ph_truth_origin", &ph_truth_origin, &b_ph_truth_origin);
+
+   if (m_ismc) {
+     orig_tree->SetBranchAddress("ph_truth_pt", &ph_truth_pt, &b_ph_truth_pt);
+     orig_tree->SetBranchAddress("ph_truth_eta", &ph_truth_eta, &b_ph_truth_eta);
+     orig_tree->SetBranchAddress("ph_truth_phi", &ph_truth_phi, &b_ph_truth_phi);
+     orig_tree->SetBranchAddress("ph_truth_id", &ph_truth_id, &b_ph_truth_id);
+     orig_tree->SetBranchAddress("ph_truth_type", &ph_truth_type, &b_ph_truth_type);
+     orig_tree->SetBranchAddress("ph_truth_origin", &ph_truth_origin, &b_ph_truth_origin);
+   }
+
    orig_tree->SetBranchAddress("ph_noniso_n", &ph_noniso_n, &b_ph_noniso_n);
    orig_tree->SetBranchAddress("ph_noniso_pt", &ph_noniso_pt, &b_ph_noniso_pt);
    orig_tree->SetBranchAddress("ph_noniso_eta", &ph_noniso_eta, &b_ph_noniso_eta);
@@ -179,8 +174,14 @@ void MiniClone::InitOriginalTree()
 
    orig_tree->SetBranchAddress("met_et", &met_et, &b_met_et);
    orig_tree->SetBranchAddress("met_phi", &met_phi, &b_met_phi);
-   orig_tree->SetBranchAddress("met_sumet", &met_sumet, &b_met_sumet);
-   orig_tree->SetBranchAddress("met_sig", &met_sig, &b_met_sig);
+
+   if (orig_tree->GetListOfBranches()->FindObject("met_sumet")) {
+     orig_tree->SetBranchAddress("met_sumet", &met_sumet, &b_met_sumet);
+     orig_tree->SetBranchAddress("met_sig", &met_sig, &b_met_sig);
+   }
+   else
+     m_is_old_version = true;
+
    orig_tree->SetBranchAddress("tst_et", &tst_et, &b_tst_et);
    orig_tree->SetBranchAddress("tst_phi", &tst_phi, &b_tst_phi);
    orig_tree->SetBranchAddress("ht", &ht, &b_ht);
@@ -515,6 +516,12 @@ void MiniClone::CopyEventBlock()
   new_year = year;
   new_PRWHash = PRWHash;
 
+  new_pass_g120 = pass_g120;
+  new_pass_g140 = pass_g140;
+}
+
+void MiniClone::CopyWeightBlock()
+{
   new_weight_mc = weight_mc;
   new_weight_pu = weight_pu;
   new_weight_pu_down = weight_pu_down;
@@ -532,18 +539,22 @@ void MiniClone::CopyEventBlock()
     new_weight_fjg_dn = weight_fjg_dn;
     new_weight_fjg_up = weight_fjg_up;
   }
+}
 
-  new_pass_g120 = pass_g120;
-  new_pass_g140 = pass_g140;
-
+void MiniClone::CopyMetBlock()
+{
   new_met_et  = met_et;
   new_met_phi = met_phi;
-  new_met_sumet = met_sumet;
-  new_met_sig   = met_sig;
-
+  if (!m_is_old_version) {
+    new_met_sumet = met_sumet;
+    new_met_sig   = met_sig;
+  }
   new_tst_et  = tst_et;
   new_tst_phi = tst_phi;
+}
 
+void MiniClone::CopyOthersBlock()
+{
   new_ht = ht;
   new_meff = meff;
   new_rt1	= rt1;
@@ -554,8 +565,8 @@ void MiniClone::CopyEventBlock()
   new_dphi_gamjet = dphi_gamjet;
   new_dphi_jetmet = dphi_jetmet;
   new_dphi_gammet = dphi_gammet;
-
 }
+
 
 void MiniClone::AddNewBranch(TString name, Float_t *address)
 {

@@ -291,6 +291,7 @@ public:
   bool m_ismc;
   bool m_efake_sample;
   bool m_jfake_sample;
+  bool m_is_old_version;
 
   MiniClone(TString, TString);
   virtual ~MiniClone();
@@ -316,7 +317,9 @@ public:
   void CopyMuonsBlock();
   void CopyJetsBlock();
   void CopyEventBlock();
-
+  void CopyWeightBlock();
+  void CopyMetBlock();
+  void CopyOthersBlock();
 };
 
 #endif

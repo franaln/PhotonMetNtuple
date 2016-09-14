@@ -92,6 +92,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, int> ph_noniso_n_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_pt_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_eta_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_etas2_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_phi_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_iso_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_w_map;
@@ -173,6 +174,7 @@ protected:
 
   std::vector<float> *ph_noniso_pt; 
   std::vector<float> *ph_noniso_eta;
+  std::vector<float> *ph_noniso_etas2;
   std::vector<float> *ph_noniso_phi;
   std::vector<float> *ph_noniso_iso;
   std::vector<float> *ph_noniso_w;

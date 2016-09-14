@@ -36,6 +36,7 @@ MiniTree::~MiniTree()
 
       delete ph_noniso_pt_map[sys_name];
       delete ph_noniso_eta_map[sys_name];
+      delete ph_noniso_etas2_map[sys_name];
       delete ph_noniso_phi_map[sys_name];
       delete ph_noniso_iso_map[sys_name];
       delete ph_noniso_w_map[sys_name];
@@ -78,6 +79,7 @@ MiniTree::~MiniTree()
 
   delete ph_noniso_pt_map["Nominal"];
   delete ph_noniso_eta_map["Nominal"];
+  delete ph_noniso_etas2_map["Nominal"];
   delete ph_noniso_phi_map["Nominal"];
   delete ph_noniso_iso_map["Nominal"];
   delete ph_noniso_w_map["Nominal"];
@@ -135,6 +137,7 @@ StatusCode MiniTree::initialize()
 
   ph_noniso_pt = new std::vector<float>(); 
   ph_noniso_eta = new std::vector<float>();
+  ph_noniso_etas2 = new std::vector<float>();
   ph_noniso_phi = new std::vector<float>();
   ph_noniso_iso = new std::vector<float>();
   ph_noniso_w = new std::vector<float>();
@@ -219,6 +222,7 @@ StatusCode MiniTree::initialize()
   tree->Branch("ph_noniso_n", &ph_noniso_n_map["Nominal"], "ph_noniso_n/I");
   tree->Branch("ph_noniso_pt",  ph_noniso_pt);
   tree->Branch("ph_noniso_eta", ph_noniso_eta);
+  tree->Branch("ph_noniso_etas2", ph_noniso_etas2);
   tree->Branch("ph_noniso_phi", ph_noniso_phi);
   tree->Branch("ph_noniso_iso", ph_noniso_iso);
   tree->Branch("ph_noniso_w",   ph_noniso_w);
@@ -291,6 +295,7 @@ StatusCode MiniTree::initialize()
   ph_noniso_n_map.insert (std::pair<std::string, int>(sys_name, 0));
   ph_noniso_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_pt));
   ph_noniso_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_eta));
+  ph_noniso_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_etas2));
   ph_noniso_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_phi));
   ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
   ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
@@ -369,6 +374,7 @@ StatusCode MiniTree::initialize()
 
       ph_noniso_pt = new std::vector<float>(); 
       ph_noniso_eta = new std::vector<float>();
+      ph_noniso_etas2 = new std::vector<float>();
       ph_noniso_phi = new std::vector<float>();
       ph_noniso_iso = new std::vector<float>();
       ph_noniso_w = new std::vector<float>();
@@ -443,6 +449,7 @@ StatusCode MiniTree::initialize()
           tree->Branch(BookName("ph_noniso_n", sys_name), &ph_noniso_n_map[sys_name], BookName("ph_noniso_n", sys_name)+"/I");
           tree->Branch(BookName("ph_noniso_pt", sys_name) , ph_noniso_pt);
           tree->Branch(BookName("ph_noniso_eta", sys_name), ph_noniso_eta);
+          tree->Branch(BookName("ph_noniso_etas2", sys_name), ph_noniso_etas2);
           tree->Branch(BookName("ph_noniso_phi", sys_name), ph_noniso_phi);
           tree->Branch(BookName("ph_noniso_iso", sys_name), ph_noniso_iso);
 	  	}
@@ -511,6 +518,7 @@ StatusCode MiniTree::initialize()
       ph_noniso_n_map.insert (std::pair<std::string, int>(sys_name, 0));
       ph_noniso_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_pt));
       ph_noniso_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_eta));
+      ph_noniso_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_etas2));
       ph_noniso_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_phi));
       ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
       ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
@@ -622,6 +630,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
   ph_noniso_pt_map[sysname]->clear();
   ph_noniso_eta_map[sysname]->clear();
+  ph_noniso_etas2_map[sysname]->clear();
   ph_noniso_phi_map[sysname]->clear();
   ph_noniso_iso_map[sysname]->clear();
   ph_noniso_w_map[sysname]->clear();
@@ -836,6 +845,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
         ph_noniso_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
         ph_noniso_eta_map[sysname]->push_back(ph_itr->eta());
+        ph_noniso_etas2_map[sysname]->push_back(ph_itr->caloCluster()->etaBE(2));
         ph_noniso_phi_map[sysname]->push_back(ph_itr->phi());
         ph_noniso_iso_map[sysname]->push_back(iso);
         
