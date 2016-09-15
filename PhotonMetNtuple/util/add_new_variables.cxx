@@ -128,10 +128,13 @@ void loop(TString input_path, TString output_path)
     mini->CopyMuonsBlock();
     mini->CopyJetsBlock();
 
-    mini->CopyPhotonsNonIsoBlock();
-    mini->CopyElectronsMediumBlock();
+    // mini->CopyPhotonsNonIsoBlock();
+    // mini->CopyElectronsMediumBlock();
     
     mini->CopyEventBlock();
+    mini->CopyWeightBlock();
+    mini->CopyMetBlock();
+    mini->CopyOthersBlock();
 
     // New variables
     float sum_jet_pt = 0.;
