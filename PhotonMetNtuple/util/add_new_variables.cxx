@@ -114,7 +114,12 @@ void loop(TString input_path, TString output_path)
 
     if (total_events>10 && jentry%msg_interval == 0) 
       std::cout << "Processing event " << jentry << " of " << total_events << std::endl;
-    
+
+
+    // skip events without photons
+    if (mini->ph_n < 1)
+      continue;
+
     // clear
     mini->Clear();
 
