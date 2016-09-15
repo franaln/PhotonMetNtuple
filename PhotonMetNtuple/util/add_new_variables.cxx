@@ -44,6 +44,7 @@ void loop(TString input_path, TString output_path)
   else if (input_path.Contains("jfake"))
     mini->SetJfakeSample();
   
+  mini->Init();
 
   Int_t total_events = mini->GetEntries();
   if (total_events == 0) {
@@ -74,6 +75,9 @@ void loop(TString input_path, TString output_path)
   float deta_gamjet2;
   float dr_gamjet;
   float dr_gamjet2;
+  float eta2_gamjet;
+  
+  float dpt_gamjet;
 
   // New branches
   mini->AddNewBranch("ht0", &ht0);				
@@ -98,7 +102,9 @@ void loop(TString input_path, TString output_path)
   mini->AddNewBranch("deta_gamjet2", &deta_gamjet2);
   mini->AddNewBranch("dr_gamjet", &dr_gamjet);
   mini->AddNewBranch("dr_gamjet2", &dr_gamjet2);
+  mini->AddNewBranch("eta2_gamjet", &eta2_gamjet);
 
+  mini->AddNewBranch("dpt_gamjet", &dpt_gamjet);
   
   // Loop over all events
   int msg_interval = int(total_events/10);
@@ -194,8 +200,12 @@ void loop(TString input_path, TString output_path)
     deta_gamjet = -99.;
     dr_gamjet   = -99.;
     if (mini->jet_n > 0) {
-      deta_gamjet = get_deta(mini->ph_eta->at(0), mini->jet_eta->at(0));
-      dr_gamjet   = get_dr(mini->ph_eta->at(0), mini->ph_phi->at(0), mini->jet_eta->at(0), mini->jet_phi->at(0));
+      deta_gamjet = get_deta(mini->ph_etas2->at(0), mini->jet_eta->at(0));
+      dr_gamjet   = get_dr(mini->ph_etas2->at(0), mini->ph_phi->at(0), mini->jet_eta->at(0), mini->jet_phi->at(0));
+
+      eta2_gamjet = (*mini->ph_etas2)[0] * (*mini->jet_eta)[0];
+
+      dpt_gamjet = TMath::Abs((*mini->ph_pt)[0] - (*mini->jet_pt)[0]);
     }
 
     deta_gamjet2 = deta_gamjet;

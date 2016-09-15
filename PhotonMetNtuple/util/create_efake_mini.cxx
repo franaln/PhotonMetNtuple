@@ -45,6 +45,8 @@ void loop(TString input_path, TString output_path)
   
   MiniClone *mini = new MiniClone(input_path, output_path);
 
+  mini->Init();
+
   Int_t total_events = mini->GetEntries();
   if (total_events == 0) {
     std::cout << "no events" << std::endl;

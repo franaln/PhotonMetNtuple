@@ -20,10 +20,6 @@ MiniClone::MiniClone(TString orig_path, TString clone_path) :
 
   clone_file = new TFile(clone_path, "recreate");
   clone_tree = new TTree("mini", "mini");
-
-  InitOriginalTree();
-
-  CreateCloneTree();
 }
 
 MiniClone::~MiniClone()
@@ -31,6 +27,12 @@ MiniClone::~MiniClone()
   if (orig_tree) delete orig_tree->GetCurrentFile();
   if (clone_tree) delete clone_tree->GetCurrentFile();
 
+}
+
+void MiniClone::Init()
+{
+  InitOriginalTree();
+  CreateCloneTree();
 }
 
 Int_t MiniClone::GetEntry(Long64_t entry)
@@ -122,7 +124,6 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("ph_etas2", &ph_etas2, &b_ph_etas2);
    orig_tree->SetBranchAddress("ph_phi", &ph_phi, &b_ph_phi);
    orig_tree->SetBranchAddress("ph_iso40", &ph_iso40, &b_ph_iso40);
-   
    orig_tree->SetBranchAddress("ph_iso", &ph_iso, &b_ph_iso);
    orig_tree->SetBranchAddress("ph_w", &ph_w, &b_ph_w);
 
@@ -208,7 +209,6 @@ void MiniClone::CreateCloneTree()
   new_ph_truth_pt    = new std::vector<float>(); 
   new_ph_truth_eta   = new std::vector<float>();
   new_ph_truth_phi   = new std::vector<float>();
-
   new_ph_truth_id   = new std::vector<int>();
   new_ph_truth_type = new std::vector<int>();
   new_ph_truth_origin = new std::vector<int>();
@@ -365,7 +365,6 @@ void MiniClone::Clear()
   new_ph_truth_pt->clear();
   new_ph_truth_eta->clear();
   new_ph_truth_phi->clear();
-
   new_ph_truth_id->clear();
   new_ph_truth_type->clear();
   new_ph_truth_origin->clear();

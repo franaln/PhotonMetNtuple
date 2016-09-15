@@ -298,11 +298,13 @@ public:
   virtual Int_t    GetEntry(Long64_t entry);
   virtual void     InitOriginalTree();
   virtual void     CreateCloneTree();
-  
-  void AddNewBranch(TString, Float_t*);
-  void AddNewBranch(TString, Int_t*);
+
+  void Init();
   void Fill();
   void Save();
+
+  void AddNewBranch(TString, Float_t*);
+  void AddNewBranch(TString, Int_t*);
   Long64_t GetEntries() { return orig_tree->GetEntriesFast(); };
 
   void SetMC() { m_ismc = true; };
