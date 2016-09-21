@@ -383,7 +383,7 @@ EL::StatusCode xAODAnalysis::execute ()
   // Trigger
   bool pass_g120 = susytools->IsTrigPassed("HLT_g140_loose");
   bool pass_g140 = susytools->IsTrigPassed("HLT_g120_loose");
-  bool pass_e60  = susytools->IsTrigPassed("HLT_e60_medium");
+  //bool pass_e60  = susytools->IsTrigPassed("HLT_e60_medium");
 
   outtree->set_pass_g120(pass_g120);
   outtree->set_pass_g140(pass_g140);

@@ -905,18 +905,18 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
   for (int i=0; i<jet_n; i++) {
 
-    Double_t pt = (*jet_pt_map[sysname])[i];
+    Double_t jetpt = (*jet_pt_map[sysname])[i];
 
-    sum_jet_pt += pt;
+    sum_jet_pt += jetpt;
 
     if (i < 1) 
-      sum_jet1_pt += pt;
+      sum_jet1_pt += jetpt;
     if (i < 2) 
-      sum_jet2_pt += pt;
+      sum_jet2_pt += jetpt;
     if (i < 3) 
-      sum_jet3_pt += pt;
+      sum_jet3_pt += jetpt;
     if (i < 4) 
-      sum_jet4_pt += pt;
+      sum_jet4_pt += jetpt;
   }
   
   // Ht
@@ -930,10 +930,6 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   meff_map[sysname] = ht + met_et_map[sysname];
   
   // Rt
-  rt1_map[sysname] = 1.;
-  rt2_map[sysname] = 1.;
-  rt3_map[sysname] = 1.;
-  rt4_map[sysname] = 1.;
   if (jet_n > 0) {
     rt1_map[sysname] = sum_jet1_pt/sum_jet_pt;
     rt2_map[sysname] = sum_jet2_pt/sum_jet_pt;
@@ -948,11 +944,11 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   if (jet_n > 0) dphi1 = get_dphi((*jet_phi_map[sysname])[0], (*met_it)->phi());
   if (jet_n > 1) dphi2 = get_dphi((*jet_phi_map[sysname])[1], (*met_it)->phi());
   
-  dphi_jetmet_map[sysname] = TMath::Min(dphi1, dphi2);
+  if (jet_n > 0)
+    dphi_jetmet_map[sysname] = TMath::Min(dphi1, dphi2);
 
   // dphi between leading photon and leading jet
-  dphi_gamjet_map[sysname] = 4.;
-if (ph_n > 0 && jet_n > 0) 
+  if (ph_n > 0 && jet_n > 0) 
     dphi_gamjet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*jet_phi_map[sysname])[0]);
   
   // dphi between leading photon and MET

@@ -18,6 +18,13 @@ PhotonMetNtuple
     rc clean
     rc compile
 
+## Files needed
+
+* PRW MC files: /cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/SUSYTools/
+
+* ilumicalc files: from Luminosity Calculator using corresponding GRL
+
+
 
 ## Run
 
