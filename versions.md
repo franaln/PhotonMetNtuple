@@ -1,7 +1,13 @@
 # Versions (tags)
 
+* PhotonMetNtuple v40 (current)
+    - AnalysisBase,2.4.19 + SUSYTools-00-08-04 + packages.txt
+    - Added etas2 for noniso photons
+
 * PhotonMetNtuple v39
     - AnalysisBase,2.4.18 + SUSYTools-00-07-96 + packages.txt + ElectronEfficiencyCorrection-00-01-69
+    - Not working in some samples!
+
 
 * PhotonMetNtuple v37 (ICHEP analysis 13.3 fb-1)
     - AnalysisBase,2.4.16 + SUSYTools-00-07-90

@@ -597,7 +597,6 @@ void MiniTree::clear()
   pass_g120 = 0;
   pass_g140 = 0;
 
-
   weight_mc = 1.;
   weight_pu = 1.;
   weight_pu_down = 1.;
@@ -663,6 +662,25 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   mu_ch_map[sysname]->clear();
   mu_w_map[sysname]->clear();
 
+  met_phi_map[sysname]   = -99.;
+  met_et_map[sysname]     = -99.;
+  met_sumet_map[sysname] = -99.;
+  met_sig_map[sysname]   = -99.;
+
+  tst_et_map[sysname] = -99.;
+  tst_phi_map[sysname] = -99.;
+
+  ht_map[sysname] = -99.;
+  meff_map[sysname] = -99.;
+
+  rt1_map[sysname] = -99.;
+  rt2_map[sysname] = -99.;
+  rt3_map[sysname] = -99.;
+  rt4_map[sysname] = -99.;
+
+  dphi_jetmet_map[sysname] = -99.;
+  dphi_gamjet_map[sysname] = -99.;
+  dphi_gammet_map[sysname] = -99.;
 
   // Setting up some basic filtering rule
   collections.photons->setStore(collections.photons_aux);
@@ -933,7 +951,8 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   dphi_jetmet_map[sysname] = TMath::Min(dphi1, dphi2);
 
   // dphi between leading photon and leading jet
-  if (ph_n > 0 && jet_n > 0) 
+  dphi_gamjet_map[sysname] = 4.;
+if (ph_n > 0 && jet_n > 0) 
     dphi_gamjet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*jet_phi_map[sysname])[0]);
   
   // dphi between leading photon and MET

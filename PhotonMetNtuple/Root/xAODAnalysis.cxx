@@ -41,7 +41,7 @@
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
 const char *APP_NAME = "PhotonMetNtuple";
-const char *APP_VERSION = "Version: v37";
+const char *APP_VERSION = "Version: v40";
 
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODAnalysis)
@@ -320,7 +320,7 @@ EL::StatusCode xAODAnalysis::execute ()
   //----------------------------
   // Event information
   //---------------------------
- 
+
   const xAOD::EventInfo *eventInfo = 0;
   if (!m_event->retrieve(eventInfo, "EventInfo").isSuccess()) {
     Error(APP_NAME, "Failed to retrieve event info collection. Exiting." );
@@ -334,7 +334,6 @@ EL::StatusCode xAODAnalysis::execute ()
 
   // check if the event is data or MC
   bool is_mc = !is_data; 
-
   if (is_data && eventInfo->eventType(xAOD::EventInfo::IS_SIMULATION)) {
     Error(APP_NAME, "Bad configuration. Is DATA or MC?. Exiting." );
     return EL::StatusCode::FAILURE;
@@ -345,11 +344,9 @@ EL::StatusCode xAODAnalysis::execute ()
     mc_weight = eventInfo->mcEventWeight();
     outtree->SetWeightMC(mc_weight);
 
-    // if (!m_ignore_prw) {
     CHECK(susytools->ApplyPRWTool());  
     outtree->set_weight_pu(susytools->GetPileupWeight());
     outtree->SetPRWHash(susytools->GetPileupWeightHash());
-    // }
   }
   else {
     outtree->SetWeightMC(1.);
@@ -386,6 +383,7 @@ EL::StatusCode xAODAnalysis::execute ()
   // Trigger
   bool pass_g120 = susytools->IsTrigPassed("HLT_g140_loose");
   bool pass_g140 = susytools->IsTrigPassed("HLT_g120_loose");
+  bool pass_e60  = susytools->IsTrigPassed("HLT_e60_medium");
 
   outtree->set_pass_g120(pass_g120);
   outtree->set_pass_g140(pass_g140);
@@ -650,10 +648,10 @@ EL::StatusCode xAODAnalysis::execute ()
   CHECK(susytools->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   
   // FIX: TST cleaning, until bug fix
-  if (susytools->passTSTCleaning(*met_nominal))
-    outtree->SetPassTSTCleaning(1);
-  else
-    outtree->SetPassTSTCleaning(0);
+  // if (susytools->passTSTCleaning(*met_nominal))
+  //   outtree->SetPassTSTCleaning(1);
+  // else
+  //   outtree->SetPassTSTCleaning(0);
 
   outtree->SetYear(susytools->treatAsYear());
 

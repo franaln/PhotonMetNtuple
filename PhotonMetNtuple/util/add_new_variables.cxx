@@ -76,8 +76,9 @@ void loop(TString input_path, TString output_path)
   float dr_gamjet;
   float dr_gamjet2;
   float eta2_gamjet;
-  
   float dpt_gamjet;
+
+  float met_sqrtht;
 
   // New branches
   mini->AddNewBranch("ht0", &ht0);				
@@ -98,12 +99,14 @@ void loop(TString input_path, TString output_path)
 
   mini->AddNewBranch("mt", &mt);
 
+  mini->AddNewBranch("met_sqrtht", &met_sqrtht);
+
+
   mini->AddNewBranch("deta_gamjet", &deta_gamjet);
   mini->AddNewBranch("deta_gamjet2", &deta_gamjet2);
   mini->AddNewBranch("dr_gamjet", &dr_gamjet);
   mini->AddNewBranch("dr_gamjet2", &dr_gamjet2);
   mini->AddNewBranch("eta2_gamjet", &eta2_gamjet);
-
   mini->AddNewBranch("dpt_gamjet", &dpt_gamjet);
   
   // Loop over all events
@@ -154,7 +157,16 @@ void loop(TString input_path, TString output_path)
     stgam = mini->met_et;
     if (mini->ph_n > 0) stgam += mini->ph_pt->at(0);
 
+    // MET / sqrt(HT)
+    met_sqrtht = mini->met_et / TMath::Sqrt(mini->ht);
+
     //// Dphi definition
+
+    //// fix common definitions
+    if (mini->ph_n == 0 || mini->jet_n == 0) mini->new_dphi_gamjet = -99.;
+    if (mini->jet_n == 0) mini->new_dphi_jetmet = -99.;
+    if (mini->ph_n == 0) mini->new_dphi_gammet = -99.;
+
     dphi_gamjet1 = 4.;
     dphi_gamjet2 = 4.;
     dphi_gamjet3 = 4.;
