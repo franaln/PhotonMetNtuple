@@ -207,8 +207,12 @@ def run_job(sample, driver):
         logging.info('running on direct')
         driver = ROOT.EL.DirectDriver()
         logging.info('submit job')
-        driver.submit(job, args.output)
-        
+
+        try:
+            driver.submit(job, args.output)
+        except KeyboardInterrupt:
+            raise
+
 
 def main():
 

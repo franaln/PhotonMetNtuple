@@ -76,6 +76,7 @@ class MiniTree : public asg::AsgMetadataTool {
 
   void set_pass_g120(unsigned int fs) { pass_g120 = fs; };
   void set_pass_g140(unsigned int fs) { pass_g140 = fs; };
+
   void set_mcveto(unsigned int fs) { mcveto = fs; };
 
   TTree* tree;
