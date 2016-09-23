@@ -1,6 +1,9 @@
 # Versions (tags)
 
-* PhotonMetNtuple v40 (current)
+* PhotonMetNtuple v41 (current)
+    - fix met phi (and dphis)
+
+* PhotonMetNtuple v40
     - AnalysisBase,2.4.19 + SUSYTools-00-08-04 + packages.txt
     - Added etas2 for noniso photons
 
