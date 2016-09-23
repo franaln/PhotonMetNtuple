@@ -889,12 +889,12 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   met_sumet_map[sysname] = (*met_it)->sumet() * IGEV; 
   met_sig_map[sysname] = ((*met_it)->met() * IGEV) / sqrt((*met_it)->sumet() * IGEV); 
 
-  met_it = collections.met->find("PVSoftTrk");
-  if (met_it == collections.met->end()) {
+  xAOD::MissingETContainer::const_iterator tst_it = collections.met->find("PVSoftTrk");
+  if (tst_it == collections.met->end()) {
     Error("PhotonMetNtuple:MiniTree", "No PVSoftTrk inside MET container");
   }
-  tst_et_map[sysname]    = (*met_it)->met() * IGEV;
-  tst_phi_map[sysname]   = (*met_it)->phi();
+  tst_et_map[sysname]    = (*tst_it)->met() * IGEV;
+  tst_phi_map[sysname]   = (*tst_it)->phi();
   
   // Extra variables
   Double_t sum_jet_pt = 0.0;
@@ -946,7 +946,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   
   if (jet_n > 0)
     dphi_jetmet_map[sysname] = TMath::Min(dphi1, dphi2);
-
+  
   // dphi between leading photon and leading jet
   if (ph_n > 0 && jet_n > 0) 
     dphi_gamjet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*jet_phi_map[sysname])[0]);
