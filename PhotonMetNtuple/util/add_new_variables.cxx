@@ -208,9 +208,9 @@ void loop(TString input_path, TString output_path)
     if (mini->jet_n > 3) dphi4 = get_dphi(mini->met_phi, (*mini->jet_phi)[3]);
     
     dphi_jetmet1 = dphi1;
-    dphi_jetmet2 = TMath::Min(dphi_gamjet1, dphi2);
-    dphi_jetmet3 = TMath::Min(dphi_gamjet2, dphi3);
-    dphi_jetmet4 = TMath::Min(dphi_gamjet3, dphi4);
+    dphi_jetmet2 = TMath::Min(dphi_jetmet1, dphi2);
+    dphi_jetmet3 = TMath::Min(dphi_jetmet2, dphi3);
+    dphi_jetmet4 = TMath::Min(dphi_jetmet3, dphi4);
 
     //// Mt
     Float_t mt2 = 2 * mini->met_et * mini->ph_pt->at(0) * (1 - TMath::Cos(mini->dphi_gammet));
