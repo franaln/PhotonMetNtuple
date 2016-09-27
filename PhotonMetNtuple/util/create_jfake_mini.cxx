@@ -141,16 +141,18 @@ void loop(TString input_path, TString output_path)
     mini->CopyOthersBlock();
 
     // Replace some variables with noniso photon instead of photon
-    Float_t dphi1 = 99.;
-    Float_t dphi2 = 99.;
-    
     mini->new_dphi_gammet = get_dphi(phphi, mini->met_phi);
     
     if (mini->jet_n > 0) mini->new_dphi_gamjet = get_dphi(phphi, (*mini->jet_phi)[0]);
     
+    Float_t dphi1 = 99.;
+    Float_t dphi2 = 99.;
     if (mini->jet_n > 0) dphi1 = get_dphi(phphi, (*mini->jet_phi)[0]);
     if (mini->jet_n > 1) dphi2 = get_dphi(phphi, (*mini->jet_phi)[1]);
+
     mini->new_dphi_jetmet = TMath::Min(dphi1, dphi2);
+    if (mini->new_dphi_jetmet > 4.):
+      mini->new_dphi_jetmet = -99.;
     
     mini->new_ht = mini->ht + phpt;
     mini->new_meff = mini->new_ht + mini->met_et;
