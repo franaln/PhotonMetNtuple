@@ -149,7 +149,7 @@ void loop(TString input_path, TString output_path)
     if (mini->jet_n > 1) dphi2 = get_dphi(elphi, (*mini->jet_phi)[1]);
 
     mini->new_dphi_jetmet = TMath::Min(dphi1, dphi2);
-    if (mini->new_dphi_jetmet > 4.):
+    if (mini->new_dphi_jetmet > 4.)
       mini->new_dphi_jetmet = -99.;
 
     mini->new_ht = mini->ht + elpt;
