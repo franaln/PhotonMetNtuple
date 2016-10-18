@@ -1,6 +1,9 @@
 # Versions (tags)
 
-* PhotonMetNtuple v41 (current)
+* PhotonMetNtuple v42 
+    - AnalysisBase,2.4.20 + SUSYTools-00-08-09 + packages.txt
+
+* PhotonMetNtuple v41
     - fix met phi (and dphis)
 
 * PhotonMetNtuple v40

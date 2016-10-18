@@ -40,7 +40,7 @@
 #include "xAODCutFlow/CutBookkeeper.h"
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
-static const char *APP_NAME = "";
+#include "PhotonMetNtuple/Common.h"
 
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODBaselineAnalysis)

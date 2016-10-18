@@ -7,29 +7,6 @@
 #include "EventLoop/OutputStream.h"
 #include <TTreeFormula.h>
 
-// EDM includes:
-// #include "xAODEventInfo/EventInfo.h"
-// #include "xAODJet/JetContainer.h"
-// #include "xAODJet/JetAuxContainer.h"
-// #include "xAODMuon/MuonContainer.h"
-// #include "xAODEgamma/ElectronContainer.h"
-// #include "xAODEgamma/PhotonContainer.h"
-// #include "xAODTau/TauJetContainer.h"
-// #include "xAODCaloEvent/CaloCluster.h"
-// #include "xAODTruth/TruthEventContainer.h"
-// #include "xAODTruth/TruthEvent.h"
-// #include "xAODCore/ShallowCopy.h"
-// #include "xAODMissingET/MissingETContainer.h"
-// #include "xAODMissingET/MissingETAuxContainer.h"
-// #include "xAODBTaggingEfficiency/BTaggingEfficiencyTool.h"
-// #include "xAODBTagging/BTagging.h"
-//#include "FourMomUtils/xAODP4Helpers.h"
-
-// #include "CPAnalysisExamples/errorcheck.h"
-//#include "SUSYTools/SUSYObjDef_xAOD.h"
-
-
-
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODCountEwkProcesses)
 

@@ -3,9 +3,11 @@
 #include <EventLoop/Job.h>
 #include <EventLoop/StatusCode.h>
 #include <EventLoop/Worker.h>
-#include <PhotonMetNtuple/xAODAnalysis.h>
 #include "EventLoop/OutputStream.h"
 #include <TTreeFormula.h>
+
+#include "PhotonMetNtuple/Common.h"
+#include "PhotonMetNtuple/xAODAnalysis.h"
 
 // EDM includes:
 #include "xAODEventInfo/EventInfo.h"
@@ -40,18 +42,10 @@
 #include "xAODCutFlow/CutBookkeeper.h"
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
-const char *APP_NAME = "PhotonMetNtuple";
-const char *APP_VERSION = "Version: v41";
-
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODAnalysis)
 
 static SG::AuxElement::Decorator<char> dec_medium("medium");
-
-
-bool ptsorter( const xAOD::IParticle* j1, const xAOD::IParticle* j2 ) {
-  return ( j1->pt() > j2->pt() );
-}
 
 xAODAnalysis::xAODAnalysis() : 
   m_grl(0), susytools(0),
@@ -69,6 +63,9 @@ xAODAnalysis::xAODAnalysis() :
   // called on both the submission and the worker node.  Most of your
   // initialization code will go into histInitialize() and
   // initialize().
+
+  APP_NAME = "PhotonMetNtuple";
+  APP_VERSION = "v42";
 }
 
 EL::StatusCode xAODAnalysis::setupJob(EL::Job &job)
@@ -435,7 +432,7 @@ EL::StatusCode xAODAnalysis::execute ()
   CHECK(susytools->GetJets(jets_nominal, jets_nominal_aux));
 
   jets_nominal->sort(ptsorter);
-
+  
   
   // MET (remember,you can pick either CST or TST)
   xAOD::MissingETContainer* met_nominal = new xAOD::MissingETContainer;
@@ -677,18 +674,28 @@ EL::StatusCode xAODAnalysis::execute ()
   }
   
   // muons
+  bool skip = false;
   for (const auto& mu : *muons_nominal) {
-    if (is_mc && mu->auxdata<char>("baseline") == 1 &&
-        mu->auxdata<char>("passOR") == 1 && 
-        mu->auxdata<char>("signal") == 1)
+    if (mu->auxdata<char>("baseline") == 0 || 
+        mu->auxdata<char>("passOR") == 0)
+      continue;
+
+    if (is_mc && mu->auxdata<char>("signal") == 1)
       susytools->GetSignalMuonSF(*mu);
+
+    // if (mu->auxdata<char>("cosmic") == 1) {
+    //   Info(APP_NAME, "cosmic muon %f", mu->pt());
+    //   skip = true;
+    // }
   }
+
+  //if (!skip) {
   h_cutflow->Fill(6);
   h_cutflow_w->Fill(6, mc_weight);
+  //}
 
 
   // Badj jet veto
-  bool skip = false;
   for (const auto& jet : *jets_nominal) {  
     if (jet->auxdata<char>("baseline") == 1 &&
         jet->auxdata<char>("passOR") == 1 &&
@@ -714,7 +721,11 @@ EL::StatusCode xAODAnalysis::execute ()
     int pdg1, pdg2;
     susytools->FindSusyHardProc(truth_particles, pdg1, pdg2);
 
-    outtree->SetMCFinalState(SUSY::finalState(pdg1, pdg2));
+    int fs = SUSY::finalState(pdg1, pdg2);
+    if (fs == 0)
+      Error(APP_NAME, "Failed to get final state code: pdg1=%i, pdg2=%i", pdg1, pdg2);
+
+    outtree->SetMCFinalState(fs);
   }
 
 

@@ -52,7 +52,6 @@ def get_samples_from_file(file_, dids_str=None):
     include_dids = []
     exclude_dids = []
     if dids_str is not None:
-
         try:
             if '-' in dids_str:
                 first, last = dids_str.split('-')
@@ -68,7 +67,6 @@ def get_samples_from_file(file_, dids_str=None):
                 
         except:
             logging.error('bad dids syntax. ignoring...')
-
 
     samples = []
 

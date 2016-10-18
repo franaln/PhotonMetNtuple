@@ -31,6 +31,7 @@
 
 #include "EventPrimitives/EventPrimitivesHelpers.h"
 
+#include "PhotonMetNtuple/Common.h"
 #include "PhotonMetNtuple/Utils.h"
 #include "PhotonMetNtuple/TruthUtils.h"
 #include "PhotonMetNtuple/TruthTree.h"
@@ -39,7 +40,6 @@
 #include "LHAPDF/PDFSet.h"
 #include "LHAPDF/Reweighting.h"
 
-static const char* APP_NAME = "xAODTruthAnalysis";
 
 ClassImp(xAODTruthAnalysis)
 
