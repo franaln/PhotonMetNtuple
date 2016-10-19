@@ -5,7 +5,6 @@ import ROOT
 import logging
 import shutil
 import argparse
-import samples
 import subprocess
 
 logging.basicConfig(level=logging.INFO)
@@ -221,9 +220,8 @@ def main():
     # test
     parser.add_argument('--test', dest='test')
 
-    # run
+    # run (in the grid)
     parser.add_argument('-i', dest='input_file')
-    parser.add_argument('-s', dest='samples')
     parser.add_argument('-d', dest='dids', type=str)
 
     parser.add_argument('--alg', default='xAODAnalysis')
@@ -257,15 +255,6 @@ def main():
         if args.input_file is not None:
             torun = get_samples_from_file(args.input_file, args.dids)
 
-        elif args.samples is not None:
-            try:
-                torun = []
-                for s in args.samples.split(','):
-                    torun.extend(getattr(samples, s))
-            except:
-                print 'no samples to run'
-                torun = []
-
         print 'rucio download \\'
         for i, sample in enumerate(torun):
             
@@ -285,23 +274,12 @@ def main():
     if alg_name == 'xAODAnalysis' and args.config_file is None:
         logging.error('you need to provide a configfile!')
 
-
     ROOT.gROOT.Macro("$ROOTCOREDIR/scripts/load_packages.C")
     ROOT.xAOD.Init().ignore()
 
     if args.grid:
-        
         if args.input_file is not None:
             torun = get_samples_from_file(args.input_file, args.dids)
-
-        elif args.samples is not None:
-
-            try:
-                torun = []
-                for s in args.samples.split(','):
-                    torun.extend(getattr(samples, s))
-            except:
-                raise
 
         for sample in torun:
             run_job(sample, 'grid')
