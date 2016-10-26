@@ -244,14 +244,12 @@ StatusCode MiniTree::initialize()
   tree->Branch("el_ch",  el_ch);
   tree->Branch("el_w",   el_w);
 
-  //if (!m_ismc) {
   tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_medium_n/I");
   tree->Branch("el_medium_eta", el_medium_eta);
   tree->Branch("el_medium_etas2", el_medium_etas2);
   tree->Branch("el_medium_phi", el_medium_phi);
   tree->Branch("el_medium_pt",  el_medium_pt);
   tree->Branch("el_medium_ch",  el_medium_ch);
-  //}
 
   tree->Branch("mu_n", &mu_n_map["Nominal"], "mu_n/I");
   tree->Branch("mu_eta", mu_eta);
@@ -267,7 +265,6 @@ StatusCode MiniTree::initialize()
 
   tree->Branch("met_track_et",    &met_track_et_map["Nominal"]);
   tree->Branch("met_track_phi",   &met_track_phi_map["Nominal"]);
-
   tree->Branch("met_soft_et",  &met_soft_et_map["Nominal"]);
   tree->Branch("met_soft_phi", &met_soft_phi_map["Nominal"]);
   tree->Branch("met_ele_et",   &met_ele_et_map["Nominal"]);

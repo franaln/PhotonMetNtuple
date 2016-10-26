@@ -180,11 +180,25 @@ void MiniClone::InitOriginalTree()
      orig_tree->SetBranchAddress("met_sumet", &met_sumet, &b_met_sumet);
      orig_tree->SetBranchAddress("met_sig", &met_sig, &b_met_sig);
    }
+   
+   if (orig_tree->GetListOfBranches()->FindObject("met_track_et")) {
+     orig_tree->SetBranchAddress("met_track_et", &met_track_et, &b_met_track_et);
+     orig_tree->SetBranchAddress("met_track_phi", &met_track_phi, &b_met_track_phi);
+
+     orig_tree->SetBranchAddress("met_soft_et", &met_soft_et, &b_met_soft_et);
+     orig_tree->SetBranchAddress("met_soft_phi", &met_soft_phi, &b_met_soft_phi);
+     orig_tree->SetBranchAddress("met_ele_et", &met_ele_et, &b_met_ele_et);
+     orig_tree->SetBranchAddress("met_ele_phi", &met_ele_phi, &b_met_ele_phi);
+     orig_tree->SetBranchAddress("met_gam_et", &met_gam_et, &b_met_gam_et);
+     orig_tree->SetBranchAddress("met_gam_phi", &met_gam_phi, &b_met_gam_phi);
+     orig_tree->SetBranchAddress("met_muon_et", &met_muon_et, &b_met_muon_et);
+     orig_tree->SetBranchAddress("met_muon_phi", &met_muon_phi, &b_met_muon_phi);
+     orig_tree->SetBranchAddress("met_jet_et", &met_jet_et, &b_met_jet_et);
+     orig_tree->SetBranchAddress("met_jet_phi", &met_jet_phi, &b_met_jet_phi);
+   }
    else
      m_is_old_version = true;
 
-   orig_tree->SetBranchAddress("tst_et", &tst_et, &b_tst_et);
-   orig_tree->SetBranchAddress("tst_phi", &tst_phi, &b_tst_phi);
    orig_tree->SetBranchAddress("ht", &ht, &b_ht);
    orig_tree->SetBranchAddress("meff", &meff, &b_meff);
    orig_tree->SetBranchAddress("rt1", &rt1, &b_rt1);
@@ -335,8 +349,19 @@ void MiniClone::CreateCloneTree()
   clone_tree->Branch("met_phi",   &new_met_phi);
   clone_tree->Branch("met_sumet", &new_met_sumet);
   clone_tree->Branch("met_sig",   &new_met_sig);
-  clone_tree->Branch("tst_et",   &new_tst_et);
-  clone_tree->Branch("tst_phi",   &new_tst_phi);
+
+  clone_tree->Branch("met_track_et",   &new_met_track_et);
+  clone_tree->Branch("met_track_phi",   &new_met_track_phi);
+  clone_tree->Branch("met_soft_et",   &new_met_soft_et);
+  clone_tree->Branch("met_soft_phi",   &new_met_soft_phi);
+  clone_tree->Branch("met_ele_et",   &new_met_ele_et);
+  clone_tree->Branch("met_ele_phi",   &new_met_ele_phi);
+  clone_tree->Branch("met_gam_et",   &new_met_gam_et);
+  clone_tree->Branch("met_gam_phi",   &new_met_gam_phi);
+  clone_tree->Branch("met_muon_et",   &new_met_muon_et);
+  clone_tree->Branch("met_muon_phi",   &new_met_muon_phi);
+  clone_tree->Branch("met_jet_et",   &new_met_jet_et);
+  clone_tree->Branch("met_jet_phi",   &new_met_jet_phi);
 
   clone_tree->Branch("ht", &new_ht);				
   clone_tree->Branch("meff", &new_meff);				
@@ -544,12 +569,24 @@ void MiniClone::CopyMetBlock()
 {
   new_met_et  = met_et;
   new_met_phi = met_phi;
+
   if (!m_is_old_version) {
     new_met_sumet = met_sumet;
     new_met_sig   = met_sig;
+
+    new_met_track_et  = met_track_et;
+    new_met_track_phi = met_track_phi;
+    new_met_soft_et  = met_soft_et;
+    new_met_soft_phi = met_soft_phi;
+    new_met_ele_et  = met_ele_et;
+    new_met_ele_phi = met_ele_phi;
+    new_met_gam_et  = met_gam_et;
+    new_met_gam_phi = met_gam_phi;
+    new_met_muon_et  = met_muon_et;
+    new_met_muon_phi = met_muon_phi;
+    new_met_jet_et  = met_jet_et;
+    new_met_jet_phi = met_jet_phi;
   }
-  new_tst_et  = tst_et;
-  new_tst_phi = tst_phi;
 }
 
 void MiniClone::CopyOthersBlock()

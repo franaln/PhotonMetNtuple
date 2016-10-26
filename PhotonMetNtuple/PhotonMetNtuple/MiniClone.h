@@ -98,8 +98,18 @@ public:
    Float_t         met_phi;
    Float_t         met_sumet;
    Float_t         met_sig;
-   Float_t         tst_et;
-   Float_t         tst_phi;
+   Float_t         met_track_et;
+   Float_t         met_track_phi;
+   Float_t         met_soft_et;
+   Float_t         met_soft_phi;
+   Float_t         met_ele_et;
+   Float_t         met_ele_phi;
+   Float_t         met_gam_et;
+   Float_t         met_gam_phi;
+   Float_t         met_muon_et;
+   Float_t         met_muon_phi;
+   Float_t         met_jet_et;
+   Float_t         met_jet_phi;
    Float_t         ht;
    Float_t         meff;
    Float_t         rt1;
@@ -188,8 +198,18 @@ public:
    Float_t         new_met_phi;
    Float_t         new_met_sumet;
    Float_t         new_met_sig;
-   Float_t         new_tst_et;
-   Float_t         new_tst_phi;
+   Float_t         new_met_track_et;
+   Float_t         new_met_track_phi;
+   Float_t         new_met_soft_et;
+   Float_t         new_met_soft_phi;
+   Float_t         new_met_ele_et;
+   Float_t         new_met_ele_phi;
+   Float_t         new_met_gam_et;
+   Float_t         new_met_gam_phi;
+   Float_t         new_met_muon_et;
+   Float_t         new_met_muon_phi;
+   Float_t         new_met_jet_et;
+   Float_t         new_met_jet_phi;
    Float_t         new_ht;
    Float_t         new_meff;
    Float_t         new_rt1;
@@ -275,8 +295,18 @@ public:
    TBranch        *b_met_phi;   //!
    TBranch        *b_met_sumet;   //!
    TBranch        *b_met_sig;   //!
-   TBranch        *b_tst_et;   //!
-   TBranch        *b_tst_phi;   //!
+   TBranch        *b_met_track_et;   //!
+   TBranch        *b_met_track_phi;   //!
+   TBranch        *b_met_soft_et;   //!
+   TBranch        *b_met_soft_phi;   //!
+   TBranch        *b_met_ele_et;   //!
+   TBranch        *b_met_ele_phi;   //!
+   TBranch        *b_met_gam_et;   //!
+   TBranch        *b_met_gam_phi;   //!
+   TBranch        *b_met_muon_et;   //!
+   TBranch        *b_met_muon_phi;   //!
+   TBranch        *b_met_jet_et;   //!
+   TBranch        *b_met_jet_phi;   //!
    TBranch        *b_ht;   //!
    TBranch        *b_meff;   //!
    TBranch        *b_rt1;   //!
