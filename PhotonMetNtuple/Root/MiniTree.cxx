@@ -264,8 +264,20 @@ StatusCode MiniTree::initialize()
   tree->Branch("met_phi",   &met_phi_map["Nominal"]);
   tree->Branch("met_sumet", &met_sumet_map["Nominal"]);
   tree->Branch("met_sig",   &met_sig_map["Nominal"]);
-  tree->Branch("tst_et",  &tst_et_map["Nominal"]);
-  tree->Branch("tst_phi", &tst_phi_map["Nominal"]);
+
+  tree->Branch("met_track_et",    &met_track_et_map["Nominal"]);
+  tree->Branch("met_track_phi",   &met_track_phi_map["Nominal"]);
+
+  tree->Branch("met_soft_et",  &met_soft_et_map["Nominal"]);
+  tree->Branch("met_soft_phi", &met_soft_phi_map["Nominal"]);
+  tree->Branch("met_ele_et",   &met_ele_et_map["Nominal"]);
+  tree->Branch("met_ele_phi",  &met_ele_phi_map["Nominal"]);
+  tree->Branch("met_gam_et",   &met_gam_et_map["Nominal"]);
+  tree->Branch("met_gam_phi",  &met_gam_phi_map["Nominal"]);
+  tree->Branch("met_muon_et",  &met_muon_et_map["Nominal"]);
+  tree->Branch("met_muon_phi", &met_muon_phi_map["Nominal"]);
+  tree->Branch("met_jet_et",   &met_jet_et_map["Nominal"]);
+  tree->Branch("met_jet_phi",  &met_jet_phi_map["Nominal"]);
 
   tree->Branch("ht",   &ht_map["Nominal"]);				
   tree->Branch("meff", &meff_map["Nominal"]);				
@@ -333,21 +345,34 @@ StatusCode MiniTree::initialize()
   mu_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, mu_ch));
   mu_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, mu_w));
   
-  met_et_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  met_phi_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  tst_et_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  tst_phi_map.insert(std::pair<std::string, float>(sys_name, 0.));
+  met_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_sumet_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_sig_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
-  ht_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  meff_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  rt1_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  rt2_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  rt3_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  rt4_map.insert(std::pair<std::string, float>(sys_name, 0.));
+  met_track_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_track_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_soft_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_soft_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_ele_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_ele_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_gam_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_gam_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_muon_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_muon_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_jet_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  met_jet_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
-  dphi_jetmet_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  dphi_gamjet_map.insert(std::pair<std::string, float>(sys_name, 0.));
-  dphi_gammet_map.insert(std::pair<std::string, float>(sys_name, 0.));
+  ht_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  meff_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  rt1_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  rt2_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  rt3_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  rt4_map.insert(std::pair<std::string, float>(sys_name, -99.));
+
+  dphi_jetmet_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  dphi_gamjet_map.insert(std::pair<std::string, float>(sys_name, -99.));
+  dphi_gammet_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
   // Systematics blocks
   for (const auto& sys : m_sysList) {
@@ -490,8 +515,20 @@ StatusCode MiniTree::initialize()
         tree->Branch(BookName("met_phi", sys_name), &met_phi_map[sys_name]);
         tree->Branch(BookName("met_sumet", sys_name), &met_sumet_map[sys_name]);
         tree->Branch(BookName("met_sig", sys_name), &met_sig_map[sys_name]);
-        tree->Branch(BookName("tst_et", sys_name), &tst_et_map[sys_name]);
-        tree->Branch(BookName("tst_phi", sys_name), &tst_phi_map[sys_name]);
+
+        tree->Branch(BookName("met_track_et", sys_name),    &met_track_et_map[sys_name]);
+        tree->Branch(BookName("met_track_phi", sys_name),   &met_track_phi_map[sys_name]);
+        
+        tree->Branch(BookName("met_soft_et", sys_name),  &met_soft_et_map[sys_name]);
+        tree->Branch(BookName("met_soft_phi", sys_name), &met_soft_phi_map[sys_name]);
+        tree->Branch(BookName("met_ele_et", sys_name),   &met_ele_et_map[sys_name]);
+        tree->Branch(BookName("met_ele_phi", sys_name),  &met_ele_phi_map[sys_name]);
+        tree->Branch(BookName("met_gam_et", sys_name),   &met_gam_et_map[sys_name]);
+        tree->Branch(BookName("met_gam_phi", sys_name),  &met_gam_phi_map[sys_name]);
+        tree->Branch(BookName("met_muon_et", sys_name),  &met_muon_et_map[sys_name]);
+        tree->Branch(BookName("met_muon_phi", sys_name), &met_muon_phi_map[sys_name]);
+        tree->Branch(BookName("met_jet_et", sys_name),   &met_jet_et_map[sys_name]);
+        tree->Branch(BookName("met_jet_phi", sys_name),  &met_jet_phi_map[sys_name]);
       
         tree->Branch(BookName("ht", sys_name), &ht_map[sys_name]);
         tree->Branch(BookName("meff", sys_name), &meff_map[sys_name]);
@@ -560,9 +597,20 @@ StatusCode MiniTree::initialize()
       met_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
       met_sumet_map.insert(std::pair<std::string, float>(sys_name, -99.));
       met_sig_map.insert(std::pair<std::string, float>(sys_name, -99.));
-      tst_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
-      tst_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
+      met_track_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_track_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_soft_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_soft_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_ele_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_ele_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_gam_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_gam_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_muon_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_muon_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_jet_et_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      met_jet_phi_map.insert(std::pair<std::string, float>(sys_name, -99.));
+      
       ht_map.insert(std::pair<std::string, float>(sys_name, -99.));
       meff_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
@@ -667,8 +715,18 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   met_sumet_map[sysname] = -99.;
   met_sig_map[sysname]   = -99.;
 
-  tst_et_map[sysname] = -99.;
-  tst_phi_map[sysname] = -99.;
+  met_track_et_map[sysname] = -99.;
+  met_track_phi_map[sysname] = -99.;
+  met_soft_et_map[sysname] = -99.;
+  met_soft_phi_map[sysname] = -99.;
+  met_ele_et_map[sysname] = -99.;
+  met_ele_phi_map[sysname] = -99.;
+  met_gam_et_map[sysname] = -99.;
+  met_gam_phi_map[sysname] = -99.;
+  met_muon_et_map[sysname] = -99.;
+  met_muon_phi_map[sysname] = -99.;
+  met_jet_et_map[sysname] = -99.;
+  met_jet_phi_map[sysname] = -99.;
 
   ht_map[sysname] = -99.;
   meff_map[sysname] = -99.;
@@ -887,15 +945,38 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   met_et_map[sysname]    = (*met_it)->met() * IGEV; 
   met_phi_map[sysname]   = (*met_it)->phi(); 
   met_sumet_map[sysname] = (*met_it)->sumet() * IGEV; 
-  met_sig_map[sysname] = ((*met_it)->met() * IGEV) / sqrt((*met_it)->sumet() * IGEV); 
+  met_sig_map[sysname]   = ((*met_it)->met() * IGEV) / sqrt((*met_it)->sumet() * IGEV); 
 
   xAOD::MissingETContainer::const_iterator tst_it = collections.met->find("PVSoftTrk");
   if (tst_it == collections.met->end()) {
     Error("PhotonMetNtuple:MiniTree", "No PVSoftTrk inside MET container");
   }
-  tst_et_map[sysname]    = (*tst_it)->met() * IGEV;
-  tst_phi_map[sysname]   = (*tst_it)->phi();
-  
+  met_soft_et_map[sysname]    = (*tst_it)->met() * IGEV;
+  met_soft_phi_map[sysname]   = (*tst_it)->phi();
+
+  xAOD::MissingETContainer::const_iterator refele_it = collections.met->find("RefEle");
+  xAOD::MissingETContainer::const_iterator refgam_it = collections.met->find("RefGamma");
+  xAOD::MissingETContainer::const_iterator refmuon_it = collections.met->find("Muons");
+  xAOD::MissingETContainer::const_iterator refjet_it = collections.met->find("RefJet");
+
+  met_ele_et_map[sysname]    = (*refele_it)->met() * IGEV;
+  met_ele_phi_map[sysname]   = (*refele_it)->phi();
+  met_gam_et_map[sysname]    = (*refgam_it)->met() * IGEV;
+  met_gam_phi_map[sysname]   = (*refgam_it)->phi();
+  met_muon_et_map[sysname]   = (*refmuon_it)->met() * IGEV;
+  met_muon_phi_map[sysname]  = (*refmuon_it)->phi();
+  met_jet_et_map[sysname]    = (*refjet_it)->met() * IGEV;
+  met_jet_phi_map[sysname]   = (*refjet_it)->phi();
+
+  xAOD::MissingETContainer::const_iterator met_track_it = collections.met_track->find("Track");
+  if (met_it == collections.met_track->end()) {
+    Error("PhotonMetNtuple:MiniTree", "No RefFinal inside TrackMET container");
+  }
+  else {
+    met_track_et_map[sysname]    = (*met_track_it)->met() * IGEV; 
+    met_track_phi_map[sysname]   = (*met_track_it)->phi(); 
+  }
+
   // Extra variables
   Double_t sum_jet_pt = 0.0;
   Double_t sum_jet1_pt = 0.0;

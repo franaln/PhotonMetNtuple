@@ -98,7 +98,8 @@ public:
   TH1D *h_sumw_subproceses; //!
 
   xAOD::TEvent *m_event;  //!
-
+  xAOD::TStore *m_store;  //!
+  
   float  m_initialSumOfWeights; //!
   std::vector<ST::SystInfo> systInfoList; //!
 

@@ -26,6 +26,7 @@ struct AnalysisCollections {
   xAOD::MuonContainer* muons;
   xAOD::JetContainer* jets;
   xAOD::MissingETContainer* met;
+  xAOD::MissingETContainer* met_track;
 
   // Aux containers too
   xAOD::ShallowAuxContainer* photons_aux;
@@ -33,6 +34,7 @@ struct AnalysisCollections {
   xAOD::ShallowAuxContainer* muons_aux;
   xAOD::ShallowAuxContainer* jets_aux;
   xAOD::MissingETAuxContainer* met_aux;
+  xAOD::MissingETAuxContainer* met_track_aux;
 
   //Truth containers
   xAOD::TruthParticleContainer* truth_p;
@@ -134,8 +136,18 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, float> met_sumet_map;
   std::map<const std::string, float> met_sig_map;
 
-  std::map<const std::string, float> tst_et_map;
-  std::map<const std::string, float> tst_phi_map;
+  std::map<const std::string, float> met_track_et_map;
+  std::map<const std::string, float> met_track_phi_map;
+  std::map<const std::string, float> met_soft_et_map;
+  std::map<const std::string, float> met_soft_phi_map;
+  std::map<const std::string, float> met_ele_et_map;
+  std::map<const std::string, float> met_ele_phi_map;
+  std::map<const std::string, float> met_gam_et_map;
+  std::map<const std::string, float> met_gam_phi_map;
+  std::map<const std::string, float> met_muon_et_map;
+  std::map<const std::string, float> met_muon_phi_map;
+  std::map<const std::string, float> met_jet_et_map;
+  std::map<const std::string, float> met_jet_phi_map;
 
   std::map<const std::string, float> ht_map;
   std::map<const std::string, float> meff_map;

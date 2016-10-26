@@ -64,8 +64,6 @@ xAODAnalysis::xAODAnalysis() :
   // initialization code will go into histInitialize() and
   // initialize().
 
-  APP_NAME = "PhotonMetNtuple";
-  APP_VERSION = "v42";
 }
 
 EL::StatusCode xAODAnalysis::setupJob(EL::Job &job)
@@ -217,6 +215,8 @@ EL::StatusCode xAODAnalysis::initialize()
   Info(APP_NAME, APP_VERSION);
 
   m_event = wk()->xaodEvent();
+
+  m_store = wk()->xaodStore(); 
 
   // Data dir
   m_data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
@@ -439,6 +439,10 @@ EL::StatusCode xAODAnalysis::execute ()
   xAOD::MissingETAuxContainer* met_nominal_aux = new xAOD::MissingETAuxContainer;
   met_nominal->setStore(met_nominal_aux);
 
+  xAOD::MissingETContainer* met_track_nominal = new xAOD::MissingETContainer;
+  xAOD::MissingETAuxContainer* met_track_nominal_aux = new xAOD::MissingETAuxContainer;
+  met_track_nominal->setStore(met_track_nominal_aux);
+
   //--------------------
   // LOOP ON SYSTEMATICS
   //--------------------
@@ -463,6 +467,7 @@ EL::StatusCode xAODAnalysis::execute ()
         xAOD::MuonContainer* muons(muons_nominal);
         xAOD::JetContainer* jets(jets_nominal);
         xAOD::MissingETContainer* met(met_nominal);
+        xAOD::MissingETContainer* met_track(met_track_nominal);
         
         // Aux containers too
         xAOD::ShallowAuxContainer* electrons_aux(electrons_nominal_aux);
@@ -470,6 +475,7 @@ EL::StatusCode xAODAnalysis::execute ()
         xAOD::ShallowAuxContainer* muons_aux(muons_nominal_aux);
         xAOD::ShallowAuxContainer* jets_aux(jets_nominal_aux);
         xAOD::MissingETAuxContainer* met_aux(met_nominal_aux);
+        xAOD::MissingETAuxContainer* met_track_aux(met_track_nominal_aux);
         
         // If necessary (kinematics affected), make a shallow copy with the variation applied
         bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sysInfo.affectsType);
@@ -500,7 +506,7 @@ EL::StatusCode xAODAnalysis::execute ()
           electrons_syst->sort(ptsorter);
 
           electrons = electrons_syst;
-          electrons_aux = electrons_syst_aux;
+          //electrons_aux = electrons_syst_aux;
         }
 		
         if (syst_affectsMuons) {
@@ -511,7 +517,7 @@ EL::StatusCode xAODAnalysis::execute ()
           muons_syst->sort(ptsorter);
 
           muons = muons_syst;
-          muons_aux = muons_syst_aux;
+          //muons_aux = muons_syst_aux;
         }
 		
         if (syst_affectsPhotons) {
@@ -522,7 +528,7 @@ EL::StatusCode xAODAnalysis::execute ()
           photons_syst->sort(ptsorter);
 
           photons = photons_syst;
-          photons_aux = photons_syst_aux;
+          //photons_aux = photons_syst_aux;
         }
 		
         if (syst_affectsJets || syst_affectsBTag) {
@@ -533,7 +539,7 @@ EL::StatusCode xAODAnalysis::execute ()
           jets_syst->sort(ptsorter);
 
           jets = jets_syst;
-          jets_aux = jets_syst_aux;
+          //jets_aux = jets_syst_aux;
         }
         
         //-----------------
@@ -545,12 +551,20 @@ EL::StatusCode xAODAnalysis::execute ()
         xAOD::MissingETAuxContainer* met_syst_aux = new xAOD::MissingETAuxContainer;
         met_syst->setStore(met_syst_aux);
 
+        xAOD::MissingETContainer*    met_track_syst = new xAOD::MissingETContainer;
+        xAOD::MissingETAuxContainer* met_track_syst_aux = new xAOD::MissingETAuxContainer;
+        met_syst->setStore(met_syst_aux);
+
         // MET
         CHECK(susytools->GetMET(*met_syst, jets, electrons, muons, photons));
-        
+        CHECK(susytools->GetTrackMET(*met_track_nominal, jets_nominal, electrons_nominal, muons_nominal));
+
         met = met_syst;
         met_aux = met_syst_aux;
-        
+
+        met_track = met_track_syst;        
+        met_track_aux = met_track_syst_aux;
+
         for (const auto& el : *electrons) {
           if (is_data && el->auxdata<char>("baseline") == 1 &&
               el->auxdata<char>("passOR") == 1)
@@ -598,34 +612,37 @@ EL::StatusCode xAODAnalysis::execute ()
           collections.muons = muons;
           collections.jets = jets;
           collections.met = met;
+          collections.met_track = met_track;
+
           collections.photons_aux = photons_aux;
           collections.electrons_aux = electrons_aux;
           collections.muons_aux = muons_aux;   
           collections.jets_aux = jets_aux;
           collections.met_aux = met_aux;
+          collections.met_track_aux = met_track_aux;
           
           ret += outtree->process(collections, (sys.name()).c_str());
         }
 	  
-        if (syst_affectsElectrons) {
-          delete electrons;
-          delete electrons_aux;
-        }
-        if (syst_affectsMuons) {
-          delete muons;
-          delete muons_aux;
-        }
-        if (syst_affectsPhotons) {
-          delete photons;
-          delete photons_aux;
-        }
-        if (syst_affectsJets || syst_affectsBTag) {
-          delete jets;
-          delete jets_aux;
-        } 
+        // if (syst_affectsElectrons) {
+        //   delete electrons;
+        //   delete electrons_aux;
+        // }
+        // if (syst_affectsMuons) {
+        //   delete muons;
+        //   delete muons_aux;
+        // }
+        // if (syst_affectsPhotons) {
+        //   delete photons;
+        //   delete photons_aux;
+        // }
+        // if (syst_affectsJets || syst_affectsBTag) {
+        //   delete jets;
+        //   delete jets_aux;
+        // } 
         delete met;
         delete met_aux;
-	  
+
       }
     }
   } //end loop over systematics affecting kinematics or weights
@@ -643,7 +660,8 @@ EL::StatusCode xAODAnalysis::execute ()
   
   // MET
   CHECK(susytools->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
-  
+  CHECK(susytools->GetTrackMET(*met_track_nominal, jets_nominal, electrons_nominal, muons_nominal));
+
   // FIX: TST cleaning, until bug fix
   // if (susytools->passTSTCleaning(*met_nominal))
   //   outtree->SetPassTSTCleaning(1);
@@ -739,11 +757,14 @@ EL::StatusCode xAODAnalysis::execute ()
     collections.muons = muons_nominal;
     collections.jets = jets_nominal;
     collections.met = met_nominal;
+    collections.met_track = met_track_nominal;
+
     collections.photons_aux = photons_nominal_aux;
     collections.electrons_aux = electrons_nominal_aux;
     collections.muons_aux = muons_nominal_aux;   
     collections.jets_aux = jets_nominal_aux;
     collections.met_aux = met_nominal_aux;
+    collections.met_track_aux = met_track_nominal_aux;
     
     ret += outtree->process(collections, "Nominal");
   }
@@ -755,16 +776,12 @@ EL::StatusCode xAODAnalysis::execute ()
     CHECK(outtree->FillTree());
   }
 
-  delete jets_nominal;
-  delete jets_nominal_aux;
-  delete muons_nominal;
-  delete muons_nominal_aux;
-  delete electrons_nominal;
-  delete electrons_nominal_aux;
-  delete photons_nominal;
-  delete photons_nominal_aux;
   delete met_nominal;
   delete met_nominal_aux;
+  delete met_track_nominal;
+  delete met_track_nominal_aux;
+
+  m_store->clear();
   
   return EL::StatusCode::SUCCESS;
 }

@@ -1,5 +1,8 @@
 # Versions (tags)
 
+* PhotonMetNtuple v43
+    - AnalysisBase,2.4.21 + SUSYTools-00-08-14
+
 * PhotonMetNtuple v42 
     - AnalysisBase,2.4.20 + SUSYTools-00-08-09 + packages.txt
 
