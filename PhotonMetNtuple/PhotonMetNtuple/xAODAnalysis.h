@@ -80,8 +80,6 @@ public:
   bool is_susy_ewk;
   bool do_syst;
 
-  //  std::vector<CP::SystematicSet> sysList; //!
-
   // variables that don't get filled at submission time should be
   // protected from being send from the submission node to the worker
   // node (done by the //!)
@@ -98,7 +96,7 @@ public:
   TH1D *h_sumw_subproceses; //!
 
   xAOD::TEvent *m_event;  //!
-  xAOD::TStore *m_store;  //!
+  //xAOD::TStore *m_store;  //!
   
   float  m_initialSumOfWeights; //!
   std::vector<ST::SystInfo> systInfoList; //!

@@ -42,6 +42,8 @@
 #include "xAODCutFlow/CutBookkeeper.h"
 #include "xAODCutFlow/CutBookkeeperContainer.h"
 
+#include "xAODRootAccess/tools/TFileAccessTracer.h"
+
 // this is needed to distribute the algorithm to the workers
 ClassImp(xAODAnalysis)
 
@@ -79,7 +81,9 @@ EL::StatusCode xAODAnalysis::setupJob(EL::Job &job)
   
   // let's initialize the algorithm to use the xAODRootAccess package
   xAOD::Init("xAODAnalysis").ignore(); // call before opening first file
-  
+
+  xAOD::TFileAccessTracer::enableDataSubmission(false);
+
   // tell EventLoop about our output:
   EL::OutputStream out("output");
   job.outputAdd(out);
@@ -145,6 +149,7 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
 
   // Check file's metadata:    
   m_event = wk()->xaodEvent(); 
+  // m_store = wk()->xaodStore(); 
   
   TTree *metadata = dynamic_cast<TTree*>(wk()->inputFile()->Get("MetaData"));
   if (!metadata) {
@@ -215,8 +220,7 @@ EL::StatusCode xAODAnalysis::initialize()
   Info(APP_NAME, APP_VERSION);
 
   m_event = wk()->xaodEvent();
-
-  m_store = wk()->xaodStore(); 
+  //m_store = wk()->xaodStore(); 
 
   // Data dir
   m_data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
@@ -310,6 +314,8 @@ EL::StatusCode xAODAnalysis::execute ()
   // events, e.g. read input variables, apply cuts, and fill
   // histograms and trees.  This is where most of your actual analysis
   // code will go.
+
+  //m_store->clear();
 
   // clear tree
   outtree->clear();
@@ -506,7 +512,6 @@ EL::StatusCode xAODAnalysis::execute ()
           electrons_syst->sort(ptsorter);
 
           electrons = electrons_syst;
-          //electrons_aux = electrons_syst_aux;
         }
 		
         if (syst_affectsMuons) {
@@ -517,7 +522,6 @@ EL::StatusCode xAODAnalysis::execute ()
           muons_syst->sort(ptsorter);
 
           muons = muons_syst;
-          //muons_aux = muons_syst_aux;
         }
 		
         if (syst_affectsPhotons) {
@@ -528,7 +532,6 @@ EL::StatusCode xAODAnalysis::execute ()
           photons_syst->sort(ptsorter);
 
           photons = photons_syst;
-          //photons_aux = photons_syst_aux;
         }
 		
         if (syst_affectsJets || syst_affectsBTag) {
@@ -539,7 +542,6 @@ EL::StatusCode xAODAnalysis::execute ()
           jets_syst->sort(ptsorter);
 
           jets = jets_syst;
-          //jets_aux = jets_syst_aux;
         }
         
         //-----------------
@@ -557,7 +559,7 @@ EL::StatusCode xAODAnalysis::execute ()
 
         // MET
         CHECK(susytools->GetMET(*met_syst, jets, electrons, muons, photons));
-        CHECK(susytools->GetTrackMET(*met_track_nominal, jets_nominal, electrons_nominal, muons_nominal));
+        CHECK(susytools->GetTrackMET(*met_track_syst, jets, electrons, muons));
 
         met = met_syst;
         met_aux = met_syst_aux;
@@ -620,28 +622,15 @@ EL::StatusCode xAODAnalysis::execute ()
           collections.jets_aux = jets_aux;
           collections.met_aux = met_aux;
           collections.met_track_aux = met_track_aux;
-          
+
+  
           ret += outtree->process(collections, (sys.name()).c_str());
         }
-	  
-        // if (syst_affectsElectrons) {
-        //   delete electrons;
-        //   delete electrons_aux;
-        // }
-        // if (syst_affectsMuons) {
-        //   delete muons;
-        //   delete muons_aux;
-        // }
-        // if (syst_affectsPhotons) {
-        //   delete photons;
-        //   delete photons_aux;
-        // }
-        // if (syst_affectsJets || syst_affectsBTag) {
-        //   delete jets;
-        //   delete jets_aux;
-        // } 
+
         delete met;
         delete met_aux;
+        delete met_track;
+        delete met_track_aux;
 
       }
     }
@@ -707,10 +696,8 @@ EL::StatusCode xAODAnalysis::execute ()
     // }
   }
 
-  //if (!skip) {
   h_cutflow->Fill(6);
   h_cutflow_w->Fill(6, mc_weight);
-  //}
 
 
   // Badj jet veto
@@ -781,8 +768,8 @@ EL::StatusCode xAODAnalysis::execute ()
   delete met_track_nominal;
   delete met_track_nominal_aux;
 
-  m_store->clear();
-  
+  //m_store->clear();
+ 
   return EL::StatusCode::SUCCESS;
 }
 
@@ -820,6 +807,9 @@ EL::StatusCode xAODAnalysis::finalize()
     delete m_elecMediumLH;
     m_elecMediumLH = 0;
   }
+
+  // delete m_event;
+  // delete m_store;
   
   return EL::StatusCode::SUCCESS;
 }

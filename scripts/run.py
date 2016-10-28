@@ -124,6 +124,8 @@ def run_job(sample, driver):
 
         if alg_name == 'xAODAnalysis':
             alg = ROOT.xAODAnalysis()
+            alg.mem = [] # use this to prevent ownwership problems
+
         elif alg_name == 'xAODBaselineAnalysis':
             alg = ROOT.xAODBaselineAnalysis()
 
