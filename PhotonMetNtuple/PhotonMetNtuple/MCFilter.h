@@ -21,6 +21,9 @@ public:
 
   const xAOD::TruthParticle*  get_mother(const xAOD::TruthParticle* thePart);
 
+  Bool_t has_me_photon(xAOD::TEvent& event);
+  const xAOD::TruthParticle* get_last_truth_particle(const xAOD::TruthParticle* particle);
+
 };
 
 #endif

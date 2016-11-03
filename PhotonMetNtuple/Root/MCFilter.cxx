@@ -11,13 +11,13 @@
 
 Bool_t MCFilter::accept_event(uint32_t did, xAOD::TEvent& event) 
 {
-  // W/Z + jets
-  if ((did >= 361300 && did <= 361371) || (did >= 361374 && did <= 361467)) {
-    return accept_vjets_event(event);
-  }
+  // // W/Z + jets
+  // if ((did >= 361300 && did <= 361371) || (did >= 361374 && did <= 361467)) {
+  //   return accept_vjets_event(event);
+  // }
 
   // ttbar
-  else if (did == 410000) {
+  if (did == 410000) {
     return accept_ttbar_event(event);
   }
 
@@ -26,10 +26,10 @@ Bool_t MCFilter::accept_event(uint32_t did, xAOD::TEvent& event)
     return accept_ttgamma_event(event);
   }
 
-  // singletop
-  else if (did == 410011 || did == 410012 || did == 410025 || did == 410026 || did == 410013 || did == 410014) {
-    return accept_singletop_event(event);
-  }
+  // // singletop
+  // else if (did == 410011 || did == 410012 || did == 410025 || did == 410026 || did == 410013 || did == 410014) {
+  //   return accept_singletop_event(event);
+  // }
 
   // else if (did >= 361042 && did <= 361061) {
   //   return accept_photonjet_event(event, did);
@@ -80,61 +80,50 @@ Bool_t MCFilter::accept_vjets_event(xAOD::TEvent& event)
   return accept;
 }
 
-Bool_t MCFilter::accept_ttbar_event(xAOD::TEvent& event)
-{
-  // veto events with at least one ME photon with pt>80 GeV
+// ttbar/ttgamma
+const xAOD::TruthParticle* MCFilter::get_last_truth_particle(const xAOD::TruthParticle* particle){ 
+  auto pdgId = particle->pdgId();
+  
+  if (particle->nChildren() >= 1 && particle->child(0) &&  particle->child(0)->pdgId() == pdgId) //allow for t->t gluon
+    return get_last_truth_particle(particle->child(0));
+  
+  return particle;
+}
 
+Bool_t MCFilter::has_me_photon(xAOD::TEvent& event)
+{
   const xAOD::TruthParticleContainer* particles = 0;
   RETURN_CHECK("MCFilter", event.retrieve(particles, "TruthParticles"));
 
-  Bool_t accept = true;
-
-  for (auto ip = particles->begin(); ip!=particles->end(); ++ip) {
-    
-    if ((*ip)->pdgId() != 22 || (*ip)->status() != 1) 
-      continue;
-    
-    Int_t mother_pdg = get_mother(*ip)->absPdgId();
-    if (mother_pdg < 100 && mother_pdg != 11) { // ME photon
-      
-      if ((*ip)->pt() > 80000.) {
-        accept = false;
-        break;
-      }
+  const xAOD::IParticle *par = nullptr;
+  int me_photon = 0;
+  int pdgId = 22; // look at photons
+  for (const auto& particle: *particles) {
+    if (fabs(particle->pdgId()) == pdgId  && (particle->nParents()==0  || fabs(particle->parent(0)->pdgId()) != pdgId)) {// this particle is a photon
+      par = get_last_truth_particle(particle);
+      int motherPdgId = -1;
+      if (particle->nParents() > 0) motherPdgId = particle->parent(0)->pdgId();
+      if (abs(motherPdgId)<100 && particle->barcode() <2e5 && par->p4().Pt()>80e3)
+        me_photon += 1;
     }
-
   }
   
-  return accept;
+  return (me_photon>0);
+}
+
+Bool_t MCFilter::accept_ttbar_event(xAOD::TEvent& event)
+{
+  // veto events with at least one ME photon with pt>80 GeV
+  return !has_me_photon(event);
 }
 
 Bool_t MCFilter::accept_ttgamma_event(xAOD::TEvent& event)
 {
   // accept events with at least one ME photon with pt>80 GeV
-
-  const xAOD::TruthParticleContainer* particles = 0;
-  RETURN_CHECK("MCFilter", event.retrieve(particles, "TruthParticles"));
-
-  Bool_t accept = false;
-
-  for (auto ip = particles->begin(); ip!=particles->end(); ++ip) {
-    
-    if ((*ip)->pdgId() == 22 && (*ip)->status() == 1 && (*ip)->pt() > 80000.) {
-
-      
-      // check if the the photon is ME
-      Int_t mother_pdg = get_mother(*ip)->absPdgId();
-      if (mother_pdg < 100 && mother_pdg != 11)  {
-        accept = true;
-        break;
-      }
-    }
-  }
-  
-  return accept;
+  return has_me_photon(event);
 }
 
-
+// single top
 Bool_t MCFilter::accept_singletop_event(xAOD::TEvent& event)
 {
   // accept events with at least one ME photon with pt>80 GeV
@@ -242,3 +231,4 @@ const xAOD::TruthParticle*  MCFilter::get_mother(const xAOD::TruthParticle* theP
 
   return theMoth;
 }
+
