@@ -362,10 +362,12 @@ EL::StatusCode xAODAnalysis::execute ()
   h_cutflow->Fill(1);
   h_cutflow_w->Fill(1, mc_weight);
 
+  // GRL
   if (is_data && !m_grl->passRunLB(*eventInfo)) {
     return EL::StatusCode::SUCCESS; // go to next event
   }
 
+  // MC Overlap Removal
   if (is_mc && !mc_filter->accept_event(eventInfo->mcChannelNumber(), *m_event)) {
     outtree->set_mcveto(1); // only flag as mcveto
   }
@@ -373,6 +375,7 @@ EL::StatusCode xAODAnalysis::execute ()
   h_cutflow->Fill(2);
   h_cutflow_w->Fill(2, mc_weight);
 
+  // Data Errors cleaning
   if (is_data &&
       ((eventInfo->errorState(xAOD::EventInfo::LAr) == xAOD::EventInfo::Error) ||
        (eventInfo->errorState(xAOD::EventInfo::Tile) == xAOD::EventInfo::Error) ||
@@ -382,7 +385,6 @@ EL::StatusCode xAODAnalysis::execute ()
   h_cutflow->Fill(3);
   h_cutflow_w->Fill(3, mc_weight);
   
-
   // Trigger
   bool pass_g120 = susytools->IsTrigPassed("HLT_g120_loose") && !susytools->GetTrigPrescale("HLT_g120_loose") > 1.;
   bool pass_g140 = susytools->IsTrigPassed("HLT_g140_loose");
@@ -399,13 +401,15 @@ EL::StatusCode xAODAnalysis::execute ()
   h_cutflow_w->Fill(4, mc_weight);
 
 
-  //Get the event Vertex
+  // Primary vertex
   const xAOD::Vertex *prim_vx = 0;
   prim_vx = susytools->GetPrimVtx();
   if (!prim_vx) 
     return EL::StatusCode::SUCCESS;
+
   h_cutflow->Fill(5);
   h_cutflow_w->Fill(5, mc_weight);
+
 
   //---------------------------------
   // RETRIEVE THE NOMINAL CONTAINERS
@@ -441,11 +445,11 @@ EL::StatusCode xAODAnalysis::execute ()
   
   
   // MET (remember,you can pick either CST or TST)
-  xAOD::MissingETContainer* met_nominal = new xAOD::MissingETContainer;
+  xAOD::MissingETContainer*    met_nominal = new xAOD::MissingETContainer;
   xAOD::MissingETAuxContainer* met_nominal_aux = new xAOD::MissingETAuxContainer;
   met_nominal->setStore(met_nominal_aux);
 
-  xAOD::MissingETContainer* met_track_nominal = new xAOD::MissingETContainer;
+  xAOD::MissingETContainer*    met_track_nominal = new xAOD::MissingETContainer;
   xAOD::MissingETAuxContainer* met_track_nominal_aux = new xAOD::MissingETAuxContainer;
   met_track_nominal->setStore(met_track_nominal_aux);
 
@@ -485,11 +489,11 @@ EL::StatusCode xAODAnalysis::execute ()
         
         // If necessary (kinematics affected), make a shallow copy with the variation applied
         bool syst_affectsElectrons = ST::testAffectsObject(xAOD::Type::Electron, sysInfo.affectsType);
-        bool syst_affectsMuons     = ST::testAffectsObject(xAOD::Type::Muon, sysInfo.affectsType);
-        bool syst_affectsTaus      = ST::testAffectsObject(xAOD::Type::Tau, sysInfo.affectsType);
-        bool syst_affectsPhotons   = ST::testAffectsObject(xAOD::Type::Photon, sysInfo.affectsType);
-        bool syst_affectsJets      = ST::testAffectsObject(xAOD::Type::Jet, sysInfo.affectsType);
-        bool syst_affectsBTag      = ST::testAffectsObject(xAOD::Type::BTag, sysInfo.affectsType);
+        bool syst_affectsMuons     = ST::testAffectsObject(xAOD::Type::Muon,     sysInfo.affectsType);
+        bool syst_affectsTaus      = ST::testAffectsObject(xAOD::Type::Tau,      sysInfo.affectsType);
+        bool syst_affectsPhotons   = ST::testAffectsObject(xAOD::Type::Photon,   sysInfo.affectsType);
+        bool syst_affectsJets      = ST::testAffectsObject(xAOD::Type::Jet,      sysInfo.affectsType);
+        bool syst_affectsBTag      = ST::testAffectsObject(xAOD::Type::BTag,     sysInfo.affectsType);
         
         if (syst_affectsTaus) 
           continue;
@@ -622,7 +626,6 @@ EL::StatusCode xAODAnalysis::execute ()
           collections.jets_aux = jets_aux;
           collections.met_aux = met_aux;
           collections.met_track_aux = met_track_aux;
-
   
           ret += outtree->process(collections, (sys.name()).c_str());
         }
@@ -689,7 +692,6 @@ EL::StatusCode xAODAnalysis::execute ()
 
     if (is_mc && mu->auxdata<char>("signal") == 1)
       susytools->GetSignalMuonSF(*mu);
-
     // if (mu->auxdata<char>("cosmic") == 1) {
     //   Info(APP_NAME, "cosmic muon %f", mu->pt());
     //   skip = true;
@@ -733,7 +735,6 @@ EL::StatusCode xAODAnalysis::execute ()
     outtree->SetMCFinalState(fs);
   }
 
-
   if (!skip) {
     h_cutflow->Fill(7);
     h_cutflow_w->Fill(7, mc_weight);
@@ -767,8 +768,6 @@ EL::StatusCode xAODAnalysis::execute ()
   delete met_nominal_aux;
   delete met_track_nominal;
   delete met_track_nominal_aux;
-
-  //m_store->clear();
  
   return EL::StatusCode::SUCCESS;
 }

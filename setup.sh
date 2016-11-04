@@ -1,9 +1,9 @@
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh
 
-localSetupPandaClient
+lsetup panda
 
-rcSetup Base,2.4.21
+lsetup 'rcsetup Base,2.4.21'
 
 export ROOTCORE_NCPUS="4"
 export PATH="$PWD/scripts:$PATH"

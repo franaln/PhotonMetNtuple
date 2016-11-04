@@ -115,6 +115,8 @@ def run_job(sample, driver):
     job = ROOT.EL.Job()
     job.sampleHandler(sh)
 
+    job.options().setDouble(ROOT.EL.Job.optXAODSummaryReport, False)
+
     if args.nevents:
         logging.info("processing only %d events", args.nevents)
         job.options().setDouble(ROOT.EL.Job.optMaxEvents, args.nevents)

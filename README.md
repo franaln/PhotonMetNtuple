@@ -1,7 +1,7 @@
 PhotonMetNtuple
 ===============
 
-## Current Base and SUSYTools release (see versions.md for more)
+## Current Base and SUSYTools release
 
     AnalysisBase,2.4.21 + SUSYTools-00-08-14
 
@@ -10,13 +10,13 @@ PhotonMetNtuple
 
     source setup.sh    
 
-    rc checkout_pkg $SVNOFF/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-XX-XX
-
+    rc checkout packages.txt
     rc checkout SUSYTools/doc/packages.txt
 
     rc find_packages
     rc clean
     rc compile
+
 
 ## Files needed
 
@@ -25,21 +25,19 @@ PhotonMetNtuple
 * ilumicalc files: from Luminosity Calculator using corresponding GRL
 
 
-
 ## Run
 
-* To test:
+* To test locally:
 
     ```
-    run.py --test /path/to/samples -c PhotonMetNtuple_20.7_std.conf
+    run.py --test /path/to/samples
     ```
 
 * And to run in the grid:
 
     ```
-    run.py -i input.txt -d [DIDS] --grid -v XX -c PhotonMetNtuple_20.7_std.conf
+    run.py -i input.txt [-d DIDS] --grid -v XX
     ```
 
-## Samples
 
 
