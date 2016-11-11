@@ -1,22 +1,25 @@
-# Changelog and versions (tags)
+# Changelog and tags
+
+2016-11-11 Fran
+	- Update to AnalysisBase,2.4.22 (with ST 00-08-24)
 
 2016-11-04 Fran
 	- Add GRL with all 2016 data: data16_13TeV.periodAllYear_DetStatus-v83-pro20-15_DQDefects-00-02-04_PHYS_StandardGRL_All_Good_25ns.xml
-	
+
 2016-11-03 Fran
 	- Add ttbar/ttgamma OR from MCSpecialTreatment twiki
 	- Add packages.txt and update README
 
+2016-11-xx Fran
+    - Update to AnalysisBase,2.4.21 + SUSYTools-00-08-14
+    - Update to AnalysisBase,2.4.20 + SUSYTools-00-08-09 + packages.txt
+
+
 Old tags
 --------
 
-* PhotonMetNtuple v43
-    - AnalysisBase,2.4.21 + SUSYTools-00-08-14
-
-* PhotonMetNtuple v42
-    - AnalysisBase,2.4.20 + SUSYTools-00-08-09 + packages.txt
-
-* PhotonMetNtuple v41
+* PhotonMetNtuple v41 (2016-09-23)
+    - AnalysisBase,2.4.19 + SUSYTools-00-08-04 + packages.txt
     - fix met phi (and dphis)
 
 * PhotonMetNtuple v40

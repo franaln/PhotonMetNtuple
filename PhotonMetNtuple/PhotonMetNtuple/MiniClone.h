@@ -64,6 +64,7 @@ public:
    Int_t           ph_noniso_n;
    vector<float>   *ph_noniso_pt;
    vector<float>   *ph_noniso_eta;
+   vector<float>   *ph_noniso_etas2;
    vector<float>   *ph_noniso_phi;
    vector<float>   *ph_noniso_iso;
    vector<float>   *ph_noniso_w;
@@ -164,6 +165,7 @@ public:
    Int_t           new_ph_noniso_n;
    vector<float>   *new_ph_noniso_pt;
    vector<float>   *new_ph_noniso_eta;
+   vector<float>   *new_ph_noniso_etas2;
    vector<float>   *new_ph_noniso_phi;
    vector<float>   *new_ph_noniso_iso;
    vector<float>   *new_ph_noniso_w;
@@ -261,6 +263,7 @@ public:
    TBranch        *b_ph_noniso_n;   //!
    TBranch        *b_ph_noniso_pt;   //!
    TBranch        *b_ph_noniso_eta;   //!
+   TBranch        *b_ph_noniso_etas2;   //!
    TBranch        *b_ph_noniso_phi;   //!
    TBranch        *b_ph_noniso_iso;   //!
    TBranch        *b_ph_noniso_w;   //!

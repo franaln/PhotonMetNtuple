@@ -60,6 +60,7 @@ void MiniClone::InitOriginalTree()
    ph_truth_origin = 0;
    ph_noniso_pt = 0;
    ph_noniso_eta = 0;
+   ph_noniso_etas2 = 0;
    ph_noniso_phi = 0;
    ph_noniso_iso = 0;
    ph_noniso_w = 0;
@@ -139,6 +140,7 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("ph_noniso_n", &ph_noniso_n, &b_ph_noniso_n);
    orig_tree->SetBranchAddress("ph_noniso_pt", &ph_noniso_pt, &b_ph_noniso_pt);
    orig_tree->SetBranchAddress("ph_noniso_eta", &ph_noniso_eta, &b_ph_noniso_eta);
+   orig_tree->SetBranchAddress("ph_noniso_etas2", &ph_noniso_etas2, &b_ph_noniso_etas2);
    orig_tree->SetBranchAddress("ph_noniso_phi", &ph_noniso_phi, &b_ph_noniso_phi);
    orig_tree->SetBranchAddress("ph_noniso_iso", &ph_noniso_iso, &b_ph_noniso_iso);
    orig_tree->SetBranchAddress("ph_noniso_w", &ph_noniso_w, &b_ph_noniso_w);
@@ -229,6 +231,7 @@ void MiniClone::CreateCloneTree()
 
   new_ph_noniso_pt    = new std::vector<float>(); 
   new_ph_noniso_eta   = new std::vector<float>();
+  new_ph_noniso_etas2   = new std::vector<float>();
   new_ph_noniso_phi   = new std::vector<float>();
   new_ph_noniso_iso   = new std::vector<float>();
   new_ph_noniso_w     = new std::vector<float>();
@@ -310,6 +313,7 @@ void MiniClone::CreateCloneTree()
   clone_tree->Branch("ph_noniso_n", &new_ph_noniso_n, "ph_noniso_n/I");
   clone_tree->Branch("ph_noniso_pt",  new_ph_noniso_pt);
   clone_tree->Branch("ph_noniso_eta", new_ph_noniso_eta);
+  clone_tree->Branch("ph_noniso_etas2", new_ph_noniso_etas2);
   clone_tree->Branch("ph_noniso_phi", new_ph_noniso_phi);
   clone_tree->Branch("ph_noniso_iso", new_ph_noniso_iso);
   clone_tree->Branch("ph_noniso_w",   new_ph_noniso_w);
@@ -396,6 +400,7 @@ void MiniClone::Clear()
 
   new_ph_noniso_pt->clear();
   new_ph_noniso_eta->clear();
+  new_ph_noniso_etas2->clear();
   new_ph_noniso_phi->clear();
   new_ph_noniso_iso->clear();
   new_ph_noniso_w->clear();
@@ -467,6 +472,7 @@ void MiniClone::CopyPhotonsNonIsoBlock()
   for (int i=0; i<ph_noniso_n; i++) {
     new_ph_noniso_pt->push_back((*ph_noniso_pt)[i]);
     new_ph_noniso_eta->push_back((*ph_noniso_eta)[i]);
+    new_ph_noniso_etas2->push_back((*ph_noniso_etas2)[i]);
     new_ph_noniso_phi->push_back((*ph_noniso_phi)[i]);
     new_ph_noniso_iso->push_back((*ph_noniso_iso)[i]);
     new_ph_noniso_w->push_back((*ph_noniso_w)[i]);

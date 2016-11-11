@@ -96,7 +96,7 @@ void loop(TString input_path, TString output_path)
     mini->Clear();
 
     // Photon/Electron blocks
-    // Interchange el_medium <-> photon
+    // Interchange ph_noniso <-> photon
 
     // skip event with one signal photon
     if (mini->ph_n > 0 && (*mini->ph_pt)[0] > 145.)
@@ -107,14 +107,14 @@ void loop(TString input_path, TString output_path)
       continue;
 
     // skip event if non iso photon not in acceptance region
-    float pheta = fabs((*mini->ph_noniso_eta)[0]); // FIX!
+    float pheta = fabs((*mini->ph_noniso_etas2)[0]); // etas2 only for mini >= v41
     float phpt  = (*mini->ph_noniso_pt)[0];
     float phphi = (*mini->ph_noniso_phi)[0];
     
     if (phpt < 145. || pheta > 2.37)
       continue;
     
-    if (pheta > 1.37 && pheta < 1.52)
+    if (pheta > 1.37 && pheta < 1.52) // crack region
       continue;
 
     // skip event if iso > 29.45
@@ -125,7 +125,7 @@ void loop(TString input_path, TString output_path)
       
     mini->new_ph_pt->push_back(phpt);
     mini->new_ph_eta->push_back((*mini->ph_noniso_eta)[0]);
-    mini->new_ph_etas2->push_back((*mini->ph_noniso_eta)[0]);
+    mini->new_ph_etas2->push_back((*mini->ph_noniso_etas2)[0]);
     mini->new_ph_phi->push_back(phphi);
     mini->new_ph_iso->push_back(0.);
     mini->new_ph_iso40->push_back(0.);

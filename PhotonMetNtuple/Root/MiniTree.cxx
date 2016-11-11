@@ -772,7 +772,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   el_n_map[sysname] = el_n;
 
   // medium electrons
-  int el_medium_n = 0;;
+  int el_medium_n = 0;
   if (sysname == "Nominal") {
     for (const auto& el_itr : *collections.electrons) {
 
@@ -1032,7 +1032,6 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   // dphi between leading photon and MET
   if (ph_n > 0)
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*met_it)->phi());
-
 
   // SF weigth
   weight_sf_map[sysname] = total_weight_sf;
