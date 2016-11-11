@@ -386,15 +386,15 @@ EL::StatusCode xAODAnalysis::execute ()
   h_cutflow_w->Fill(3, mc_weight);
   
   // Trigger
-  bool pass_g120 = susytools->IsTrigPassed("HLT_g120_loose") && !susytools->GetTrigPrescale("HLT_g120_loose") > 1.;
+  bool pass_g120 = susytools->IsTrigPassed("HLT_g120_loose"); // && !susytools->GetTrigPrescale("HLT_g120_loose") > 1.;
   bool pass_g140 = susytools->IsTrigPassed("HLT_g140_loose");
 
   outtree->set_pass_g120(pass_g120);
   outtree->set_pass_g140(pass_g140);
 
-  bool passed = (pass_g120 || pass_g140);
+  // bool passed = (pass_g120 || pass_g140);
 
-  if (!passed)
+  if (!pass_g140)
     return EL::StatusCode::SUCCESS;
 
   h_cutflow->Fill(4);
