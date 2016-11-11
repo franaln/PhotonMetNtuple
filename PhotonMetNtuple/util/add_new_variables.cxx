@@ -69,7 +69,8 @@ void loop(TString input_path, TString output_path)
   float dphi_jetmet3;
   float dphi_jetmet4;
 
-  float mt;
+  float mt_gam;
+  float mt_lep;
 
   float deta_gamjet;
   float deta_gamjet2;
@@ -97,7 +98,8 @@ void loop(TString input_path, TString output_path)
   mini->AddNewBranch("dphi_gamjet3", &dphi_gamjet3);  
   mini->AddNewBranch("dphi_gamjet4", &dphi_gamjet4);
 
-  mini->AddNewBranch("mt", &mt);
+  mini->AddNewBranch("mt_gam", &mt_gam);
+  mini->AddNewBranch("mt_lep", &mt_lep);
 
   mini->AddNewBranch("met_sqrtht", &met_sqrtht);
 
@@ -212,9 +214,23 @@ void loop(TString input_path, TString output_path)
     dphi_jetmet3 = TMath::Min(dphi_jetmet2, dphi3);
     dphi_jetmet4 = TMath::Min(dphi_jetmet3, dphi4);
 
-    //// Mt
-    Float_t mt2 = 2 * mini->met_et * mini->ph_pt->at(0) * (1 - TMath::Cos(mini->dphi_gammet));
-    mt = TMath::Sqrt(mt2);
+    //// Mt 
+    Float_t mt2_gam = 2 * mini->met_et * mini->ph_pt->at(0) * (1 - TMath::Cos(mini->dphi_gammet));
+    mt_gam = TMath::Sqrt(mt2_gam);
+
+    Float_t mt2_lep = -99;
+    if (mini->el_n > 0 && mini->mu_n > 0) {
+      if ((*mini->el_pt)[0] > (*mini->mu_pt)[0])
+        mt2_lep = 2 * mini->met_et * mini->el_pt->at(0) * (1 - TMath::Cos(get_dphi(mini->el_phi->at(0), mini->met_et)));
+      else
+        mt2_lep = 2 * mini->met_et * mini->mu_pt->at(0) * (1 - TMath::Cos(get_dphi(mini->mu_phi->at(0), mini->met_et)));
+    }
+    else if (mini->el_n > 0)
+        mt2_lep = 2 * mini->met_et * mini->el_pt->at(0) * (1 - TMath::Cos(get_dphi(mini->el_phi->at(0), mini->met_et)));
+    else if (mini->mu_n > 0)
+        mt2_lep = 2 * mini->met_et * mini->mu_pt->at(0) * (1 - TMath::Cos(get_dphi(mini->mu_phi->at(0), mini->met_et)));
+
+    mt_lep = TMath::Sqrt(mt2_lep);
 
     //// Separation photon-jet
     deta_gamjet = -99.;
