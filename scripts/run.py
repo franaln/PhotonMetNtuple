@@ -9,6 +9,8 @@ import subprocess
 
 logging.basicConfig(level=logging.INFO)
 
+excluded_sites = 'ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6'
+
 import atexit
 @atexit.register
 def quite_exit():
@@ -69,9 +71,7 @@ def get_samples_from_file(file_, dids_str=None):
 
     samples = []
 
-    lines = open(file_).read().split('\n')
-
-    for line in lines:
+    for line in open(file_).read().split('\n'):
         if not line or line.startswith('#'):
             continue
 
@@ -136,6 +136,8 @@ def run_job(sample, driver):
         is_susy_ewk = ('_GGM_mu' in sample)
         is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
         
+
+        logging.info('--')
         logging.info('-- Configuration to use. Please check if it is ok!')
         logging.info('-- Configfile  = %s' % args.config_file)
         logging.info('-- Sample = %s' % sample)
@@ -186,7 +188,7 @@ def run_job(sample, driver):
 
         # driver options
         driver.options().setString('nc_outputSampleName', outname)
-        driver.options().setString(ROOT.EL.Job.optGridExcludedSite, 'ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6')
+        driver.options().setString(ROOT.EL.Job.optGridExcludedSite, excluded_sites)
         driver.options().setString(ROOT.EL.Job.optGridNGBPerJob, 'MAX')
         driver.options().setString(ROOT.EL.Job.optGridMergeOutput, 'FALSE')
         driver.options().setDouble(ROOT.EL.Job.optRemoveSubmitDir, 1)
@@ -196,12 +198,12 @@ def run_job(sample, driver):
         if not args.dry:
             driver.submitOnly(job, args.output)
 
-    elif driver == 'batch':
+    # elif driver == 'batch':
 
-        logging.info('running on prooflite')
-        driver = ROOT.EL.ProofDriver()
-        logging.info('submit job')
-        driver.submit(job, args.output)
+    #     logging.info('running on prooflite')
+    #     driver = ROOT.EL.ProofDriver()
+    #     logging.info('submit job')
+    #     driver.submit(job, args.output)
         
     elif driver == 'local':
 
@@ -221,27 +223,25 @@ def main():
     parser.add_argument("--output", help="dir to store the output")
     parser.add_argument("--nevents", type=int, help="number of events to process for all the datasets")
 
+    parser.add_argument('--alg', default='xAODAnalysis')
+    parser.add_argument("--dosyst", action='store_true', help="Create systematics blocks")
+
     # test
     parser.add_argument('--test', dest='test')
 
     # run (in the grid)
+    parser.add_argument('--grid', action='store_true')    
+    parser.add_argument('--download', action='store_true')
+    parser.add_argument('--dry', action='store_true')
+
     parser.add_argument('-i', dest='input_file')
     parser.add_argument('-d', dest='dids', type=str)
-
-    parser.add_argument('--alg', default='xAODAnalysis')
 
     parser.add_argument('-c', dest='config_file', default='PhotonMetNtuple_20.7_std.conf', help='Config file')
     parser.add_argument('-v', dest='version')
 
-    parser.add_argument("--dosyst", action='store_true', help="Create systematics blocks")
-
-    parser.add_argument('--grid', action='store_true')    
-    parser.add_argument('--dry', action='store_true')
     # parser.add_argument('--dotar', dest='do_tarball', action='store_true')
     # parser.add_argument('--usetar', dest='use_tarball', action='store_true')
-
-    # others
-    parser.add_argument('--download', action='store_true')
     
     global args
     args = parser.parse_args()
@@ -281,6 +281,7 @@ def main():
     ROOT.gROOT.Macro("$ROOTCOREDIR/scripts/load_packages.C")
     ROOT.xAOD.Init().ignore()
 
+    # Run on the GRID
     if args.grid:
         if args.input_file is not None:
             torun = get_samples_from_file(args.input_file, args.dids)
