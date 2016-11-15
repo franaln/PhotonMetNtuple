@@ -433,7 +433,7 @@ StatusCode MiniTree::initialize()
       // total sf weight
       if (sys.affectsWeights) {
         tree->Branch(BookName("weight_sf", sys_name), &weight_sf_map[sys_name]);
-        tree->Branch(BookName("weight_btag", sys_name), &weight_sf_map[sys_name]);
+        tree->Branch(BookName("weight_btag", sys_name), &weight_btag_map[sys_name]);
       }
 
       // jets/btagging
@@ -574,14 +574,12 @@ StatusCode MiniTree::initialize()
       el_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_ch));
       el_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_w));
 
-      // if (!m_ismc) {
       el_medium_n_map.insert (std::pair<std::string, int>(sys_name, 0));
       el_medium_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, el_medium_pt));
       el_medium_eta_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_eta));
       el_medium_etas2_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_etas2));
       el_medium_phi_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, el_medium_phi));
       el_medium_ch_map.insert (std::pair<std::string, std::vector<int>*>  (sys_name, el_medium_ch));
-      // }
 
       mu_n_map.insert (std::pair<std::string, int>(sys_name, 0));  
       mu_pt_map.insert (std::pair<std::string, std::vector<float>*>(sys_name, mu_pt));
@@ -621,6 +619,7 @@ StatusCode MiniTree::initialize()
       dphi_gammet_map.insert(std::pair<std::string, float>(sys_name, -99.));
 
       weight_sf_map.insert(std::pair<std::string, float>(sys_name, 1.));
+      weight_btag_map.insert(std::pair<std::string, float>(sys_name, 1.));
     }
   }
 
@@ -848,7 +847,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
       if (isbjet)
         bjet_n++;
       
-      jet_isb_map[sysname]->push_back(isbjet);
+      jet_isb_map[sysname]->push_back((int)isbjet);
     }
   }
   jet_n_map[sysname] = jet_n;
@@ -916,11 +915,11 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
         ph_noniso_n += 1;
 
-        ph_noniso_pt_map[sysname] ->push_back(ph_itr->pt()*IGEV);
-        ph_noniso_eta_map[sysname]->push_back(ph_itr->eta());
+        ph_noniso_pt_map[sysname]   ->push_back(ph_itr->pt()*IGEV);
+        ph_noniso_eta_map[sysname]  ->push_back(ph_itr->eta());
         ph_noniso_etas2_map[sysname]->push_back(ph_itr->caloCluster()->etaBE(2));
-        ph_noniso_phi_map[sysname]->push_back(ph_itr->phi());
-        ph_noniso_iso_map[sysname]->push_back(iso);
+        ph_noniso_phi_map[sysname]  ->push_back(ph_itr->phi());
+        ph_noniso_iso_map[sysname]  ->push_back(iso);
         
         double sf = 1.;
         if (m_ismc)
@@ -933,6 +932,9 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   }
   ph_n_map[sysname] = ph_n;
   ph_noniso_n_map[sysname] = ph_noniso_n;
+
+  // SF weigth
+  weight_sf_map[sysname] = total_weight_sf;
 
   // met
   xAOD::MissingETContainer::const_iterator met_it = collections.met->find("Final");
@@ -1033,8 +1035,8 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   if (ph_n > 0)
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*met_it)->phi());
 
-  // SF weigth
-  weight_sf_map[sysname] = total_weight_sf;
+  // ADD MT
+
 
   // Skim: at least one signal photon (no iso cut) with pt>75 (or a medium electron for data)
   int photons_skim = 0;
