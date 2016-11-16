@@ -220,7 +220,6 @@ EL::StatusCode xAODAnalysis::initialize()
   Info(APP_NAME, APP_VERSION);
 
   m_event = wk()->xaodEvent();
-  //m_store = wk()->xaodStore(); 
 
   // Data dir
   m_data_dir = gSystem->ExpandPathName("$ROOTCOREBIN/data/PhotonMetNtuple/");
@@ -247,13 +246,12 @@ EL::StatusCode xAODAnalysis::initialize()
   CHECK(susytools->setProperty("ConfigFile", m_st_config_file));
 
   // Pile Up Reweighting
-  m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15ab_defaults.NotRecommended.prw.root"); // FIX
-  m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15c_v2_defaults.NotRecommended.prw.root");
+  // m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15ab_defaults.NotRecommended.prw.root"); // FIX
+  // m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15c_v2_defaults.NotRecommended.prw.root");
 
   CHECK(susytools->setProperty("PRWConfigFiles", m_prw_mc_files));
   CHECK(susytools->setProperty("PRWLumiCalcFiles", m_prw_lumicalc_files));
  
-
   if (susytools->initialize() != StatusCode::SUCCESS) {
     Error(APP_NAME, "Cannot intialize SUSYObjDef_xAOD...");
     Error(APP_NAME, "Exiting... ");
@@ -315,8 +313,6 @@ EL::StatusCode xAODAnalysis::execute ()
   // histograms and trees.  This is where most of your actual analysis
   // code will go.
 
-  //m_store->clear();
-
   // clear tree
   outtree->clear();
   
@@ -330,10 +326,10 @@ EL::StatusCode xAODAnalysis::execute ()
     return EL::StatusCode::FAILURE;
   }
   
-  outtree->SetRunNumber(eventInfo->runNumber());
-  outtree->SetLumiBlock(eventInfo->lumiBlock());
-  outtree->SetEventNumber(eventInfo->eventNumber());
-  outtree->SetAvgMu(eventInfo->averageInteractionsPerCrossing());
+  outtree->run_number = eventInfo->runNumber();
+  outtree->lumi_block = eventInfo->lumiBlock();
+  outtree->event_number = eventInfo->eventNumber();
+  outtree->avg_mu = eventInfo->averageInteractionsPerCrossing();
 
   // check if the event is data or MC
   bool is_mc = !is_data; 
@@ -345,15 +341,15 @@ EL::StatusCode xAODAnalysis::execute ()
   float mc_weight = 1.;
   if (is_mc) {
     mc_weight = eventInfo->mcEventWeight();
-    outtree->SetWeightMC(mc_weight);
+    outtree->weight_mc = mc_weight;
 
     CHECK(susytools->ApplyPRWTool());  
-    outtree->set_weight_pu(susytools->GetPileupWeight());
-    outtree->SetPRWHash(susytools->GetPileupWeightHash());
+    outtree->weight_pu = susytools->GetPileupWeight();
+    outtree->PRWHash = susytools->GetPileupWeightHash();
   }
   else {
-    outtree->SetWeightMC(1.);
-    outtree->set_weight_pu(1.);
+    outtree->weight_mc = 1.;
+    outtree->weight_pu = 1.;
   }
   
   //--------------------
@@ -368,10 +364,11 @@ EL::StatusCode xAODAnalysis::execute ()
   }
 
   // MC Overlap Removal
+  outtree->mcveto = 0;
   if (is_mc && !mc_filter->accept_event(eventInfo->mcChannelNumber(), *m_event)) {
-    outtree->set_mcveto(1); // only flag as mcveto
+    outtree->mcveto = 1; // only flag as mcveto
   }
-
+  
   h_cutflow->Fill(2);
   h_cutflow_w->Fill(2, mc_weight);
 
@@ -386,13 +383,11 @@ EL::StatusCode xAODAnalysis::execute ()
   h_cutflow_w->Fill(3, mc_weight);
   
   // Trigger
-  bool pass_g120 = susytools->IsTrigPassed("HLT_g120_loose"); // && !susytools->GetTrigPrescale("HLT_g120_loose") > 1.;
+  bool pass_g120 = susytools->IsTrigPassed("HLT_g120_loose"); // !susytools->GetTrigPrescale("HLT_g120_loose") > 1.;
   bool pass_g140 = susytools->IsTrigPassed("HLT_g140_loose");
 
-  outtree->set_pass_g120(pass_g120);
-  outtree->set_pass_g140(pass_g140);
-
-  // bool passed = (pass_g120 || pass_g140);
+  outtree->pass_g120_loose = pass_g120;
+  outtree->pass_g140_loose = pass_g140;
 
   if (!pass_g140)
     return EL::StatusCode::SUCCESS;
@@ -460,6 +455,7 @@ EL::StatusCode xAODAnalysis::execute ()
   for (const auto& sysInfo : systInfoList) {
       
     if (sysInfo.affectsKinematics || sysInfo.affectsWeights) {
+
       const CP::SystematicSet& sys = sysInfo.systset;
 
       if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
@@ -471,6 +467,16 @@ EL::StatusCode xAODAnalysis::execute ()
       }
 
       else {
+
+        if (sysInfo.affectsWeights && sys.name() == "PRW_DATASF__1down") {
+          outtree->weight_pu_down = susytools->GetPileupWeight();
+          continue;
+        }
+        else if (sysInfo.affectsWeights && sys.name() == "PRW_DATASF__1up") {
+          outtree->weight_pu_up = susytools->GetPileupWeight();
+          continue;
+        }
+
         // Generic pointers for either nominal or systematics copy
         xAOD::ElectronContainer* electrons(electrons_nominal);
         xAOD::PhotonContainer* photons(photons_nominal);
@@ -498,16 +504,6 @@ EL::StatusCode xAODAnalysis::execute ()
         if (syst_affectsTaus) 
           continue;
 
-        if (sysInfo.affectsWeights && sys.name() == "PRW_DATASF__1down") {
-          outtree->set_weight_pu_down(susytools->GetPileupWeight());
-          //continue;
-        }
-        else if (sysInfo.affectsWeights && sys.name() == "PRW_DATASF__1up") {
-          outtree->set_weight_pu_up(susytools->GetPileupWeight());
-          //continue;
-        }
-
-
         if (syst_affectsElectrons) {
           xAOD::ElectronContainer* electrons_syst(0);
           xAOD::ShallowAuxContainer* electrons_syst_aux(0);
@@ -516,6 +512,7 @@ EL::StatusCode xAODAnalysis::execute ()
           electrons_syst->sort(ptsorter);
 
           electrons = electrons_syst;
+          electrons_aux = electrons_syst_aux;
         }
 		
         if (syst_affectsMuons) {
@@ -526,6 +523,7 @@ EL::StatusCode xAODAnalysis::execute ()
           muons_syst->sort(ptsorter);
 
           muons = muons_syst;
+          muons_aux = muons_syst_aux;
         }
 		
         if (syst_affectsPhotons) {
@@ -536,6 +534,7 @@ EL::StatusCode xAODAnalysis::execute ()
           photons_syst->sort(ptsorter);
 
           photons = photons_syst;
+          photons_aux = photons_syst_aux;
         }
 		
         if (syst_affectsJets || syst_affectsBTag) {
@@ -546,6 +545,7 @@ EL::StatusCode xAODAnalysis::execute ()
           jets_syst->sort(ptsorter);
 
           jets = jets_syst;
+          jets_aux = jets_syst_aux;
         }
         
         //-----------------
@@ -559,7 +559,7 @@ EL::StatusCode xAODAnalysis::execute ()
 
         xAOD::MissingETContainer*    met_track_syst = new xAOD::MissingETContainer;
         xAOD::MissingETAuxContainer* met_track_syst_aux = new xAOD::MissingETAuxContainer;
-        met_syst->setStore(met_syst_aux);
+        met_track_syst->setStore(met_track_syst_aux);
 
         // MET
         CHECK(susytools->GetMET(*met_syst, jets, electrons, muons, photons));
@@ -606,9 +606,8 @@ EL::StatusCode xAODAnalysis::execute ()
           }
         }
         
-        if (is_mc) {
-          outtree->SetWeightBtag(sys.name().c_str(), susytools->BtagSF(jets));
-        }
+        susytools->GetTotalJetSFsys(jets, sys);
+        
 
         if (!skip) {
           AnalysisCollections collections;
@@ -654,13 +653,8 @@ EL::StatusCode xAODAnalysis::execute ()
   CHECK(susytools->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   CHECK(susytools->GetTrackMET(*met_track_nominal, jets_nominal, electrons_nominal, muons_nominal));
 
-  // FIX: TST cleaning, until bug fix
-  // if (susytools->passTSTCleaning(*met_nominal))
-  //   outtree->SetPassTSTCleaning(1);
-  // else
-  //   outtree->SetPassTSTCleaning(0);
 
-  outtree->SetYear(susytools->treatAsYear());
+  outtree->year = susytools->treatAsYear();
 
   // Get SF and apply medium electron id
   // electrons
@@ -696,13 +690,16 @@ EL::StatusCode xAODAnalysis::execute ()
     //   Info(APP_NAME, "cosmic muon %f", mu->pt());
     //   skip = true;
     // }
+    if (mu->auxdata<char>("bad") == 1) {
+      skip = true;
+    }
   }
 
   h_cutflow->Fill(6);
   h_cutflow_w->Fill(6, mc_weight);
 
 
-  // Badj jet veto
+  // Bad jet veto
   for (const auto& jet : *jets_nominal) {  
     if (jet->auxdata<char>("baseline") == 1 &&
         jet->auxdata<char>("passOR") == 1 &&
@@ -712,9 +709,7 @@ EL::StatusCode xAODAnalysis::execute ()
     }
   }
   
-  if (is_mc)
-    outtree->SetWeightBtag("Nominal", susytools->BtagSF(jets_nominal));
-
+  susytools->GetTotalJetSF(jets_nominal);
 
   // MC final state
   if (is_mc && is_susy_ewk) {
@@ -732,7 +727,7 @@ EL::StatusCode xAODAnalysis::execute ()
     if (fs == 0)
       Error(APP_NAME, "Failed to get final state code: pdg1=%i, pdg2=%i", pdg1, pdg2);
 
-    outtree->SetMCFinalState(fs);
+    outtree->final_state = fs;
   }
 
   if (!skip) {
@@ -806,9 +801,6 @@ EL::StatusCode xAODAnalysis::finalize()
     delete m_elecMediumLH;
     m_elecMediumLH = 0;
   }
-
-  // delete m_event;
-  // delete m_store;
   
   return EL::StatusCode::SUCCESS;
 }

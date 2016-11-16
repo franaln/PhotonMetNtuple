@@ -1,12 +1,25 @@
 # Changelog and tags
 
-2016-11-11 Fran
-	- Update to AnalysisBase,2.4.22 (with ST 00-08-24)
+2016-11-16 fran
+	- Remove and FIX btag weights (included in weight_sf)
+	- Fix aux containers in systematics loop
+	
+2016-11-14 fran
+	- Add all 2016 data samples (from last GRL) to samples/data16_all.txt
+	- Fix btag branch in MiniTree.cxx (anyway the btag sf is included in weight_sf, so I don't use it)
 
-2016-11-04 Fran
+2016-11-12 fran
+	- Only use g140_loose now (not sure if it was available for every 2015 run. Need to compare 2015 data before/after)
+	- clean run.py
+
+2016-11-11 fran
+	- Update to AnalysisBase,2.4.22 (with ST 00-08-24)
+	- Update ST configfile (btag calib file, and remove unused options)
+
+2016-11-04 fran
 	- Add GRL with all 2016 data: data16_13TeV.periodAllYear_DetStatus-v83-pro20-15_DQDefects-00-02-04_PHYS_StandardGRL_All_Good_25ns.xml
 
-2016-11-03 Fran
+2016-11-03 fran
 	- Add ttbar/ttgamma OR from MCSpecialTreatment twiki
 	- Add packages.txt and update README
 

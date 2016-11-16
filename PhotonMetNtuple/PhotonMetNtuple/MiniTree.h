@@ -58,31 +58,29 @@ class MiniTree : public asg::AsgMetadataTool {
   bool PassEtaCut(const xAOD::Photon *part, Float_t maxeta=99.);
   bool PassEtaCut(const xAOD::Electron *part, Float_t maxeta=99.);
 
-  void SetRunNumber(int arg)    { run_number = arg; };
-  void SetLumiBlock(int arg)    { lumi_block = arg; };
-  void SetEventNumber(ULong64_t arg) { event_number = arg; };
-  void SetAvgMu(float arg)      { avg_mu = arg; };
-
-  void SetMCFinalState(unsigned int fs) { final_state = fs; };
-  
-  void SetWeightMC(float w) { weight_mc = w; };
-  void SetWeightBtag(std::string sysname, float w) { weight_btag_map[sysname] = w; };
-  void SetPRWHash(ULong64_t hash) { PRWHash = hash; };
-
-  void set_weight_pu(float w) { weight_pu = w; };
-  void set_weight_pu_down(float w) { weight_pu_down = w; };
-  void set_weight_pu_up  (float w) { weight_pu_up = w; };
-
-  void SetPassTSTCleaning(int w) { pass_tst_cleaning = w; };
-  void SetYear(unsigned int y) { year = y; };
-
-  void set_pass_g120(unsigned int fs) { pass_g120 = fs; };
-  void set_pass_g140(unsigned int fs) { pass_g140 = fs; };
-
-  void set_mcveto(unsigned int fs) { mcveto = fs; };
-
   TTree* tree;
-  
+
+  // Event variables
+  int run_number;
+  int lumi_block;
+  ULong64_t event_number;
+  float avg_mu;
+
+  unsigned int final_state;
+  unsigned int year;
+  unsigned int mcveto;
+
+  unsigned int pass_g120_loose;
+  unsigned int pass_g140_loose;
+
+  float weight_mc;
+  float weight_pu;
+  float weight_pu_down;
+  float weight_pu_up;
+
+  ULong64_t PRWHash;
+
+  // Blocks (with systematics)  
   std::map<const std::string, int> ph_n_map;
   std::map<const std::string, std::vector<float>*> ph_pt_map;
   std::map<const std::string, std::vector<float>*> ph_eta_map;
@@ -114,6 +112,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> mu_eta_map;
   std::map<const std::string, std::vector<float>*> mu_phi_map;
   std::map<const std::string, std::vector<int>*>   mu_ch_map;
+  std::map<const std::string, std::vector<int>*>   mu_iscosmic_map;
   std::map<const std::string, std::vector<float>*> mu_w_map;
 
   std::map<const std::string, int> el_n_map;
@@ -131,6 +130,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> el_medium_phi_map;
   std::map<const std::string, std::vector<int>*>   el_medium_ch_map;
 
+  // Event variables (with systematics)
   std::map<const std::string, float> met_phi_map;
   std::map<const std::string, float> met_et_map;
   std::map<const std::string, float> met_sumet_map;
@@ -162,13 +162,13 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, float> dphi_gammet_map;
 
   std::map<const std::string, float> weight_sf_map;
-  std::map<const std::string, float> weight_btag_map;
-    
+
 
 protected:
   TDirectory *m_outfile;    
-  std::vector<ST::SystInfo> m_sysList;
+  std::vector<ST::SystInfo> m_sys_list;
   Bool_t m_ismc;
+
 
   std::vector<float> *ph_pt; 
   std::vector<float> *ph_eta;
@@ -216,31 +216,9 @@ protected:
   std::vector<float> *mu_eta;
   std::vector<float> *mu_phi;
   std::vector<int>   *mu_ch;
+  std::vector<int>   *mu_iscosmic;
   std::vector<float> *mu_w;
   
-  int run_number;
-  int lumi_block;
-  ULong64_t event_number;
-  float avg_mu;
-
-  unsigned int final_state;
-  unsigned int pass_tst_cleaning;
-  unsigned int year;
-
-  unsigned int pass_g120;
-  unsigned int pass_g140;
-
-  unsigned int mcveto;
-
-  float weight_mc;
-  float weight_sf;
-  float weight_btag;
-  float weight_pu;
-  float weight_pu_down;
-  float weight_pu_up;
-
-  ULong64_t PRWHash;
-
 };
 
 #endif
