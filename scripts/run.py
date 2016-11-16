@@ -9,7 +9,7 @@ import subprocess
 
 logging.basicConfig(level=logging.INFO)
 
-excluded_sites = 'ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6'
+excluded_sites = 'ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6'
 
 import atexit
 @atexit.register
