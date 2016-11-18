@@ -1,9 +1,12 @@
 # Changelog and tags
 
+2016-11-18 fran
+	- Update to ST 08-27
+
 2016-11-16 fran
 	- Remove and FIX btag weights (included in weight_sf)
 	- Fix aux containers in systematics loop
-	
+
 2016-11-14 fran
 	- Add all 2016 data samples (from last GRL) to samples/data16_all.txt
 	- Fix btag branch in MiniTree.cxx (anyway the btag sf is included in weight_sf, so I don't use it)
