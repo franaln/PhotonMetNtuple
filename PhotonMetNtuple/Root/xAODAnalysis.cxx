@@ -35,13 +35,12 @@
 #include "CPAnalysisExamples/errorcheck.h"
 #include "SUSYTools/SUSYObjDef_xAOD.h"
 #include "SUSYTools/SUSYCrossSection.h"
+#include "PathResolver/PathResolver.h"
 
-// Amg include
 #include "EventPrimitives/EventPrimitivesHelpers.h"
 #include "xAODEgamma/EgammaxAODHelpers.h"
 #include "xAODCutFlow/CutBookkeeper.h"
 #include "xAODCutFlow/CutBookkeeperContainer.h"
-
 #include "xAODRootAccess/tools/TFileAccessTracer.h"
 
 // this is needed to distribute the algorithm to the workers
@@ -126,10 +125,10 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow_w->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
   h_cutflow_w->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
 
- TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
- h_events->SetDirectory(out_dir);
- h_cutflow->SetDirectory(out_dir);
- h_cutflow_w->SetDirectory(out_dir);
+  TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
+  h_events->SetDirectory(out_dir);
+  h_cutflow->SetDirectory(out_dir);
+  h_cutflow_w->SetDirectory(out_dir);
   
   return EL::StatusCode::SUCCESS;
 }
@@ -246,9 +245,6 @@ EL::StatusCode xAODAnalysis::initialize()
   CHECK(susytools->setProperty("ConfigFile", m_st_config_file));
 
   // Pile Up Reweighting
-  // m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15ab_defaults.NotRecommended.prw.root"); // FIX
-  // m_prw_mc_files.push_back("/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PileupReweighting/mc15c_v2_defaults.NotRecommended.prw.root");
-
   CHECK(susytools->setProperty("PRWConfigFiles", m_prw_mc_files));
   CHECK(susytools->setProperty("PRWLumiCalcFiles", m_prw_lumicalc_files));
  
@@ -865,16 +861,18 @@ void xAODAnalysis::ReadConfiguration()
 
   m_st_config_file = m_data_dir + env.GetValue("ST.ConfigFile", "");
 
-  m_ignore_prw = env.GetValue("PRW.Ignore", 0);
-  
-  TString ilumicalc_files = env.GetValue("PRW.LumiCalcFile", "");
-  for (auto s : SplitString(ilumicalc_files))
-    m_prw_lumicalc_files.push_back(m_data_dir + s);
-        
+  // need to move to PathResolver...
+  // PRW 
   TString mc_files = env.GetValue("PRW.MCFile", "");
   for (auto s : SplitString(mc_files))
     m_prw_mc_files.push_back(m_data_dir + s);
 
+  std::string ilumicalc_file_2015 = env.GetValue("PRW.LumiCalcFile2015", "");
+  std::string ilumicalc_file_2016 = env.GetValue("PRW.LumiCalcFile2016", "");
+  m_prw_lumicalc_files.push_back(m_data_dir + ilumicalc_file_2015);
+  m_prw_lumicalc_files.push_back(m_data_dir + ilumicalc_file_2016);
+
+  // GRL
   std::string grl_file_2015 = env.GetValue("GRL.File2015", "");
   std::string grl_file_2016 = env.GetValue("GRL.File2016", "");
   m_grl_files.push_back(m_data_dir + grl_file_2015);
@@ -890,14 +888,14 @@ void xAODAnalysis::DumpConfiguration()
 
   Info(APP_NAME, "ST.ConfigFile: %s", m_st_config_file.c_str());
   
-  Info(APP_NAME, "PRW.Ignore: %d", m_ignore_prw);
-
-  for (auto s : m_prw_lumicalc_files)
-    Info(APP_NAME, "PRW.LumiCalcFile: %s", s.c_str());
-
+  // PRW
   for (auto s : m_prw_mc_files)
     Info(APP_NAME, "PRW.MCFile      : %s", s.c_str());
 
+  Info(APP_NAME, "PRW.LumiCalcFile2015: %s", m_prw_lumicalc_files[0].c_str());
+  Info(APP_NAME, "PRW.LumiCalcFile2016: %s", m_prw_lumicalc_files[1].c_str());
+
+    // GRL
   Info(APP_NAME, "GRL.File2015: %s", m_grl_files[0].c_str());
   Info(APP_NAME, "GRL.File2016: %s", m_grl_files[1].c_str());
 }
