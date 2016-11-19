@@ -158,12 +158,16 @@ void loop(TString input_path, TString output_path)
     mini->new_meff = mini->new_ht + mini->met_et;
     
     // f(jet->gam) weight
-    unsigned int pt_bin  = get_pt_bin((*mini->ph_noniso_pt)[0]);
-    unsigned int eta_bin = get_eta_bin((*mini->ph_noniso_eta)[0]);
+    unsigned int pt_bin  = get_pt_bin(phpt);
+    unsigned int eta_bin = get_eta_bin(pheta);
 
-    weight_fjg    = fjg_factor[eta_bin*3+pt_bin];
-    weight_fjg_dn = fjg_factor[eta_bin*3+pt_bin] - fjg_syst_dn[eta_bin*3+pt_bin];
-    weight_fjg_up = fjg_factor[eta_bin*3+pt_bin] + fjg_syst_up[eta_bin*3+pt_bin];
+    if (pt_bin < 3 && eta_bin < 2) {
+      weight_fjg    = fjg_factor[eta_bin*3+pt_bin];
+      weight_fjg_dn = fjg_factor[eta_bin*3+pt_bin] - fjg_syst_dn[eta_bin*3+pt_bin];
+      weight_fjg_up = fjg_factor[eta_bin*3+pt_bin] + fjg_syst_up[eta_bin*3+pt_bin];
+    }
+    else
+      std::cout << "pt = " << (*mini->ph_noniso_pt)[0] << "(" << pt_bin << "), eta = " << (*mini->ph_noniso_eta)[0] <<"(" << eta_bin << ")" << std::endl;
 
     mini->Fill();
   }

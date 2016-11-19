@@ -9,6 +9,8 @@ parser = argparse.ArgumentParser(description='do_efake_jfake')
 
 parser.add_argument('-v', dest='version', required=True, help='Mini version')
 parser.add_argument('-d', dest='dids', help='Specific run (comma separated)')
+parser.add_argument('--efake', action='store_true', help='Only efake')
+parser.add_argument('--jfake', action='store_true', help='Only jfake')
 
 args = parser.parse_args()
 
@@ -32,6 +34,9 @@ if args.dids is not None:
     all_data = only_data
 
 
+do_efake = not args.jfake
+do_jfake = not args.efake
+
 for s in sorted(all_data):
 
     print 'Processing', s
@@ -40,11 +45,13 @@ for s in sorted(all_data):
     output_path_jfake = s.replace('data15_13TeV', 'jfake15').replace('data16_13TeV', 'jfake16')
 
     # efake
-    cmd = 'create_efake_mini %s %s' % (s, output_path_efake)
-    os.system(cmd)
+    if do_efake:
+        cmd = 'create_efake_mini %s %s' % (s, output_path_efake)
+        os.system(cmd)
 
     # jfake
-    cmd = 'create_jfake_mini %s %s' % (s, output_path_jfake)
-    os.system(cmd)
+    if do_jfake:
+        cmd = 'create_jfake_mini %s %s' % (s, output_path_jfake)
+        os.system(cmd)
 
 
