@@ -705,7 +705,8 @@ EL::StatusCode xAODAnalysis::execute ()
     }
   }
   
-  susytools->GetTotalJetSF(jets_nominal);
+  if (is_mc)
+    susytools->GetTotalJetSF(jets_nominal);
 
   // MC final state
   if (is_mc && is_susy_ewk) {
@@ -862,15 +863,17 @@ void xAODAnalysis::ReadConfiguration()
   m_st_config_file = m_data_dir + env.GetValue("ST.ConfigFile", "");
 
   // need to move to PathResolver...
+  // std::string grl_cvmfs_path = "/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/GoodRunsLists/";
+
   // PRW 
   TString mc_files = env.GetValue("PRW.MCFile", "");
   for (auto s : SplitString(mc_files))
-    m_prw_mc_files.push_back(m_data_dir + s);
+    m_prw_mc_files.push_back(PathResolverFindCalibFile(s));
 
   std::string ilumicalc_file_2015 = env.GetValue("PRW.LumiCalcFile2015", "");
   std::string ilumicalc_file_2016 = env.GetValue("PRW.LumiCalcFile2016", "");
-  m_prw_lumicalc_files.push_back(m_data_dir + ilumicalc_file_2015);
-  m_prw_lumicalc_files.push_back(m_data_dir + ilumicalc_file_2016);
+  m_prw_lumicalc_files.push_back(PathResolverFindCalibFile(ilumicalc_file_2015));
+  m_prw_lumicalc_files.push_back(PathResolverFindCalibFile(ilumicalc_file_2016));
 
   // GRL
   std::string grl_file_2015 = env.GetValue("GRL.File2015", "");

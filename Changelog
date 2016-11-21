@@ -1,5 +1,9 @@
 # Changelog and tags
 
+2016-11-19 fran
+	- Fix create_jfake_mini. Uset etas2 to get eta bin
+	- Tagging v46
+	
 2016-11-18 fran
 	- Update to ST 08-27
 
