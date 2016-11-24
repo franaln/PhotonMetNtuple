@@ -568,7 +568,7 @@ EL::StatusCode xAODAnalysis::execute ()
         met_track_aux = met_track_syst_aux;
 
         for (const auto& el : *electrons) {
-          if (is_data && el->auxdata<char>("baseline") == 1 &&
+          if (el->auxdata<char>("baseline") == 1 &&
               el->auxdata<char>("passOR") == 1)
             IsMediumElectron(*el);
           
@@ -655,7 +655,7 @@ EL::StatusCode xAODAnalysis::execute ()
   // Get SF and apply medium electron id
   // electrons
   for (const auto& el : *electrons_nominal) {
-    if (is_data && el->auxdata<char>("baseline") == 1 &&
+    if (el->auxdata<char>("baseline") == 1 &&
         el->auxdata<char>("passOR") == 1)
       IsMediumElectron(*el);
 
