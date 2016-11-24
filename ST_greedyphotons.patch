@@ -1,0 +1,12 @@
+Index: Root/SUSYToolsInit.cxx
+===================================================================
+--- Root/SUSYToolsInit.cxx	(revision 785110)
++++ Root/SUSYToolsInit.cxx	(working copy)
+@@ -887,6 +887,7 @@
+       ATH_CHECK( m_metMaker.setProperty("CustomJetJvtCut", -1.) );
+     }
+     
++    ATH_CHECK( m_metMaker.setProperty("GreedyPhotons", true) );
+     ATH_CHECK( m_metMaker.retrieve() );
+   }
+ 

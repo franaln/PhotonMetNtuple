@@ -13,6 +13,10 @@ PhotonMetNtuple
     rc checkout packages.txt
     rc checkout SUSYTools/doc/packages.txt
 
+    cd SUSYTools
+    patch -p0 -i ../ST_greedyphotons.patch
+    cd ..
+
     rc find_packages
     rc clean
     rc compile
