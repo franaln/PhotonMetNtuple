@@ -1,7 +1,8 @@
 # Changelog and tags
 
 2016-11-24 fran
-	- ST hack to apply GreedyPhotons = true in METMaker
+	- ST hack to apply GreedyPhotons = true in METMaker -> v47
+	- FIX: Apply electron medium decoration also for MC samples
 
 2016-11-19 fran
 	- Fix create_jfake_mini. Uset etas2 to get eta bin

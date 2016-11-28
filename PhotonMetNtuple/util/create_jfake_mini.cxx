@@ -98,7 +98,7 @@ void loop(TString input_path, TString output_path)
     // Photon/Electron blocks
     // Interchange ph_noniso <-> photon
 
-    // skip event with one signal photon
+    // skip event with one signal photon (yes?)
     if (mini->ph_n > 0 && (*mini->ph_pt)[0] > 145.)
       continue;
 
@@ -117,8 +117,8 @@ void loop(TString input_path, TString output_path)
     if (pheta > 1.37 && pheta < 1.52) // crack region
       continue;
 
-    // skip event if iso > 29.45
-    if ((*mini->ph_noniso_iso)[0] > 29.45)
+    // only keep events with noniso photons in B region: 5.45 < iso < 29.45
+    if ((*mini->ph_noniso_iso)[0] < 5.45 || (*mini->ph_noniso_iso)[0] > 29.45)
       continue;
 
     mini->new_ph_n = 1;
@@ -162,9 +162,12 @@ void loop(TString input_path, TString output_path)
     unsigned int eta_bin = get_eta_bin(pheta);
 
     if (pt_bin < 3 && eta_bin < 2) {
-      weight_fjg    = fjg_factor[eta_bin*3+pt_bin];
-      weight_fjg_dn = fjg_factor[eta_bin*3+pt_bin] - fjg_syst_dn[eta_bin*3+pt_bin];
-      weight_fjg_up = fjg_factor[eta_bin*3+pt_bin] + fjg_syst_up[eta_bin*3+pt_bin];
+
+      unsigned int bin = eta_bin*3+pt_bin;
+      
+      weight_fjg    = fjg_factor[bin];
+      weight_fjg_dn = fjg_factor[bin] - fjg_syst_dn[bin];
+      weight_fjg_up = fjg_factor[bin] + fjg_syst_up[bin];
     }
     else
       std::cout << "pt = " << (*mini->ph_noniso_pt)[0] << "(" << pt_bin << "), eta = " << (*mini->ph_noniso_eta)[0] <<"(" << eta_bin << ")" << std::endl;
