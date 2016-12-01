@@ -92,20 +92,19 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("lb", &lb, &b_lb);
    orig_tree->SetBranchAddress("event", &event, &b_event);
    orig_tree->SetBranchAddress("avgmu", &avgmu, &b_avgmu);
-   orig_tree->SetBranchAddress("pass_tst_cleaning", &pass_tst_cleaning, &b_pass_tst_cleaning);
+   //orig_tree->SetBranchAddress("pass_tst_cleaning", &pass_tst_cleaning, &b_pass_tst_cleaning);
    orig_tree->SetBranchAddress("year", &year, &b_year);
-   orig_tree->SetBranchAddress("mcveto", &mcveto, &b_mcveto);
-   orig_tree->SetBranchAddress("pass_g120", &pass_g120, &b_pass_g120);
-   orig_tree->SetBranchAddress("pass_g140", &pass_g140, &b_pass_g140);
-   if (m_ismc)    orig_tree->SetBranchAddress("fs", &fs, &b_final_state);
-
+   if (m_ismc) orig_tree->SetBranchAddress("mcveto", &mcveto, &b_mcveto);
+   orig_tree->SetBranchAddress("pass_g120_loose", &pass_g120, &b_pass_g120);
+   orig_tree->SetBranchAddress("pass_g140_loose", &pass_g140, &b_pass_g140);
+   if (m_ismc) orig_tree->SetBranchAddress("fs", &fs, &b_final_state);
 
    orig_tree->SetBranchAddress("weight_mc", &weight_mc, &b_weight_mc);
    orig_tree->SetBranchAddress("weight_pu", &weight_pu, &b_weight_pu);
    orig_tree->SetBranchAddress("weight_pu_down", &weight_pu_down, &b_weight_pu_down);
    orig_tree->SetBranchAddress("weight_pu_up", &weight_pu_up, &b_weight_pu_up);
    orig_tree->SetBranchAddress("weight_sf", &weight_sf, &b_weight_sf);
-   orig_tree->SetBranchAddress("weight_btag", &weight_btag, &b_weight_btag);
+   //   orig_tree->SetBranchAddress("weight_btag", &weight_btag, &b_weight_btag);
    orig_tree->SetBranchAddress("PRWHash", &PRWHash, &b_PRWHash);
 
    if (m_efake_sample) {
@@ -268,11 +267,11 @@ void MiniClone::CreateCloneTree()
   clone_tree->Branch("avgmu", &new_avgmu, "avgmu/F");
   clone_tree->Branch("fs", &new_fs, "fs/i");
 
-  clone_tree->Branch("pass_tst_cleaning", &new_pass_tst_cleaning, "pass_tst_cleaning/i");
+  //clone_tree->Branch("pass_tst_cleaning", &new_pass_tst_cleaning, "pass_tst_cleaning/i");
   clone_tree->Branch("year", &new_year, "year/i");
-  clone_tree->Branch("mcveto", &new_mcveto, "mcveto/i");
-  clone_tree->Branch("pass_g120", &new_pass_g120, "pass_g120/i");
-  clone_tree->Branch("pass_g140", &new_pass_g140, "pass_g140/i");
+  if (m_ismc) clone_tree->Branch("mcveto", &new_mcveto, "mcveto/i");
+  clone_tree->Branch("pass_g120_loose", &new_pass_g120, "pass_g120/i");
+  clone_tree->Branch("pass_g140_loose", &new_pass_g140, "pass_g140/i");
 
   clone_tree->Branch("weight_mc", &new_weight_mc, "weight_mc/F");
   clone_tree->Branch("weight_pu", &new_weight_pu, "weight_pu/F");
@@ -280,7 +279,7 @@ void MiniClone::CreateCloneTree()
   clone_tree->Branch("weight_pu_down", &new_weight_pu_down, "weight_pu_down/F");
   clone_tree->Branch("weight_pu_up", &new_weight_pu_up, "weight_pu_up/F");
   clone_tree->Branch("PRWHash", &new_PRWHash, "PRWHash/l");
-  clone_tree->Branch("weight_btag", &new_weight_btag, "weight_btag/F");
+  //  clone_tree->Branch("weight_btag", &new_weight_btag, "weight_btag/F");
 
   if (m_efake_sample) {
     clone_tree->Branch("weight_feg",    &new_weight_feg,    "weight_mc/F");
@@ -542,7 +541,6 @@ void MiniClone::CopyEventBlock()
 
   if (m_ismc) new_fs = fs;
 
-  new_pass_tst_cleaning = pass_tst_cleaning;
   new_year = year;
   new_PRWHash = PRWHash;
 
@@ -557,7 +555,7 @@ void MiniClone::CopyWeightBlock()
   new_weight_pu_down = weight_pu_down;
   new_weight_pu_up = weight_pu_up;
   new_weight_sf = weight_sf;
-  new_weight_btag = weight_btag;
+  //  new_weight_btag = weight_btag;
 
   if (m_efake_sample) {
     new_weight_feg = weight_feg;
