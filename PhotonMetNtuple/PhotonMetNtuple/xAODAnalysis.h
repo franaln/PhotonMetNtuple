@@ -56,7 +56,6 @@ private:
   // configuration
   std::vector<std::string> SplitString(TString); //!
   void ReadConfiguration(); //!
-  void DumpConfiguration(); //!
 
   std::string m_data_dir; //!
   std::string m_st_config_file; //!

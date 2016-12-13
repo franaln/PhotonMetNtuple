@@ -3,7 +3,7 @@ PhotonMetNtuple
 
 ## Current Base and SUSYTools release
 
-    AnalysisBase,2.4.22 (+ SUSYTools-00-08-27)
+    AnalysisBase,2.4.24 (+ SUSYTools-00-08-33)
 
 
 ## Compile
@@ -12,10 +12,6 @@ PhotonMetNtuple
 
     rc checkout packages.txt
     rc checkout SUSYTools/doc/packages.txt
-
-    cd SUSYTools
-    patch -p0 -i ../ST_greedyphotons.patch
-    cd ..
 
     rc find_packages
     rc clean

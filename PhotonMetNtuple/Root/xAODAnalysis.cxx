@@ -231,7 +231,6 @@ EL::StatusCode xAODAnalysis::initialize()
   config_file = m_data_dir + config_file;
 
   ReadConfiguration();
-  DumpConfiguration();
 
   // ST Options
   ST::ISUSYObjDef_xAODTool::DataSource datasource = (is_data ? ST::ISUSYObjDef_xAODTool::Data : (is_atlfast ? ST::ISUSYObjDef_xAODTool::AtlfastII : ST::ISUSYObjDef_xAODTool::FullSim));
@@ -858,22 +857,32 @@ std::vector<std::string> xAODAnalysis::SplitString(TString line){
 
 void xAODAnalysis::ReadConfiguration()
 {
+
+  Info(APP_NAME, "Loading configuration from: %s", config_file.c_str());
+
   TEnv env(config_file.c_str());
 
   m_st_config_file = m_data_dir + env.GetValue("ST.ConfigFile", "");
+  Info(APP_NAME, "ST configfile: %s", m_st_config_file.c_str());
 
   // need to move to PathResolver...
   // std::string grl_cvmfs_path = "/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/GoodRunsLists/";
 
   // PRW 
   TString mc_files = env.GetValue("PRW.MCFile", "");
-  for (auto s : SplitString(mc_files))
-    m_prw_mc_files.push_back(PathResolverFindCalibFile(s));
+  for (auto s : SplitString(mc_files)) {
+    std::string mcf = PathResolverFindCalibFile(s);
+    m_prw_mc_files.push_back(mcf);
+    Info(APP_NAME, "PRW.MCFile      : %s", mcf.c_str());
+  }
 
   std::string ilumicalc_file_2015 = env.GetValue("PRW.LumiCalcFile2015", "");
   std::string ilumicalc_file_2016 = env.GetValue("PRW.LumiCalcFile2016", "");
   m_prw_lumicalc_files.push_back(PathResolverFindCalibFile(ilumicalc_file_2015));
   m_prw_lumicalc_files.push_back(PathResolverFindCalibFile(ilumicalc_file_2016));
+
+  Info(APP_NAME, "PRW.LumiCalcFile2015: %s", m_prw_lumicalc_files[0].c_str());
+  Info(APP_NAME, "PRW.LumiCalcFile2016: %s", m_prw_lumicalc_files[1].c_str());
 
   // GRL
   std::string grl_file_2015 = env.GetValue("GRL.File2015", "");
@@ -881,24 +890,8 @@ void xAODAnalysis::ReadConfiguration()
   m_grl_files.push_back(m_data_dir + grl_file_2015);
   m_grl_files.push_back(m_data_dir + grl_file_2016);
 
-}
-
-void xAODAnalysis::DumpConfiguration()
-{
-  Info(APP_NAME, "-- DumpConfiguration");
-
-  Info(APP_NAME, "Using configfile: %s", config_file.c_str());
-
-  Info(APP_NAME, "ST.ConfigFile: %s", m_st_config_file.c_str());
-  
-  // PRW
-  for (auto s : m_prw_mc_files)
-    Info(APP_NAME, "PRW.MCFile      : %s", s.c_str());
-
-  Info(APP_NAME, "PRW.LumiCalcFile2015: %s", m_prw_lumicalc_files[0].c_str());
-  Info(APP_NAME, "PRW.LumiCalcFile2016: %s", m_prw_lumicalc_files[1].c_str());
-
-    // GRL
   Info(APP_NAME, "GRL.File2015: %s", m_grl_files[0].c_str());
   Info(APP_NAME, "GRL.File2016: %s", m_grl_files[1].c_str());
+
 }
+
