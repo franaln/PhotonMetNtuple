@@ -86,7 +86,8 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> ph_eta_map;
   std::map<const std::string, std::vector<float>*> ph_etas2_map;
   std::map<const std::string, std::vector<float>*> ph_phi_map;
-  std::map<const std::string, std::vector<float>*> ph_iso40_map;
+  std::map<const std::string, std::vector<float>*> ph_etcone40_map;
+  std::map<const std::string, std::vector<float>*> ph_ptcone20_map;
   std::map<const std::string, std::vector<float>*> ph_iso_map;
   std::map<const std::string, std::vector<float>*> ph_w_map;
 
@@ -95,6 +96,8 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> ph_noniso_eta_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_etas2_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_phi_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_etcone40_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_ptcone20_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_iso_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_w_map;
 
@@ -149,6 +152,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, float> met_jet_et_map;
   std::map<const std::string, float> met_jet_phi_map;
 
+  std::map<const std::string, float> ht0_map;
   std::map<const std::string, float> ht_map;
   std::map<const std::string, float> meff_map;
 
@@ -157,9 +161,13 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, float> rt3_map;
   std::map<const std::string, float> rt4_map;
 
+  std::map<const std::string, float> dphi_jet1met_map;
   std::map<const std::string, float> dphi_jetmet_map;
   std::map<const std::string, float> dphi_gamjet_map;
   std::map<const std::string, float> dphi_gammet_map;
+
+  std::map<const std::string, float> mt_gam_map;
+  std::map<const std::string, float> dphi_met_trackmet_map;
 
   std::map<const std::string, float> weight_sf_map;
 
@@ -174,7 +182,8 @@ protected:
   std::vector<float> *ph_eta;
   std::vector<float> *ph_etas2;
   std::vector<float> *ph_phi;
-  std::vector<float> *ph_iso40;
+  std::vector<float> *ph_etcone40;
+  std::vector<float> *ph_ptcone20;
   std::vector<float> *ph_iso;
   std::vector<float> *ph_w;
 
@@ -189,6 +198,8 @@ protected:
   std::vector<float> *ph_noniso_eta;
   std::vector<float> *ph_noniso_etas2;
   std::vector<float> *ph_noniso_phi;
+  std::vector<float> *ph_noniso_etcone40;
+  std::vector<float> *ph_noniso_ptcone20;
   std::vector<float> *ph_noniso_iso;
   std::vector<float> *ph_noniso_w;
 
