@@ -1087,12 +1087,13 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
     dphi_gamjet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*jet_phi_map[sysname])[0]);
   
   // dphi between leading photon and MET
-  if (ph_n > 0)
+  if (ph_n > 0) {
     dphi_gammet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], met_phi_map[sysname]);
 
-  // MT
-  Float_t mt2_gam = 2 * met_et_map[sysname] * (*ph_pt_map[sysname])[0] * (1 - TMath::Cos(dphi_gammet_map[sysname]));
-  mt_gam_map[sysname] = TMath::Sqrt(mt2_gam);
+    // MT
+    Float_t mt2_gam = 2 * met_et_map[sysname] * (*ph_pt_map[sysname])[0] * (1 - TMath::Cos(dphi_gammet_map[sysname]));
+    mt_gam_map[sysname] = TMath::Sqrt(mt2_gam);
+  }
 
   // Add dphi met track
   dphi_met_trackmet_map[sysname] = get_dphi(met_phi_map[sysname], met_track_phi_map[sysname]);
