@@ -1,5 +1,10 @@
 # Changelog and tags
 
+2016-12-15 fran
+	- Update to AB 2.4.24 + ST 08-33
+	- Add ptcone20/etcone40 variables
+	- Add mt_gam, dphi_jet1met, dphi_met_trackmet, ht0, ...
+	
 2016-11-24 fran
 	- ST hack to apply GreedyPhotons = true in METMaker -> v47
 	- FIX: Apply electron medium decoration also for MC samples

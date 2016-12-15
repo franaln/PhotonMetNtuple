@@ -22,6 +22,7 @@ PhotonMetNtuple
 
 * PRW MC and ilumicalc files used from cvmfs using PathResolver, still configured via configfile
 
+* To run over signal samples copy the PRW file from /afs/cern.ch/user/f/falonso/public/SUSY/PMN_data to PhotonMetNtuple/data/
 
 ## Run
 
