@@ -33,6 +33,7 @@ MiniTree::~MiniTree()
       delete ph_etcone40_map[sys_name];
       delete ph_ptcone20_map[sys_name];
       delete ph_iso_map[sys_name];
+      delete ph_trackiso_map[sys_name];
       delete ph_w_map[sys_name];
 
       delete ph_noniso_pt_map[sys_name];
@@ -42,6 +43,7 @@ MiniTree::~MiniTree()
       delete ph_noniso_etcone40_map[sys_name];
       delete ph_noniso_ptcone20_map[sys_name];
       delete ph_noniso_iso_map[sys_name];
+      delete ph_noniso_trackiso_map[sys_name];
       delete ph_noniso_w_map[sys_name];
       
       delete jet_pt_map[sys_name];
@@ -79,6 +81,7 @@ MiniTree::~MiniTree()
   delete ph_etcone40_map["Nominal"];
   delete ph_ptcone20_map["Nominal"];
   delete ph_iso_map["Nominal"];
+  delete ph_trackiso_map["Nominal"];
   delete ph_w_map["Nominal"];
 
   delete ph_noniso_pt_map["Nominal"];
@@ -88,6 +91,7 @@ MiniTree::~MiniTree()
   delete ph_noniso_etcone40_map["Nominal"];  
   delete ph_noniso_ptcone20_map["Nominal"];
   delete ph_noniso_iso_map["Nominal"];
+  delete ph_noniso_trackiso_map["Nominal"];
   delete ph_noniso_w_map["Nominal"];
 
   delete jet_pt_map["Nominal"];
@@ -133,6 +137,7 @@ StatusCode MiniTree::initialize()
   ph_etcone40 = new std::vector<float>();
   ph_ptcone20 = new std::vector<float>();
   ph_iso = new std::vector<float>();
+  ph_trackiso = new std::vector<float>();
   ph_w = new std::vector<float>();
 
   ph_truth_pt = new std::vector<float>(); 
@@ -149,6 +154,7 @@ StatusCode MiniTree::initialize()
   ph_noniso_etcone40 = new std::vector<float>();
   ph_noniso_ptcone20 = new std::vector<float>();
   ph_noniso_iso = new std::vector<float>();
+  ph_noniso_trackiso = new std::vector<float>();
   ph_noniso_w = new std::vector<float>();
 
   jet_pt = new std::vector<float>(); 
@@ -217,6 +223,7 @@ StatusCode MiniTree::initialize()
   tree->Branch("ph_etcone40", ph_etcone40);
   tree->Branch("ph_ptcone20", ph_ptcone20);
   tree->Branch("ph_iso", ph_iso);
+  tree->Branch("ph_trackiso", ph_trackiso);
   tree->Branch("ph_w",   ph_w);
 
   if (m_ismc) {
@@ -236,6 +243,7 @@ StatusCode MiniTree::initialize()
   tree->Branch("ph_noniso_etcone40", ph_noniso_etcone40);
   tree->Branch("ph_noniso_ptcone20", ph_noniso_ptcone20);
   tree->Branch("ph_noniso_iso", ph_noniso_iso);
+  tree->Branch("ph_noniso_trackiso", ph_noniso_trackiso);
   tree->Branch("ph_noniso_w",   ph_noniso_w);
 
   tree->Branch("jet_n", &jet_n_map["Nominal"], "jet_n/I");
@@ -315,6 +323,7 @@ StatusCode MiniTree::initialize()
   ph_etcone40_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_etcone40));
   ph_ptcone20_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_ptcone20));
   ph_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_iso));
+  ph_trackiso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_trackiso));
   ph_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_w));
 
   ph_noniso_n_map.insert (std::pair<std::string, int>(sys_name, 0));
@@ -325,6 +334,7 @@ StatusCode MiniTree::initialize()
   ph_noniso_etcone40_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_etcone40));
   ph_noniso_ptcone20_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_ptcone20));
   ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
+  ph_noniso_trackiso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_trackiso));
   ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
 
   jet_n_map.insert  (std::pair<std::string, int>(sys_name, 0));
@@ -412,6 +422,7 @@ StatusCode MiniTree::initialize()
       ph_etas2 = new std::vector<float>();
       ph_phi = new std::vector<float>();
       ph_iso = new std::vector<float>();
+      ph_trackiso = new std::vector<float>();
       ph_etcone40 = new std::vector<float>();
       ph_ptcone20 = new std::vector<float>();
       ph_w = new std::vector<float>();
@@ -423,6 +434,7 @@ StatusCode MiniTree::initialize()
       ph_noniso_etcone40 = new std::vector<float>();
       ph_noniso_ptcone20 = new std::vector<float>();
       ph_noniso_iso = new std::vector<float>();
+      ph_noniso_trackiso = new std::vector<float>();
       ph_noniso_w = new std::vector<float>();
 
       jet_pt = new std::vector<float>(); 
@@ -491,6 +503,7 @@ StatusCode MiniTree::initialize()
           tree->Branch(BookName("ph_etcone40", sys_name), ph_etcone40);
           tree->Branch(BookName("ph_ptcone20", sys_name), ph_ptcone20);
           tree->Branch(BookName("ph_iso", sys_name), ph_iso);
+          tree->Branch(BookName("ph_trackiso", sys_name), ph_trackiso);
 
           tree->Branch(BookName("ph_noniso_n", sys_name), &ph_noniso_n_map[sys_name], BookName("ph_noniso_n", sys_name)+"/I");
           tree->Branch(BookName("ph_noniso_pt", sys_name) , ph_noniso_pt);
@@ -500,6 +513,7 @@ StatusCode MiniTree::initialize()
           tree->Branch(BookName("ph_noniso_etcone40", sys_name), ph_noniso_etcone40);
           tree->Branch(BookName("ph_noniso_ptcone20", sys_name), ph_noniso_ptcone20);
           tree->Branch(BookName("ph_noniso_iso", sys_name), ph_noniso_iso);
+          tree->Branch(BookName("ph_noniso_trackiso", sys_name), ph_noniso_trackiso);
 	  	}
 
       }
@@ -578,6 +592,7 @@ StatusCode MiniTree::initialize()
       ph_etcone40_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_etcone40));
       ph_ptcone20_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_ptcone20));
       ph_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_iso));
+      ph_trackiso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_trackiso));
       ph_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_w));
 
       ph_noniso_n_map.insert(std::pair<std::string, int>(sys_name, 0));
@@ -588,6 +603,7 @@ StatusCode MiniTree::initialize()
       ph_noniso_etcone40_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_etcone40));
       ph_noniso_ptcone20_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_ptcone20));
       ph_noniso_iso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_iso));
+      ph_noniso_trackiso_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_trackiso));
       ph_noniso_w_map.insert(std::pair<std::string, std::vector<float>*>(sys_name, ph_noniso_w));
 
       jet_n_map.insert(std::pair<std::string, int>(sys_name, 0));
@@ -695,6 +711,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   ph_etcone40_map[sysname]->clear();
   ph_ptcone20_map[sysname]->clear();
   ph_iso_map[sysname]->clear();
+  ph_trackiso_map[sysname]->clear();
   ph_w_map[sysname]->clear();
 
   if (m_ismc) {
@@ -713,6 +730,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   ph_noniso_etcone40_map[sysname]->clear();
   ph_noniso_ptcone20_map[sysname]->clear();
   ph_noniso_iso_map[sysname]->clear();
+  ph_noniso_trackiso_map[sysname]->clear();
   ph_noniso_w_map[sysname]->clear();
   
   jet_pt_map[sysname]->clear();
@@ -913,9 +931,12 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
       float etcone40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
       float ptcone20 = ph_itr->isolationValue(xAOD::Iso::ptcone20)*IGEV;
 
-      float iso = etcone40 - 0.022 * ph_itr->pt()*IGEV; // iso without pt dependence
+      float pt_gev = ph_itr->pt()*IGEV;
 
-      // isolated (iso<2.45)
+      float calo_iso  = etcone40 - 0.022 * pt_gev ; // calo iso without pt dependence
+      float track_iso = ptcone20 / pt_gev;          // track iso without pt dependence
+
+      // isolated (only calo iso < 2.45)
       if (ph_itr->auxdata<char>("isol") == 1) {
 
         ph_n += 1;
@@ -927,7 +948,8 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
         ph_etcone40_map[sysname]->push_back(etcone40);
         ph_ptcone20_map[sysname]->push_back(ptcone20);
 
-        ph_iso_map[sysname]->push_back(iso);
+        ph_iso_map[sysname]      ->push_back(calo_iso);
+        ph_trackiso_map[sysname] ->push_back(track_iso);
 
         double sf = 1.;
         if (m_ismc)
@@ -970,7 +992,9 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
         ph_noniso_etcone40_map[sysname]->push_back(etcone40);
         ph_noniso_ptcone20_map[sysname]->push_back(ptcone20);
-        ph_noniso_iso_map[sysname]     ->push_back(iso);
+
+        ph_noniso_iso_map[sysname]      ->push_back(calo_iso);
+        ph_noniso_trackiso_map[sysname] ->push_back(track_iso);
         
         double sf = 1.;
         if (m_ismc)
@@ -1081,7 +1105,6 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
     dphi_jetmet_map[sysname] = TMath::Min(dphi1, dphi2);
   }
 
-  
   // dphi between leading photon and leading jet
   if (ph_n > 0 && jet_n > 0) 
     dphi_gamjet_map[sysname] = get_dphi((*ph_phi_map[sysname])[0], (*jet_phi_map[sysname])[0]);

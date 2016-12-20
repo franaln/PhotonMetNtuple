@@ -10,14 +10,8 @@
 #include <vector>
 #include <iostream>
 
+#include <PhotonMetNtuple/Utils.h>
 #include <PhotonMetNtuple/MiniClone.h>
-
-float get_dphi(float phi1, float phi2)
-{
-  float  phi = fabs(phi1 - phi2);
-  if(phi <= TMath::Pi())  return phi;
-  else                    return (2 * TMath::Pi() - phi);
-}
 
 float fjg_factor[2*3] = {
   0.147, 0.133, 0.124, // eta < 1.37:  145<pt<175, 175<pt<225, pt>225
@@ -92,13 +86,7 @@ void loop(TString input_path, TString output_path)
     if (total_events>10 && jentry%msg_interval == 0) 
       std::cout << "Processing event " << jentry << " of " << total_events << std::endl;
     
-    // clear
-    mini->Clear();
-
-    // Photon/Electron blocks
-    // Interchange ph_noniso <-> photon
-
-    // skip event with one signal photon (yes?)
+    // skip event with one signal iso photon 
     if (mini->ph_n > 0 && (*mini->ph_pt)[0] > 145.)
       continue;
 
@@ -106,10 +94,17 @@ void loop(TString input_path, TString output_path)
     if (mini->ph_noniso_n == 0) 
       continue;
 
+
+    // clear
+    mini->Clear();
+
+    // Photon/Electron blocks
+    // Interchange ph_noniso <-> photon
+
     // skip event if non iso photon not in acceptance region
-    float pheta = fabs((*mini->ph_noniso_etas2)[0]); // etas2 only for mini >= v41
     float phpt  = (*mini->ph_noniso_pt)[0];
     float phphi = (*mini->ph_noniso_phi)[0];
+    float pheta = fabs((*mini->ph_noniso_etas2)[0]); // etas2 only for mini >= v41
     
     if (phpt < 145. || pheta > 2.37)
       continue;
@@ -143,17 +138,9 @@ void loop(TString input_path, TString output_path)
     // Replace some variables with noniso photon instead of photon
     mini->new_dphi_gammet = get_dphi(phphi, mini->met_phi);
     
-    if (mini->jet_n > 0) mini->new_dphi_gamjet = get_dphi(phphi, (*mini->jet_phi)[0]);
-    
-    Float_t dphi1 = 99.;
-    Float_t dphi2 = 99.;
-    if (mini->jet_n > 0) dphi1 = get_dphi(phphi, (*mini->jet_phi)[0]);
-    if (mini->jet_n > 1) dphi2 = get_dphi(phphi, (*mini->jet_phi)[1]);
-
-    mini->new_dphi_jetmet = TMath::Min(dphi1, dphi2);
-    if (mini->new_dphi_jetmet > 4.)
-      mini->new_dphi_jetmet = -99.;
-    
+    if (mini->jet_n > 0) 
+      mini->new_dphi_gamjet = get_dphi(phphi, (*mini->jet_phi)[0]);
+   
     mini->new_ht = mini->ht + phpt;
     mini->new_meff = mini->new_ht + mini->met_et;
     

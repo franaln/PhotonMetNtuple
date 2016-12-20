@@ -89,6 +89,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> ph_etcone40_map;
   std::map<const std::string, std::vector<float>*> ph_ptcone20_map;
   std::map<const std::string, std::vector<float>*> ph_iso_map;
+  std::map<const std::string, std::vector<float>*> ph_trackiso_map;
   std::map<const std::string, std::vector<float>*> ph_w_map;
 
   std::map<const std::string, int> ph_noniso_n_map;
@@ -99,6 +100,7 @@ class MiniTree : public asg::AsgMetadataTool {
   std::map<const std::string, std::vector<float>*> ph_noniso_etcone40_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_ptcone20_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_iso_map;
+  std::map<const std::string, std::vector<float>*> ph_noniso_trackiso_map;
   std::map<const std::string, std::vector<float>*> ph_noniso_w_map;
 
   std::map<const std::string, int> jet_n_map;
@@ -177,7 +179,6 @@ protected:
   std::vector<ST::SystInfo> m_sys_list;
   Bool_t m_ismc;
 
-
   std::vector<float> *ph_pt; 
   std::vector<float> *ph_eta;
   std::vector<float> *ph_etas2;
@@ -185,6 +186,7 @@ protected:
   std::vector<float> *ph_etcone40;
   std::vector<float> *ph_ptcone20;
   std::vector<float> *ph_iso;
+  std::vector<float> *ph_trackiso;
   std::vector<float> *ph_w;
 
   std::vector<float> *ph_truth_pt; 
@@ -201,6 +203,7 @@ protected:
   std::vector<float> *ph_noniso_etcone40;
   std::vector<float> *ph_noniso_ptcone20;
   std::vector<float> *ph_noniso_iso;
+  std::vector<float> *ph_noniso_trackiso;
   std::vector<float> *ph_noniso_w;
 
   std::vector<float> *jet_pt; 

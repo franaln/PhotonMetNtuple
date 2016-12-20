@@ -580,6 +580,7 @@ void MiniClone::CopyMetBlock()
 
     new_met_track_et  = met_track_et;
     new_met_track_phi = met_track_phi;
+
     new_met_soft_et  = met_soft_et;
     new_met_soft_phi = met_soft_phi;
     new_met_ele_et  = met_ele_et;

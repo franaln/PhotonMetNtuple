@@ -10,16 +10,10 @@
 #include <vector>
 #include <iostream>
 
+#include <PhotonMetNtuple/Utils.h>
 #include <PhotonMetNtuple/MiniClone.h>
 
-float get_dphi(float phi1, float phi2)
-{
-  float  phi = fabs(phi1 - phi2);
-  if(phi <= TMath::Pi())  return phi;
-  else                    return (2 * TMath::Pi() - phi);
-}
-
-float feg_factor[]    = {0.012, 0.016, 0.028, 0.045};
+float feg_factor[]    = {0.012, 0.016, 0.028, 0.045}; // eta bins
 float feg_factor_up[] = {0.016, 0.023, 0.037, 0.055};
 float feg_factor_dn[] = {0.008, 0.009, 0.019, 0.035};
 
@@ -71,24 +65,24 @@ void loop(TString input_path, TString output_path)
     if (total_events>10 && jentry%msg_interval == 0) 
       std::cout << "Processing event " << jentry << " of " << total_events << std::endl;
     
-    // clear
-    mini->Clear();
-
-
-    // Photon/Electron blocks
-    // Interchange el_medium <-> photon
 
     // skip event with one signal photon
     if (mini->ph_n > 0 && (*mini->ph_pt)[0] > 145.)
       continue;
 
     // skip event without medium electrons (?)
-    if (mini->el_medium_n == 0) 
+    if (mini->el_medium_n == 0)
       continue;
+
+    // clear
+    mini->Clear();
+
+    // Photon/Electron blocks
+    // Interchange el_medium <-> photon
 
     // skip event if medium electron not in acceptance region
     float eleta = fabs((*mini->el_medium_etas2)[0]);
-    float elpt = (*mini->el_medium_pt)[0];
+    float elpt  = (*mini->el_medium_pt)[0];
     float elphi = (*mini->el_medium_phi)[0];
     
     if (elpt < 145. || eleta > 2.37)
@@ -110,7 +104,7 @@ void loop(TString input_path, TString output_path)
     // medium electrons/nominal elecrons matching
     int match_idx = -1;
     for (int i=0; i<mini->el_n; i++) {
-      if (((*mini->el_pt)[i] - elpt) < 5 &&  ((*mini->el_phi)[i] - elphi) < 0.1) {
+      if (((*mini->el_pt)[i] - elpt) < 1 &&  ((*mini->el_phi)[i] - elphi) < 0.01 && (fabs((*mini->el_eta)[i]) - eleta) < 0.01) {
         match_idx = i;
         break;
       }
@@ -138,20 +132,10 @@ void loop(TString input_path, TString output_path)
     mini->CopyOthersBlock();
     
     // Replace some variables with electron instead of photon
-    
     mini->new_dphi_gammet = get_dphi(elphi, mini->met_phi);
     
     if (mini->jet_n > 0) mini->new_dphi_gamjet = get_dphi(elphi, (*mini->jet_phi)[0]);
     
-    Float_t dphi1 = 99.;
-    Float_t dphi2 = 99.;
-    if (mini->jet_n > 0) dphi1 = get_dphi(elphi, (*mini->jet_phi)[0]);
-    if (mini->jet_n > 1) dphi2 = get_dphi(elphi, (*mini->jet_phi)[1]);
-
-    mini->new_dphi_jetmet = TMath::Min(dphi1, dphi2);
-    if (mini->new_dphi_jetmet > 4.)
-      mini->new_dphi_jetmet = -99.;
-
     mini->new_ht = mini->ht + elpt;
     mini->new_meff = mini->new_ht + mini->met_et;
 
