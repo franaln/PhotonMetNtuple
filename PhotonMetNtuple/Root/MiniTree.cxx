@@ -210,7 +210,6 @@ StatusCode MiniTree::initialize()
   tree->Branch("weight_pu", &weight_pu, "weight_pu/F");
   tree->Branch("weight_pu_down", &weight_pu_down, "weight_pu_down/F");
   tree->Branch("weight_pu_up", &weight_pu_up, "weight_pu_up/F");
-
   tree->Branch("PRWHash", &PRWHash, "PRWHash/l"); // for PURW
 
 

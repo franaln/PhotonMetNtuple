@@ -98,7 +98,9 @@ void loop(TString input_path, TString output_path)
     mini->new_ph_etas2->push_back((*mini->el_medium_etas2)[0]);
     mini->new_ph_phi->push_back(elphi);
     mini->new_ph_iso->push_back(0.);
-    mini->new_ph_iso40->push_back(0.);
+    mini->new_ph_trackiso->push_back(0.);
+    mini->new_ph_etcone40->push_back(0.);
+    mini->new_ph_ptcone20->push_back(0.);
     mini->new_ph_w->push_back(1.);
     
     // medium electrons/nominal elecrons matching

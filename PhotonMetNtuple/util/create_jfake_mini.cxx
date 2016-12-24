@@ -123,7 +123,9 @@ void loop(TString input_path, TString output_path)
     mini->new_ph_etas2->push_back((*mini->ph_noniso_etas2)[0]);
     mini->new_ph_phi->push_back(phphi);
     mini->new_ph_iso->push_back(0.);
-    mini->new_ph_iso40->push_back(0.);
+    mini->new_ph_trackiso->push_back(0.);
+    mini->new_ph_etcone40->push_back(0.);
+    mini->new_ph_ptcone20->push_back(0.);
     mini->new_ph_w->push_back(1.);
     
     mini->CopyElectronsBlock();
@@ -135,11 +137,22 @@ void loop(TString input_path, TString output_path)
     mini->CopyMetBlock();
     mini->CopyOthersBlock();
 
+    // std::cout << "---" << std::endl;
+    // std::cout << "dphi_jetmet mini: " << mini->dphi_jetmet << " copy: " << mini->new_dphi_jetmet << std::endl;
+    // std::cout << "dphi_gammet mini: " << mini->dphi_gammet << " copy: " << mini->new_dphi_gammet << std::endl;
+    // std::cout << "dphi_gamjet mini: " << mini->dphi_gamjet << " copy: " << mini->new_dphi_gamjet << std::endl;
+    // std::cout << "---" << std::endl;
+   
     // Replace some variables with noniso photon instead of photon
     mini->new_dphi_gammet = get_dphi(phphi, mini->met_phi);
     
     if (mini->jet_n > 0) 
       mini->new_dphi_gamjet = get_dphi(phphi, (*mini->jet_phi)[0]);
+
+    // std::cout << "dphi_jetmet mini: " << mini->dphi_jetmet << " copy: " << mini->new_dphi_jetmet << std::endl;
+    // std::cout << "dphi_gammet mini: " << mini->dphi_gammet << " copy: " << mini->new_dphi_gammet << std::endl;
+    // std::cout << "dphi_gamjet mini: " << mini->dphi_gamjet << " copy: " << mini->new_dphi_gamjet << std::endl;
+    // std::cout << "---" << std::endl;
    
     mini->new_ht = mini->ht + phpt;
     mini->new_meff = mini->new_ht + mini->met_et;

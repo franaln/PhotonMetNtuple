@@ -1,6 +1,8 @@
 #ifndef Utils_h
 #define Utils_h
 
-double get_dphi(Double_t, Double_t);
+float get_dphi(float, float);
+float get_deta(float, float);
+float get_dr(float, float, float, float);
 
 #endif
