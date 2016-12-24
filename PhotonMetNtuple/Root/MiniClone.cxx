@@ -320,7 +320,7 @@ void MiniClone::CreateCloneTree()
   clone_tree->Branch("ph_etcone40", new_ph_etcone40);
   clone_tree->Branch("ph_ptcone20", new_ph_ptcone20);
   clone_tree->Branch("ph_iso", new_ph_iso);
-  clone_tree->Branch("ph_tracksio", new_ph_trackiso);
+  clone_tree->Branch("ph_trackiso", new_ph_trackiso);
   clone_tree->Branch("ph_w",   new_ph_w);
 
   clone_tree->Branch("ph_truth_pt",  new_ph_truth_pt);
