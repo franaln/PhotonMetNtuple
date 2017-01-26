@@ -9,7 +9,7 @@ import subprocess
 
 logging.basicConfig(level=logging.INFO)
 
-excluded_sites = 'ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,ANALY_INFN-ROMA1,ANALY_wuppertalprod'
+excluded_sites = 'ANALY_RHUL_SL6' #ANALY_CONNECT_SHORT,ANALY_INFN-ROMA1,ANALY_wuppertalprod' #ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,'
 
 import atexit
 @atexit.register
@@ -188,7 +188,8 @@ def run_job(sample, driver):
 
         # driver options
         driver.options().setString('nc_outputSampleName', outname)
-        driver.options().setString(ROOT.EL.Job.optGridExcludedSite, excluded_sites)
+        if excluded_sites:
+            driver.options().setString(ROOT.EL.Job.optGridExcludedSite, excluded_sites)
         driver.options().setString(ROOT.EL.Job.optGridNGBPerJob, 'MAX')
         driver.options().setString(ROOT.EL.Job.optGridMergeOutput, 'FALSE')
         driver.options().setDouble(ROOT.EL.Job.optRemoveSubmitDir, 1)
