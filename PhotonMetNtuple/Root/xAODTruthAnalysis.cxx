@@ -151,6 +151,7 @@ EL::StatusCode xAODTruthAnalysis::initialize()
   
   ntuple = new TruthTree("truthtree");
   CHECK(ntuple->setProperty("OutFile", out_dir));
+  CHECK(ntuple->setProperty("SavePDF", do_pdfrw));
   CHECK(ntuple->initialize());
 
   return EL::StatusCode::SUCCESS;
@@ -178,7 +179,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   }
 
   const xAOD::MissingET* met_truth = 0;
-  if( truth_met ) met_truth = (*truth_met)["NonInt"];
+  if( truth_met ) met_truth = (*truth_met)["Int"];
 
   ntuple->Clear();
 
@@ -191,6 +192,16 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   std::vector<TruthParticle> electrons;
   std::vector<TruthParticle> muons;
   std::vector<TruthParticle> jets;
+
+  b_photons.clear();
+  b_electrons.clear();
+  b_muons.clear();
+  b_jets.clear();
+
+  photons.clear();
+  electrons.clear();
+  muons.clear();
+  jets.clear();
   
   //-- Baseline selection
   for (auto truth = truth_particles->begin(); truth!=truth_particles->end(); ++truth) {
@@ -205,8 +216,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     
     Double_t pt = (*truth)->pt() * 0.001;
     Double_t eta = (*truth)->eta();
-    Double_t phi = (*truth)->phi();
-    
     Double_t abseta = fabs(eta);
     
     // Photons
@@ -214,21 +223,8 @@ EL::StatusCode xAODTruthAnalysis::execute ()
       
       if (pt < 25. || abseta > 2.37) 
         continue;
-      
+
       b_photons.push_back(TruthParticle(*truth));
-      
-      if (pt < 75.)
-        continue;
-      
-      photons.push_back(TruthParticle(*truth));
-      
-      ntuple->ph_n++;
-      
-      ntuple->ph_pt->push_back(pt);
-      ntuple->ph_eta->push_back(eta);
-      ntuple->ph_phi->push_back(phi);
-      ntuple->ph_iso->push_back(0.);
-      ntuple->ph_type->push_back(get_photon_type(*truth));
     }
     
     // Electrons
@@ -239,16 +235,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
       
       b_electrons.push_back(TruthParticle(*truth));
       
-      if (pt < 25)
-        continue;
-      
-      electrons.push_back(TruthParticle(*truth));
-      
-      ntuple->el_n++;
-      ntuple->el_pt->push_back(pt);
-      ntuple->el_eta->push_back(eta);
-      ntuple->el_phi->push_back(phi);
-      
     }
     
     // Muons
@@ -258,18 +244,11 @@ EL::StatusCode xAODTruthAnalysis::execute ()
         continue;
       
       b_muons.push_back(TruthParticle(*truth));        
-      
-      if (pt < 25)
-        continue;
-      
-      muons.push_back(TruthParticle(*truth));        
-      
-      ntuple->mu_n++;
-      ntuple->mu_pt->push_back(pt);
-      ntuple->mu_eta->push_back(eta);
-      ntuple->mu_phi->push_back(phi);
-      
+          
     }
+
+    // else
+    //   std::cout << abspid << std::endl;
     
   } // end truth particle container loop 
 
@@ -282,24 +261,14 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     
     Double_t pt = (*jet_itr)->pt() * 0.001;
     Double_t eta = (*jet_itr)->eta();
-    Double_t phi = (*jet_itr)->phi();
+    //Double_t phi = (*jet_itr)->phi();
     Double_t abseta = fabs(eta);
     
     if (pt < 20 || abseta > 2.8)
       continue;
     
     b_jets.push_back(TruthParticle(*jet_itr));
-    
-    if (pt < 30 || abseta > 2.5)
-      continue;
-        
-    jets.push_back(TruthParticle(*jet_itr));
-    
-    ntuple->jet_n++;
-    ntuple->jet_pt->push_back(pt);
-    ntuple->jet_eta->push_back(eta);
-    ntuple->jet_phi->push_back(phi);
-    
+       
   }
       
   // we dont want events without photons
@@ -315,8 +284,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
  
   //-- Overlap Removal
   Double_t ph_el_deltaR_cut    = 0.01;
-  Double_t ph_jet_deltaR_cut   = 0.2;
-  Double_t el_jet_deltaR_cut   = 0.2;
+  Double_t eg_jet_deltaR_cut   = 0.2;
   Double_t jet_egmu_deltaR_cut = 0.4;
   
   // Remove photons overlapping with electrons
@@ -327,8 +295,8 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   
   /// Remove jets overlapping with electrons and photons
   for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
-    if (TruthUtils::OverlapsOthers((*jet_it), b_electrons, el_jet_deltaR_cut)) (*jet_it).good=false;
-    if (TruthUtils::OverlapsOthers((*jet_it), b_photons, ph_jet_deltaR_cut)) (*jet_it).good=false;  
+    if (TruthUtils::OverlapsOthers((*jet_it), b_electrons, eg_jet_deltaR_cut)) (*jet_it).good=false;
+    if (TruthUtils::OverlapsOthers((*jet_it), b_photons,   eg_jet_deltaR_cut)) (*jet_it).good=false;  
   }
   TruthUtils::CleanBads(b_jets);
   
@@ -339,52 +307,121 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
     if (TruthUtils::OverlapsOthers((*ph_it), b_jets, jet_egmu_deltaR_cut)) (*ph_it).good = false;
   }
-  TruthUtils::CleanBads(b_electrons);
-  TruthUtils::CleanBads(b_photons);
-  
-  /// Remove muons overlapping with remaining jets
   for(mu_it=b_muons.begin(); mu_it!=b_muons.end(); ++mu_it) {
     if (TruthUtils::OverlapsOthers((*mu_it), b_jets, jet_egmu_deltaR_cut)) (*mu_it).good=false;
   }
+  TruthUtils::CleanBads(b_electrons);
+  TruthUtils::CleanBads(b_photons);
   TruthUtils::CleanBads(b_muons);
+   
+
+
+  // Signal objects
+  ntuple->ph_n = 0;
+  ntuple->ph_pt->clear();
+  ntuple->ph_eta->clear();
+  ntuple->ph_phi->clear();
+  ntuple->ph_iso->clear();
+  for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
+
+    if ((*ph_it).Pt() < 75.)
+        continue;
+
+    photons.push_back(*ph_it);
+      
+    ntuple->ph_n++;
+      
+    ntuple->ph_pt->push_back((*ph_it).Pt());
+    ntuple->ph_eta->push_back((*ph_it).Eta());
+    ntuple->ph_phi->push_back((*ph_it).Phi());
+    ntuple->ph_iso->push_back(0.);
+  }
   
+  ntuple->el_n = 0;
+  ntuple->el_pt->clear();
+  ntuple->el_eta->clear();
+  ntuple->el_phi->clear();
+  for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
+
+    if ((*el_it).Pt() < 25.)
+        continue;
+
+    electrons.push_back(*el_it);
+    
+    ntuple->el_n++;
+    ntuple->el_pt->push_back((*el_it).Pt());
+    ntuple->el_eta->push_back((*el_it).Eta());
+    ntuple->el_phi->push_back((*el_it).Phi());
+  }
+
+  ntuple->mu_n = 0;
+  ntuple->mu_pt->clear();
+  ntuple->mu_eta->clear();
+  ntuple->mu_phi->clear();
+  for (mu_it=b_muons.begin(); mu_it!=b_muons.end(); ++mu_it) {
+
+    if ((*mu_it).Pt() < 25.)
+        continue;
+
+    muons.push_back(*mu_it);
+    
+    ntuple->mu_n++;
+    ntuple->mu_pt->push_back((*mu_it).Pt());
+    ntuple->mu_eta->push_back((*mu_it).Eta());
+    ntuple->mu_phi->push_back((*mu_it).Phi());
+  }
+
+  for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
+
+    if ((*jet_it).Pt() < 30. || fabs((*jet_it).Eta()) > 2.5)
+        continue;
+
+    jets.push_back(*jet_it);
+
+    ntuple->jet_n++;
+    ntuple->jet_pt->push_back((*jet_it).Pt());
+    ntuple->jet_eta->push_back((*jet_it).Eta());
+    ntuple->jet_phi->push_back((*jet_it).Phi());
+  }
 
   //-- Construct event variables
   
   /// Met
   Double_t ex = 0.0;
   Double_t ey = 0.0;
+  // for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
+  //   ex -= (*ph_it).Pt() * TMath::Cos((*ph_it).Phi());
+  //   ey -= (*ph_it).Pt() * TMath::Sin((*ph_it).Phi());
+  // }
+  // for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
+  //   ex -= (*el_it).Pt() * TMath::Cos((*el_it).Phi());
+  //   ey -= (*el_it).Pt() * TMath::Sin((*el_it).Phi());
+  // }
+  // for (mu_it=b_muons.begin(); mu_it!=b_muons.end(); ++mu_it) {
+  //   ex -= (*mu_it).Pt() * TMath::Cos((*mu_it).Phi());
+  //   ey -= (*mu_it).Pt() * TMath::Sin((*mu_it).Phi());
+  // }
+  // for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
+  //   ex -= (*jet_it).Pt() * TMath::Cos((*jet_it).Phi());
+  //   ey -= (*jet_it).Pt() * TMath::Sin((*jet_it).Phi());
+  // }
   
-  for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
-    ex -= (*ph_it).Et() * TMath::Cos((*ph_it).Phi());
-    ey -= (*ph_it).Et() * TMath::Sin((*ph_it).Phi());
-  }
-  for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
-    ex -= (*el_it).Et() * TMath::Cos((*el_it).Phi());
-    ey -= (*el_it).Et() * TMath::Sin((*el_it).Phi());
-  }
-  for (mu_it=b_muons.begin(); mu_it!=b_muons.end(); ++mu_it) {
-      ex -= (*mu_it).Et() * TMath::Cos((*mu_it).Phi());
-      ey -= (*mu_it).Et() * TMath::Sin((*mu_it).Phi());
-  }
-  for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
-    ex -= (*jet_it).Et() * TMath::Cos((*jet_it).Phi());
-    ey -= (*jet_it).Et() * TMath::Sin((*jet_it).Phi());
-  }
+  // Double_t met_et  = TMath::Hypot(ex, ey);
+  // Double_t met_phi = TMath::ATan2(ey, ex);
   
-  Double_t met_et  = TMath::Hypot(ex, ey);
-  Double_t met_phi = TMath::ATan2(ey, ex);
-  
-  ntuple->met_truth_et = met_et;
-  ntuple->met_truth_phi = met_phi;
+  // ntuple->met_et = met_et;
+  // ntuple->met_phi = met_phi;
   
   // Met truth
   ex = met_truth->mpx() * 0.001;
   ey = met_truth->mpy() * 0.001;
   
-  ntuple->met_et = TMath::Hypot(ex, ey);
-  ntuple->met_phi = TMath::ATan2(ey, ex);
-  
+  Double_t met_et = TMath::Hypot(ex, ey);
+  Double_t met_phi = TMath::ATan2(ey, ex);
+
+  ntuple->met_et = met_et;
+  ntuple->met_phi = met_phi;
+
   /// Ht
   Double_t sum_jet_pt = 0.;
   for (jet_it=jets.begin(); jet_it!=jets.end(); ++jet_it)
@@ -395,7 +432,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     ht += photons[0].Pt();
   
   ntuple->ht = ht;
-  ntuple->meff = ht + ntuple->met_truth_et;
+  ntuple->meff = ht + ntuple->met_et;
   
   /// Rt
   if (jets.size() >= 2)
@@ -412,7 +449,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   if (jets.size() > 0) dphi1 = get_dphi(jets[0].Phi(), met_phi);
   if (jets.size() > 1) dphi2 = get_dphi(jets[1].Phi(), met_phi);
   ntuple->dphi_jetmet = TMath::Min(dphi1, dphi2);
-  
+    
   // dphi beteen leading photon and leading jet
   if (photons.size() > 0 && jets.size() > 0) ntuple->dphi_gamjet = get_dphi(photons[0].Phi(), jets[0].Phi());
   
@@ -434,16 +471,16 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     }
     
     for (size_t iPdf=0; iPdf<m_pdfs_2.size(); iPdf++) {
-      ntuple->weight_pdf2->push_back( LHAPDF::weightxxQ(pdata.pdgId1,pdata.pdgId2,pdata.x1,pdata.x2,pdata.Q,m_pdfs_2[0],m_pdfs_2[iPdf]) );
+      ntuple->weight_pdf2->push_back( LHAPDF::weightxxQ(pdata.pdgId1, pdata.pdgId2, pdata.x1, pdata.x2, pdata.Q, m_pdfs_2[0], m_pdfs_2[iPdf]) );
     }
     
     for (size_t iPdf=0; iPdf<m_pdfs_3.size(); iPdf++) {
-      ntuple->weight_pdf3->push_back( LHAPDF::weightxxQ(pdata.pdgId1,pdata.pdgId2,pdata.x1,pdata.x2,pdata.Q,m_pdfs_3[0],m_pdfs_3[iPdf]) );
+      ntuple->weight_pdf3->push_back( LHAPDF::weightxxQ(pdata.pdgId1, pdata.pdgId2, pdata.x1, pdata.x2, pdata.Q, m_pdfs_3[0], m_pdfs_3[iPdf]) );
     }
   }
 
-  // fill ntuple
-  if (photons.size()>0)
+  // fill ntuple only there is at least one photon
+  if (photons.size() > 0)
     ntuple->Fill();
 
   return EL::StatusCode::SUCCESS;

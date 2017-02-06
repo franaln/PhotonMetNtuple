@@ -67,14 +67,11 @@ class TruthTree : public asg::AsgMetadataTool {
   Float_t met_phi;
   Float_t met_sumet;
 
-  Float_t met_truth_et;
-  Float_t met_truth_phi;
-
   // other
-  Float_t meff;
   Float_t ht;
   Float_t rt2;
   Float_t rt4;
+  Float_t meff;
 
   // dphi
   Float_t dphi_gamjet;

@@ -7,6 +7,8 @@ import shutil
 import argparse
 import subprocess
 
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+
 logging.basicConfig(level=logging.INFO)
 
 excluded_sites = 'ANALY_RHUL_SL6' #ANALY_CONNECT_SHORT,ANALY_INFN-ROMA1,ANALY_wuppertalprod' #ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,'
@@ -157,6 +159,9 @@ def run_job(sample, driver):
 
     elif alg_name == 'xAODTruthAnalysis':
         alg = ROOT.xAODTruthAnalysis()
+        if args.dopdfrw:
+            alg.do_pdfrw = True
+
 
     logging.info("adding algorithms")
     job.algsAdd(alg)
@@ -241,6 +246,7 @@ def main():
     parser.add_argument('-c', dest='config_file', default='PhotonMetNtuple_20.7_std.conf', help='Config file')
     parser.add_argument('-v', dest='version')
 
+    parser.add_argument('--dopdfrw', action='store_true')
     # parser.add_argument('--dotar', dest='do_tarball', action='store_true')
     # parser.add_argument('--usetar', dest='use_tarball', action='store_true')
     

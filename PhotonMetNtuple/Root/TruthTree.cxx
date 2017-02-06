@@ -87,9 +87,6 @@ void TruthTree::CreateBranches()
   tree->Branch("met_phi", &met_phi);
   tree->Branch("met_sumet", &met_sumet);
 
-  tree->Branch("met_truth_et", &met_truth_et);
-  tree->Branch("met_truth_phi", &met_truth_phi);
-
   tree->Branch("meff", &meff);				
   tree->Branch("ht", &ht);				
   tree->Branch("rt2", &rt2);				
@@ -98,18 +95,6 @@ void TruthTree::CreateBranches()
   tree->Branch("dphi_gamjet", &dphi_gamjet);
   tree->Branch("dphi_jetmet", &dphi_jetmet);
   tree->Branch("dphi_gammet", &dphi_gammet);
-
-  // tree->Branch("event", &event);
-  // tree->Branch("smeared", &smeared);
-  // tree->Branch("weight", &weight);
-
-  // btag_weight = new vector<float>;
-  // tree->Branch("btag_weight", &btag_weight);
-
-  // tree->Branch("weight_prwdn", &weight_prwdn);
-  // tree->Branch("weight_prwup", &weight_prwup);
-
-  // tree->Branch("weight_feg", &weight_feg);
 
   if (m_pdfrw) {
     weight_pdf1 = new std::vector<float>;
@@ -152,10 +137,8 @@ void TruthTree::Clear()
   met_et  = 0.;
   met_phi = 0.;
 
-  met_truth_et  = 0.;
-  met_truth_phi = 0.;
-
   meff = 0;
+
   ht  = 0.;
   rt2 = -1.;
   rt4 = -1.;
