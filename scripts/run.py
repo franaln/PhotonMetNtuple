@@ -238,6 +238,7 @@ def main():
     # run (in the grid)
     parser.add_argument('--grid', action='store_true')    
     parser.add_argument('--download', action='store_true')
+    parser.add_argument('--show', action='store_true')
     parser.add_argument('--dry', action='store_true')
 
     parser.add_argument('-i', dest='input_file')
@@ -253,13 +254,23 @@ def main():
     global args
     args = parser.parse_args()
 
+    if args.show:
+
+        if args.input_file is not None:
+            torun = get_samples_from_file(args.input_file, args.dids)
+
+        for sample in torun:
+            print sample
+        
+        return 0
+
+
     if args.test is not None:
         args.version = 0 
 
     if args.version is None:
         parser.print_usage()
         return 1
-
 
     if args.download:
 
