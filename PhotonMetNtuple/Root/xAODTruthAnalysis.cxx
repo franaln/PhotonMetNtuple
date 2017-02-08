@@ -264,7 +264,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   xAOD::TruthParticleContainer::const_iterator ph_end(truth_photons->end());
   for ( ; ph_itr != ph_end; ++ph_itr) {
       
-    if ((*ph_itr)->pt() < 25. || fabs((*ph_itr)->eta()) > 2.37) 
+    if ((*ph_itr)->pt() < 25000. || fabs((*ph_itr)->eta()) > 2.37) 
         continue;
 
       b_photons.push_back(TruthParticle(*ph_itr));
@@ -275,7 +275,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   xAOD::TruthParticleContainer::const_iterator el_end(truth_electrons->end());
   for ( ; el_itr != el_end; ++el_itr) {
       
-    if ((*el_itr)->pt() < 10. || fabs((*el_itr)->eta()) > 2.47) 
+    if ((*el_itr)->pt() < 10000. || fabs((*el_itr)->eta()) > 2.47) 
         continue;
 
       b_electrons.push_back(TruthParticle(*el_itr));
@@ -286,7 +286,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   xAOD::TruthParticleContainer::const_iterator mu_end(truth_muons->end());
   for ( ; mu_itr != mu_end; ++mu_itr) {
       
-    if ((*mu_itr)->pt() < 10. || fabs((*mu_itr)->eta()) > 2.4) 
+    if ((*mu_itr)->pt() < 10000. || fabs((*mu_itr)->eta()) > 2.4) 
         continue;
 
       b_muons.push_back(TruthParticle(*mu_itr));
@@ -296,18 +296,9 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   xAOD::JetContainer::const_iterator jet_itr(truth_jets->begin());
   xAOD::JetContainer::const_iterator jet_end(truth_jets->end());
 
-  int index = -1;
   for ( ; jet_itr != jet_end; ++jet_itr) {
-    
-    index ++;
 
-    Double_t pt = (*jet_itr)->pt() * 0.001;
-    Double_t eta = (*jet_itr)->eta();
-    //Double_t phi = (*jet_itr)->phi();
-    Double_t abseta = fabs(eta);
-
-
-    if (pt < 20 || abseta > 2.8)
+    if ((*jet_itr)->pt() < 20000. || fabs((*jet_itr)->eta()) > 2.8)
       continue;
         
     int flavor = 0;
@@ -319,9 +310,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     b_jets.push_back(TruthParticle(*jet_itr, isb));
   }
       
-  // we dont want events without photons
-  // if (photons.size() == 0)
-  //   continue;
   
   // itearatos
   std::vector<TruthParticle>::iterator ph_it;
@@ -555,7 +543,6 @@ EL::StatusCode xAODTruthAnalysis::finalize()
 
 EL::StatusCode xAODTruthAnalysis::histFinalize()
 {
-
   return EL::StatusCode::SUCCESS;
 }
 
