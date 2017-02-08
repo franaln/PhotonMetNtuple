@@ -1,20 +1,21 @@
 #ifndef TruthUtils_h
 #define TruthUtils_h
 
+#include "AthContainers/ConstDataVector.h"
 #include "xAODJet/JetContainer.h"
 #include "xAODTruth/TruthParticleContainer.h"
 #include "xAODTruth/TruthParticleAuxContainer.h"
-#include "AthContainers/ConstDataVector.h"
 #include <TLorentzVector.h>
 
 class TruthParticle : public TLorentzVector {
 
  public:
   TruthParticle(const xAOD::TruthParticle *ptcl);
-  TruthParticle(const xAOD::Jet *ptcl);
+  TruthParticle(const xAOD::Jet *ptcl, Bool_t isbjet);
 
   Int_t index;
   Bool_t good;
+  Bool_t isbjet;
 
   inline bool operator > (const TruthParticle &other) const
   {

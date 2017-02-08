@@ -174,7 +174,6 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
     
     // Now, let's actually find the right one that contains all the needed info...
     const xAOD::CutBookkeeper* all_events_cbk = 0;
-    //const xAOD::CutBookkeeper* dxaod_events_cbk = 0;
       
     int maxCycle = -1;
     for (const auto& cbk :  *completeCBC) {

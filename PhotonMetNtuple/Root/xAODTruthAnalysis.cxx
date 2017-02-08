@@ -22,6 +22,8 @@
 #include "xAODMissingET/MissingETContainer.h"
 #include "xAODJet/JetContainer.h"
 #include "xAODEgamma/ElectronContainer.h"
+#include "xAODEgamma/PhotonContainer.h"
+#include "xAODMuon/MuonContainer.h"
 #include "xAODTruth/TruthParticleContainer.h"
 #include "xAODTruth/TruthEventContainer.h"
 #include "xAODTruth/TruthParticle.h"
@@ -124,17 +126,52 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
   
   m_event = wk()->xaodEvent(); 
 
-  TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
-  
+  TTree *metadata = dynamic_cast<TTree*>(wk()->inputFile()->Get("MetaData"));
+  if (!metadata) {
+    Error(APP_NAME, "MetaData tree not found! Exiting.");
+    return EL::StatusCode::FAILURE;
+  }
+  metadata->LoadTree(0);
+
+  //check if file is from a DxAOD
+  bool is_derivation = !metadata->GetBranch("StreamAOD");
 
   ULong64_t m_initial_events = 0;
   Double_t m_initial_sumw = 0.;
   Double_t m_initial_sumw2 = 0.;
+
+  if (is_derivation) {
+    //Read the CutBookkeeper container
+    const xAOD::CutBookkeeperContainer* completeCBC = 0;
+    if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
+      Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
+      return EL::StatusCode::FAILURE;
+    }
+    
+    // Now, let's actually find the right one that contains all the needed info...
+    const xAOD::CutBookkeeper* all_events_cbk = 0;
+      
+    int maxCycle = -1;
+    for (const auto& cbk :  *completeCBC) {
+      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
+        all_events_cbk = cbk;
+        maxCycle = cbk->cycle();
+      }
+    }
+      
+    m_initial_events = all_events_cbk->nAcceptedEvents();
+    m_initial_sumw   = all_events_cbk->sumOfEventWeights();
+    m_initial_sumw2  = all_events_cbk->sumOfEventWeightsSquared();
+  }
+  else {
+
+    TTree* CollectionTree = dynamic_cast<TTree*>( wk()->inputFile()->Get("CollectionTree") );
   
-  m_initial_events  = CollectionTree->GetEntries(); 
-  m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
-  m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
-  
+    m_initial_events  = CollectionTree->GetEntries(); 
+    m_initial_sumw    = CollectionTree->GetWeight() * CollectionTree->GetEntries();
+    m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
+  }
+
   std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
   
   h_events->Fill(1, m_initial_events);
@@ -172,6 +209,24 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     return EL::StatusCode::FAILURE;
   }
 
+  const xAOD::TruthParticleContainer *truth_photons = 0;
+  if(!m_event->retrieve(truth_photons, "TruthPhotons").isSuccess()) {
+    Error(APP_NAME, "Failed to retrieve truth photons collection. Exiting." );
+    return EL::StatusCode::FAILURE;
+  }
+
+  const xAOD::TruthParticleContainer *truth_electrons = 0;
+  if(!m_event->retrieve(truth_electrons, "TruthElectrons").isSuccess()) {
+    Error(APP_NAME, "Failed to retrieve truth electrons collection. Exiting." );
+    return EL::StatusCode::FAILURE;
+  }
+
+  const xAOD::TruthParticleContainer *truth_muons = 0;
+  if(!m_event->retrieve(truth_muons, "TruthMuons").isSuccess()) {
+    Error(APP_NAME, "Failed to retrieve truth photons collection. Exiting." );
+    return EL::StatusCode::FAILURE;
+  }
+
   const xAOD::MissingETContainer *truth_met = 0;
   if(!m_event->retrieve(truth_met, "MET_Truth").isSuccess()) {
     Error(APP_NAME, "Failed to retrieve truth met collection. Exiting." );
@@ -204,71 +259,64 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   jets.clear();
   
   //-- Baseline selection
-  for (auto truth = truth_particles->begin(); truth!=truth_particles->end(); ++truth) {
-
-    if (!is_stable(*truth))
-      continue;
-    
-    Int_t pid = (*truth)->pdgId();
-    Int_t abspid = abs((*truth)->pdgId());
-    
-    Int_t st = (*truth)->status();
-    
-    Double_t pt = (*truth)->pt() * 0.001;
-    Double_t eta = (*truth)->eta();
-    Double_t abseta = fabs(eta);
-    
-    // Photons
-    if (pid == 22 && st == 1) {
+  // Photons
+  xAOD::TruthParticleContainer::const_iterator ph_itr(truth_photons->begin());
+  xAOD::TruthParticleContainer::const_iterator ph_end(truth_photons->end());
+  for ( ; ph_itr != ph_end; ++ph_itr) {
       
-      if (pt < 25. || abseta > 2.37) 
+    if ((*ph_itr)->pt() < 25. || fabs((*ph_itr)->eta()) > 2.37) 
         continue;
 
-      b_photons.push_back(TruthParticle(*truth));
-    }
-    
-    // Electrons
-    else if (abspid == 11 && st == 1) {
-      
-      if (pt < 10 || abseta > 2.47)
-        continue;
-      
-      b_electrons.push_back(TruthParticle(*truth));
-      
-    }
-    
-    // Muons
-    else if (abspid == 13 && st == 1) {
-      
-      if (pt < 10 || abseta > 2.4)
-        continue;
-      
-      b_muons.push_back(TruthParticle(*truth));        
-          
-    }
+      b_photons.push_back(TruthParticle(*ph_itr));
+  }
 
-    // else
-    //   std::cout << abspid << std::endl;
-    
-  } // end truth particle container loop 
+  // Electrons
+  xAOD::TruthParticleContainer::const_iterator el_itr(truth_electrons->begin());
+  xAOD::TruthParticleContainer::const_iterator el_end(truth_electrons->end());
+  for ( ; el_itr != el_end; ++el_itr) {
+      
+    if ((*el_itr)->pt() < 10. || fabs((*el_itr)->eta()) > 2.47) 
+        continue;
 
+      b_electrons.push_back(TruthParticle(*el_itr));
+  }
+
+  // Muons
+  xAOD::TruthParticleContainer::const_iterator mu_itr(truth_muons->begin());
+  xAOD::TruthParticleContainer::const_iterator mu_end(truth_muons->end());
+  for ( ; mu_itr != mu_end; ++mu_itr) {
+      
+    if ((*mu_itr)->pt() < 10. || fabs((*mu_itr)->eta()) > 2.4) 
+        continue;
+
+      b_muons.push_back(TruthParticle(*mu_itr));
+  }
 
   // Jets
   xAOD::JetContainer::const_iterator jet_itr(truth_jets->begin());
   xAOD::JetContainer::const_iterator jet_end(truth_jets->end());
 
+  int index = -1;
   for ( ; jet_itr != jet_end; ++jet_itr) {
     
+    index ++;
+
     Double_t pt = (*jet_itr)->pt() * 0.001;
     Double_t eta = (*jet_itr)->eta();
     //Double_t phi = (*jet_itr)->phi();
     Double_t abseta = fabs(eta);
-    
+
+
     if (pt < 20 || abseta > 2.8)
       continue;
-    
-    b_jets.push_back(TruthParticle(*jet_itr));
-       
+        
+    int flavor = 0;
+    if ((*jet_itr)->isAvailable<int>("PartonTruthLabelID"))
+      flavor = abs((*jet_itr)->auxdata<int>("PartonTruthLabelID"));
+
+    bool isb = (flavor == 5); //(*jet_itr)->auxdata<int>("GhostBHadronsFinalCount") >= 1;
+
+    b_jets.push_back(TruthParticle(*jet_itr, isb));
   }
       
   // we dont want events without photons
@@ -314,7 +362,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   TruthUtils::CleanBads(b_photons);
   TruthUtils::CleanBads(b_muons);
    
-
 
   // Signal objects
   ntuple->ph_n = 0;
@@ -371,6 +418,12 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     ntuple->mu_phi->push_back((*mu_it).Phi());
   }
 
+
+  ntuple->jet_n = 0;
+  ntuple->bjet_n = 0;
+  ntuple->jet_pt->clear();
+  ntuple->jet_eta->clear();
+  ntuple->jet_phi->clear();
   for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
 
     if ((*jet_it).Pt() < 30. || fabs((*jet_it).Eta()) > 2.5)
@@ -382,6 +435,9 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     ntuple->jet_pt->push_back((*jet_it).Pt());
     ntuple->jet_eta->push_back((*jet_it).Eta());
     ntuple->jet_phi->push_back((*jet_it).Phi());
+
+    if ((*jet_it).isbjet)
+      ntuple->bjet_n++;
   }
 
   //-- Construct event variables

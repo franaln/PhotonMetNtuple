@@ -7,12 +7,14 @@ TruthParticle::TruthParticle(const xAOD::TruthParticle *ptcl) :
 {
 }
 
-TruthParticle::TruthParticle(const xAOD::Jet *ptcl) :
+TruthParticle::TruthParticle(const xAOD::Jet *ptcl, Bool_t isbjet) :
   TLorentzVector(ptcl->px()*0.001, ptcl->py()*0.001, ptcl->pz()*0.001, ptcl->e()*0.001),
   index(-1),
-  good(true)
+  good(true),
+  isbjet(isbjet)
 {
 }
+
 
 Double_t TruthUtils::GetDeltaPhi(Double_t phi1, Double_t phi2)
 {
