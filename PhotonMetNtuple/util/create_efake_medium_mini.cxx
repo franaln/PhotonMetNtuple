@@ -17,7 +17,7 @@
 
 void loop(TString fake_rate_path, TString input_path, TString output_path)
 {
-  std::cout << "create_efake_mini: " << input_path << " -> " << output_path << std::endl;
+  std::cout << "create_efake_medium_mini: " << input_path << " -> " << output_path << std::endl;
   
   MiniClone *mini = new MiniClone(input_path, output_path);
 
@@ -60,7 +60,7 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
       continue;
 
     // skip events without electrons (?)
-    if (mini->el_n == 0)
+    if (mini->el_medium_n == 0)
       continue;
 
     // clear
@@ -70,9 +70,9 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     // Interchange el_medium <-> photon
 
     // skip event if medium electron not in acceptance region
-    float eleta = fabs((*mini->el_etas2)[0]);
-    float elpt  = (*mini->el_pt)[0];
-    float elphi = (*mini->el_phi)[0];
+    float eleta = fabs((*mini->el_medium_etas2)[0]);
+    float elpt  = (*mini->el_medium_pt)[0];
+    float elphi = (*mini->el_medium_phi)[0];
     
     if (elpt < 145. || eleta > 2.37)
       continue;
@@ -83,8 +83,8 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     mini->new_ph_n = 1;
     
     mini->new_ph_pt->push_back(elpt);
-    mini->new_ph_eta->push_back((*mini->el_eta)[0]);
-    mini->new_ph_etas2->push_back((*mini->el_etas2)[0]);
+    mini->new_ph_eta->push_back((*mini->el_medium_eta)[0]);
+    mini->new_ph_etas2->push_back((*mini->el_medium_etas2)[0]);
     mini->new_ph_phi->push_back(elphi);
     mini->new_ph_iso->push_back(0.);
     mini->new_ph_trackiso->push_back(0.);
@@ -92,17 +92,20 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     mini->new_ph_ptcone20->push_back(0.);
     mini->new_ph_w->push_back(1.);
     
-    // // medium electrons/nominal elecrons matching
-    // int match_idx = -1;
-    // for (int i=0; i<mini->el_n; i++) {
-    //   if (((*mini->el_pt)[i] - elpt) < 1 &&  ((*mini->el_phi)[i] - elphi) < 0.01 && (fabs((*mini->el_eta)[i]) - eleta) < 0.01) {
-    //     match_idx = i;
-    //     break;
-    //   }
-    // }
+    // medium electrons/nominal elecrons matching
+    int match_idx = -1;
+    for (int i=0; i<mini->el_n; i++) {
+      if (((*mini->el_pt)[i] - elpt) < 1 &&  ((*mini->el_phi)[i] - elphi) < 0.01 && (fabs((*mini->el_eta)[i]) - eleta) < 0.01) {
+        match_idx = i;
+        break;
+      }
+    }
     
     int el_n = 0;
     for (int i=1; i<mini->el_n; i++) {
+      if (i==match_idx)
+        continue;
+
       el_n += 1;
       mini->new_el_pt->push_back((*mini->el_pt)[i]);
       mini->new_el_eta->push_back((*mini->el_eta)[i]);
