@@ -37,6 +37,10 @@ PhotonMetNtuple
     ```
     run.py -i input.txt [-d DIDS] --grid -v XX
     ```
+    
+* To run the truth analysis (or any other analysis) use the --alg option:
 
-
-
+    ```
+    run.py -alg xAODTruthAnalysis ....
+    ```
+    
