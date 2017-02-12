@@ -647,7 +647,6 @@ EL::StatusCode xAODAnalysis::execute ()
   CHECK(susytools->GetMET(*met_nominal, jets_nominal, electrons_nominal, muons_nominal, photons_nominal));
   CHECK(susytools->GetTrackMET(*met_track_nominal, jets_nominal, electrons_nominal, muons_nominal));
 
-
   outtree->year = susytools->treatAsYear();
 
   // Get SF and apply medium electron id

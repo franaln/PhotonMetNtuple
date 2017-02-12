@@ -21,10 +21,6 @@ namespace LHAPDF {
 class xAODTruthAnalysis : public EL::Algorithm
 {
   
-  #ifndef __CINT__
-    TruthTree *mem_leaker; //!
-  #endif // not __CINT__
-
 private:
 
 public:
