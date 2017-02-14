@@ -95,15 +95,16 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     // medium electrons/nominal elecrons matching
     int match_idx = -1;
     for (int i=0; i<mini->el_n; i++) {
-      if (((*mini->el_pt)[i] - elpt) < 1 &&  ((*mini->el_phi)[i] - elphi) < 0.01 && (fabs((*mini->el_eta)[i]) - eleta) < 0.01) {
+      if (fabs((*mini->el_pt)[i] - elpt) < 1 && fabs((*mini->el_phi)[i] - elphi) < 0.1 && (fabs((*mini->el_etas2)[i]) - eleta) < 0.1) {
         match_idx = i;
         break;
       }
     }
-    
+
     int el_n = 0;
-    for (int i=1; i<mini->el_n; i++) {
-      if (i==match_idx)
+    for (int i=0; i<mini->el_n; i++) {
+
+      if (i==match_idx) // skip electron used as photon!
         continue;
 
       el_n += 1;
