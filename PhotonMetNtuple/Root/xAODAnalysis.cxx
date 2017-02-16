@@ -337,7 +337,7 @@ EL::StatusCode xAODAnalysis::execute ()
     mc_weight = eventInfo->mcEventWeight();
     outtree->weight_mc = mc_weight;
 
-    CHECK(susytools->ApplyPRWTool());  
+    CHECK(susytools->ApplyPRWTool());
     outtree->weight_pu = susytools->GetPileupWeight();
     outtree->PRWHash = susytools->GetPileupWeightHash();
   }
@@ -640,6 +640,7 @@ EL::StatusCode xAODAnalysis::execute ()
     Error(APP_NAME, "Cannot reset SUSYTools systematics" );
   }
   
+
   // Overlap removal
   CHECK(susytools->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));
   
