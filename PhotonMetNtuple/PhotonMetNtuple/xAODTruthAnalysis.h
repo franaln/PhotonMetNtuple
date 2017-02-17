@@ -26,7 +26,7 @@ private:
 public:
   
   bool do_pdfrw;
-
+  bool is_truth3;
 
   TruthTree *ntuple; //!
 

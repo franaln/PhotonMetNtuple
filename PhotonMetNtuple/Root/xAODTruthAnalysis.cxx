@@ -46,7 +46,8 @@
 ClassImp(xAODTruthAnalysis)
 
 xAODTruthAnalysis::xAODTruthAnalysis() :
-do_pdfrw(false)
+do_pdfrw(false),
+is_truth3(false)
 {
 
 }
@@ -153,9 +154,12 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
       
     int maxCycle = -1;
     for (const auto& cbk :  *completeCBC) {
-      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
+      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && (cbk->inputStream() == "StreamAOD" || cbk->inputStream() == "StreamDAOD_TRUTH3")) {
         all_events_cbk = cbk;
         maxCycle = cbk->cycle();
+
+        if (cbk->inputStream() == "StreamDAOD_TRUTH3")
+          is_truth3 = true;
       }
     }
       
@@ -197,11 +201,11 @@ EL::StatusCode xAODTruthAnalysis::initialize()
 EL::StatusCode xAODTruthAnalysis::execute ()
 {
   
-  const xAOD::TruthParticleContainer* truth_particles = 0;
-  if(!m_event->retrieve(truth_particles, "TruthParticles").isSuccess()) {
-    Error(APP_NAME, "Failed to retrieve truth particles collection. Exiting." );
-    return EL::StatusCode::FAILURE;
-  }
+  // const xAOD::TruthParticleContainer* truth_particles = 0;
+  // if(!m_event->retrieve(truth_particles, "TruthParticles").isSuccess()) {
+  //   Error(APP_NAME, "Failed to retrieve truth particles collection. Exiting." );
+  //   return EL::StatusCode::FAILURE;
+  // }
 
   const xAOD::JetContainer *truth_jets = 0;
   if(!m_event->retrieve(truth_jets, "AntiKt4TruthJets").isSuccess()) {
@@ -210,9 +214,17 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   }
 
   const xAOD::TruthParticleContainer *truth_photons = 0;
-  if(!m_event->retrieve(truth_photons, "TruthPhotons").isSuccess()) {
-    Error(APP_NAME, "Failed to retrieve truth photons collection. Exiting." );
-    return EL::StatusCode::FAILURE;
+  if (is_truth3) {
+    if (!m_event->retrieve(truth_photons, "Truth3Photons").isSuccess()) {
+      Error(APP_NAME, "Failed to retrieve truth photons collection. Exiting." );
+      return EL::StatusCode::FAILURE;
+    }
+  }
+  else {
+    if (!m_event->retrieve(truth_photons, "TruthPhotons").isSuccess()) {
+      Error(APP_NAME, "Failed to retrieve truth photons collection. Exiting." );
+      return EL::StatusCode::FAILURE;
+    }
   }
 
   const xAOD::TruthParticleContainer *truth_electrons = 0;
@@ -317,7 +329,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   std::vector<TruthParticle>::iterator mu_it;
   std::vector<TruthParticle>::iterator jet_it;
   
- 
   //-- Overlap Removal
   Double_t ph_el_deltaR_cut    = 0.01;
   Double_t eg_jet_deltaR_cut   = 0.2;
