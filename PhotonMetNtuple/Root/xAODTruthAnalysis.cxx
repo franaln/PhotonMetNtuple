@@ -154,7 +154,7 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
       
     int maxCycle = -1;
     for (const auto& cbk :  *completeCBC) {
-      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && (cbk->inputStream() == "StreamAOD" || cbk->inputStream() == "StreamDAOD_TRUTH3")) {
+      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && (cbk->inputStream() == "StreamAOD" || cbk->inputStream() == "StreamDAOD_TRUTH3" || cbk->inputStream() == "StreamDAOD_TRUTH1")) {
         all_events_cbk = cbk;
         maxCycle = cbk->cycle();
 
