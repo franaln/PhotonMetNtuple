@@ -49,7 +49,6 @@ public:
   virtual EL::StatusCode histFinalize ();
 
 
-
   //PDF reweighting
   std::string pdf1; //!
   std::string pdf2; //!
@@ -57,9 +56,9 @@ public:
   std::vector<LHAPDF::PDF*> m_pdfs_1; //!
   std::vector<LHAPDF::PDF*> m_pdfs_2; //!
   std::vector<LHAPDF::PDF*> m_pdfs_3; //!
-  std::vector<double> *weights_pdf_1; //!
-  std::vector<double> *weights_pdf_2; //!
-  std::vector<double> *weights_pdf_3; //!
+  // std::vector<double> *weights_pdf_1; //!
+  // std::vector<double> *weights_pdf_2; //!
+  // std::vector<double> *weights_pdf_3; //!
   
   // this is needed to distribute the algorithm to the workers
   ClassDef(xAODTruthAnalysis, 1);

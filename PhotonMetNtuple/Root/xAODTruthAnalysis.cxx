@@ -93,7 +93,7 @@ EL::StatusCode xAODTruthAnalysis::histInitialize()
 
   if (do_pdfrw) {
     pdf1 = "CT10";
-    pdf2 = "NNPDF30_lo_as_0130";
+    pdf2 = "NNPDF30_lo_as_0130"; //# 
     pdf3 = "MMHT2014lo68cl"; //cteq66"; // MMHT2014
 
     Info(APP_NAME, "Loading PDF set %s", pdf1.c_str());
@@ -307,7 +307,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   // Jets
   xAOD::JetContainer::const_iterator jet_itr(truth_jets->begin());
   xAOD::JetContainer::const_iterator jet_end(truth_jets->end());
-
   for ( ; jet_itr != jet_end; ++jet_itr) {
 
     if ((*jet_itr)->pt() < 20000. || fabs((*jet_itr)->eta()) > 2.8)
@@ -416,7 +415,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     ntuple->mu_eta->push_back((*mu_it).Eta());
     ntuple->mu_phi->push_back((*mu_it).Phi());
   }
-
 
   ntuple->jet_n = 0;
   ntuple->bjet_n = 0;
