@@ -19,7 +19,6 @@
 #include "SUSYTools/ISUSYObjDef_xAODTool.h"
 
 struct AnalysisCollections {
-
   // Containers
   xAOD::PhotonContainer* photons;
   xAOD::ElectronContainer* electrons;
@@ -180,6 +179,7 @@ protected:
   TDirectory *m_outfile;    
   std::vector<ST::SystInfo> m_sys_list;
   Bool_t m_ismc;
+  Bool_t m_save_medium_electrons;
 
   std::vector<float> *ph_pt; 
   std::vector<float> *ph_eta;

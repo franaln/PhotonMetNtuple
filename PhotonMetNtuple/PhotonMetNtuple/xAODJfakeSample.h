@@ -1,5 +1,5 @@
-#ifndef MyAnalysis_xAODAnalysis_H
-#define MyAnalysis_xAODAnalysis_H
+#ifndef MyAnalysis_xAODJfakeSample_H
+#define MyAnalysis_xAODJfakeSample_H
 
 #include <EventLoop/Algorithm.h>
 
@@ -9,14 +9,9 @@
 
 #include <TH1.h>
 #include <TTree.h>
-#include "PATInterfaces/SystematicCode.h"
-#include "PATInterfaces/SystematicSet.h"
-#include "PATInterfaces/SystematicRegistry.h"
-#include "PATInterfaces/SystematicVariation.h"
 
 #include "SUSYTools/ISUSYObjDef_xAODTool.h"
 #include <PhotonMetNtuple/MiniTree.h>
-#include <PhotonMetNtuple/MCFilter.h>
 
 
 // GRL
@@ -33,9 +28,9 @@ namespace ST{
 using namespace ST;
 
 class JetVertexTagger;
-class AsgElectronLikelihoodTool;
+class AsgPhotonIsEMSelector;
 
-class xAODAnalysis : public EL::Algorithm
+class xAODJfakeSample : public EL::Algorithm
 {
   
 #ifndef __CINT__
@@ -50,8 +45,6 @@ private:
   int event_number; //!
   int run_number; //!
   float avg_mu; //!
-  double weight_mc; //!
-  double weight_pu; //!
 
   // configuration
   std::vector<std::string> SplitString(TString); //!
@@ -64,8 +57,8 @@ private:
   std::vector<std::string> m_grl_files; //!
 
   // Medium electrons
-  AsgElectronLikelihoodTool *m_elecMediumLH; //!
-  bool IsMediumElectron(const xAOD::Electron &input); //!
+  AsgPhotonIsEMSelector *m_phTightIsEMSel; //!
+  bool PassLoosePrime(unsigned int nbits, unsigned int isEM); //!
 
   // put your configuration variables here as public variables.
   // that way they can be set directly from CINT and python.
@@ -84,21 +77,16 @@ public:
 public:
   MiniTree *outtree; //!
 
-  MCFilter *mc_filter; //!
-
   TH1D *h_events; //!
   TH1D *h_cutflow; //!
   TH1D *h_cutflow_w; //!
 
-  TH1D *h_events_subproceses; //!
-  TH1D *h_sumw_subproceses; //!
-
   xAOD::TEvent *m_event;  //!
 
   std::vector<ST::SystInfo> systInfoList; //!
-
+  
   // this is a standard constructor
-  xAODAnalysis();
+  xAODJfakeSample();
 
   // these are the functions inherited from Algorithm
   virtual EL::StatusCode setupJob (EL::Job& job);
@@ -112,7 +100,7 @@ public:
   virtual EL::StatusCode histFinalize ();
   
   // this is needed to distribute the algorithm to the workers
-  ClassDef(xAODAnalysis, 1);
+  ClassDef(xAODJfakeSample, 1);
 };
 
 #endif

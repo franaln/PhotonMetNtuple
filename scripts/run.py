@@ -124,15 +124,12 @@ def run_job(sample, driver):
         job.options().setDouble(ROOT.EL.Job.optMaxEvents, args.nevents)
     
     # add our algorithm to the job
-    if alg_name == 'xAODAnalysis' or alg_name == 'xAODBaselineAnalysis':
+    if alg_name in ['xAODAnalysis', 'xAODBaselineAnalysis', 'xAODJfakeSample']:
 
-        if alg_name == 'xAODAnalysis':
-            alg = ROOT.xAODAnalysis()
-            alg.mem = [] # use this to prevent ownwership problems
-
-        elif alg_name == 'xAODBaselineAnalysis':
-            alg = ROOT.xAODBaselineAnalysis()
-
+        alg = getattr(ROOT, alg_name)()
+        print alg
+        alg.mem = [] # use this to prevent ownwership problems
+        
         is_data     = ('data15' in sample or 'data16' in sample)
         is_susy     = ('_GGM' in sample)
         is_susy_ewk = ('_GGM_mu' in sample)

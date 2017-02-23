@@ -47,7 +47,7 @@ ClassImp(xAODTruthAnalysis)
 
 xAODTruthAnalysis::xAODTruthAnalysis() :
 do_pdfrw(false),
-is_truth3(false)
+  is_truth3(false)
 {
 
 }
@@ -369,7 +369,9 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   ntuple->ph_iso->clear();
   for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
 
-    if ((*ph_it).Pt() < 75.)
+    Float_t ph_eta = (*ph_it).Eta();
+
+    if ((*ph_it).Pt() < 75. ||  (ph_eta>1.37 && ph_eta<1.52))
         continue;
 
     photons.push_back(*ph_it);
@@ -388,7 +390,9 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   ntuple->el_phi->clear();
   for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
 
-    if ((*el_it).Pt() < 25.)
+    Float_t el_eta = (*el_it).Eta();
+
+    if ((*el_it).Pt() < 25. || (el_eta>1.37 && el_eta<1.52))
         continue;
 
     electrons.push_back(*el_it);

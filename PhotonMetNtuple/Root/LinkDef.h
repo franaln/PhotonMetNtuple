@@ -16,6 +16,7 @@
 #include <PhotonMetNtuple/xAODBaselineAnalysis.h>
 #include <PhotonMetNtuple/xAODTruthAnalysis.h>
 #include <PhotonMetNtuple/xAODCountEwkProcesses.h>
+#include <PhotonMetNtuple/xAODJfakeSample.h>
 
 #ifdef __CINT__
 
@@ -31,6 +32,7 @@
 #pragma link C++ class xAODBaselineAnalysis+;
 #pragma link C++ class xAODTruthAnalysis+;
 #pragma link C++ class xAODCountEwkProcesses+;
+#pragma link C++ class xAODJfakeSample+;
 #pragma link C++ class MiniTree+;
 #pragma link C++ class BaselineTree+;
 #pragma link C++ class TruthTree+;

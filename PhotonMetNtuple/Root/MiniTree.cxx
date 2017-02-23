@@ -13,6 +13,7 @@ MiniTree::MiniTree(const std::string& name):
   declareProperty("SystematicList", m_sys_list); //pass here the list of systematics
   declareProperty("OutFile", m_outfile); //here we should pass *file = wk()->getOutputFile ("output");
   declareProperty("IsMC", m_ismc);
+  declareProperty("SaveMediumElectrons", m_save_medium_electrons);
 
   tree = 0;
 }
@@ -270,12 +271,14 @@ StatusCode MiniTree::initialize()
   tree->Branch("el_ch",  el_ch);
   tree->Branch("el_w",   el_w);
 
-  tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_medium_n/I");
-  tree->Branch("el_medium_eta", el_medium_eta);
-  tree->Branch("el_medium_etas2", el_medium_etas2);
-  tree->Branch("el_medium_phi", el_medium_phi);
-  tree->Branch("el_medium_pt",  el_medium_pt);
-  tree->Branch("el_medium_ch",  el_medium_ch);
+  if (m_save_medium_electrons) {
+    tree->Branch("el_medium_n", &el_medium_n_map["Nominal"], "el_medium_n/I");
+    tree->Branch("el_medium_eta", el_medium_eta);
+    tree->Branch("el_medium_etas2", el_medium_etas2);
+    tree->Branch("el_medium_phi", el_medium_phi);
+    tree->Branch("el_medium_pt",  el_medium_pt);
+    tree->Branch("el_medium_ch",  el_medium_ch);
+  }
 
   tree->Branch("mu_n", &mu_n_map["Nominal"], "mu_n/I");
   tree->Branch("mu_eta", mu_eta);
@@ -764,7 +767,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   el_ch_map[sysname]->clear();
   el_w_map[sysname]->clear();
 
-  if (sysname == "Nominal") {
+  if (m_save_medium_electrons && sysname == "Nominal") {
     el_medium_pt_map[sysname]->clear();
     el_medium_eta_map[sysname]->clear();
     el_medium_etas2_map[sysname]->clear();
@@ -852,7 +855,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
 
   // medium electrons
   int el_medium_n = 0;
-  if (sysname == "Nominal") {
+  if (m_save_medium_electrons && sysname == "Nominal") {
     for (const auto& el_itr : *collections.electrons) {
 
       if (el_itr->auxdata<char>("baseline") == 1 &&
