@@ -1,5 +1,8 @@
 # Changelog and tags
 
+2017-02-22 fran
+	- Update to ST 08-54
+	
 2017-02-17 fran
 	- Update to AB 2.4.28 + ST 08-52
 	- Update xAODTruthAnalysis to run over TRUTH3
