@@ -244,6 +244,8 @@ EL::StatusCode xAODJfakeSample::initialize()
   // Pile Up Reweighting
   CHECK(susytools->setProperty("PRWConfigFiles", m_prw_mc_files));
   CHECK(susytools->setProperty("PRWLumiCalcFiles", m_prw_lumicalc_files));
+
+  // CHECK(susytools->setProperty("PhotonBaselineId", "Loose"));
  
   if (susytools->initialize() != StatusCode::SUCCESS) {
     Error(APP_NAME, "Cannot intialize SUSYObjDef_xAOD...");
@@ -265,7 +267,6 @@ EL::StatusCode xAODJfakeSample::initialize()
 
 
   // Photon selector
-  CHECK(susytools->setProperty("PhotonBaselineId", "Loose"));
 
   m_phTightIsEMSel = new AsgPhotonIsEMSelector("Tight");
   CHECK(m_phTightIsEMSel->setProperty("WorkingPoint", "TightPhoton"));
@@ -349,12 +350,6 @@ EL::StatusCode xAODJfakeSample::execute ()
   if (is_data && !m_grl->passRunLB(*eventInfo)) {
     return EL::StatusCode::SUCCESS; // go to next event
   }
-
-  // MC Overlap Removal
-  outtree->mcveto = 0;
-  // if (is_mc && !mc_filter->accept_event(eventInfo->mcChannelNumber(), *m_event)) {
-  //   outtree->mcveto = 1; // only flag as mcveto
-  // }
   
   h_cutflow->Fill(2);
   h_cutflow_w->Fill(2, mc_weight);
@@ -412,16 +407,28 @@ EL::StatusCode xAODJfakeSample::execute ()
   // Only keep loose prime photons as baseline
   for (auto photon : *photons_nominal) {
 
+    bool is_baseline = (photon->auxdata<char>("baseline")==1);
+    bool is_signal   = (photon->auxdata<char>("signal")==1);
+
+    // reset baseline and signal decor
+    photon->auxdecor<char>("baseline") = 0;    
+    photon->auxdecor<char>("signal") = 0;    
+
+    // check if tight and looseprime
     bool is_tight = m_phTightIsEMSel->accept(photon);
     int isem = m_phTightIsEMSel->IsemValue();
+   
     bool is_looseprime = PassLoosePrime(4, isem);
 
     photon->auxdecor<int>("IsEM") = isem;
-    photon->auxdecor<int>("tight") = is_tight;
+    //photon->auxdecor<char>("tight") = is_tight;
+
+    if (is_baseline && is_looseprime)
+      photon->auxdecor<char>("baseline") = 1;
+
+    if (is_baseline && is_signal & !is_tight)
+      photon->auxdecor<char>("signal") = 1;
     
-    if (photon->auxdata<char>("baseline")==1  && !is_looseprime){
-      photon->auxdecor<char>("baseline") = 0;
-    }
   }
 
   photons_nominal->sort(ptsorter);
