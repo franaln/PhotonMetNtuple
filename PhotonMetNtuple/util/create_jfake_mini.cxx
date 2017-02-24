@@ -1,7 +1,7 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
-#include <TH1F.h>
+#include <TH2F.h>
 #include <TTreeReader.h>
 #include <TTreeReaderValue.h>
 #include <TTreeReaderArray.h>
@@ -13,48 +13,8 @@
 #include <PhotonMetNtuple/Utils.h>
 #include <PhotonMetNtuple/MiniClone.h>
 
-float fjg_factor[2*3] = {
-  0.147, 0.133, 0.124, // eta < 1.37:  145<pt<175, 175<pt<225, pt>225
-  0.100, 0.096, 0.104  // eta > 1.52:  145<pt<175, 175<pt<225, pt>225
-};
-
-float fjg_syst_dn[2*3] = {
-  0.035, 0.033, 0.032, // eta < 1.37:  145<pt<175, 175<pt<225, pt>225
-  0.033, 0.032, 0.032  // eta > 1.52:  145<pt<175, 175<pt<225, pt>225
-};
-
-float fjg_syst_up[2*3] = {
-  0.037, 0.036, 0.036, // eta < 1.37:  145<pt<175, 175<pt<225, pt>225
-  0.032, 0.031, 0.031  // eta > 1.52:  145<pt<175, 175<pt<225, pt>225
-};
-
-
-unsigned int get_eta_bin(float eta)
-{
-  float abseta = fabs(eta);
-
-  if (abseta < 1.37)
-    return 0;
-  else if (abseta > 1.52 && abseta <= 2.37)
-    return 1;
-
-  return 99;
-}
-
-unsigned int get_pt_bin(float pt)
-{
-  if (pt > 145. && pt <= 175.)
-    return 0;
-  else if (pt > 175. && pt <= 225.)
-    return 1;
-  else if (pt > 225.)
-    return 2;
-
-  return 99;
-}
-
   
-void loop(TString input_path, TString output_path)
+void loop(TString fake_rate_path, TString input_path, TString output_path)
 {
 
   std::cout << "create_jfake_mini: " << input_path << " -> " << output_path << std::endl;
@@ -76,6 +36,10 @@ void loop(TString input_path, TString output_path)
   mini->AddNewBranch("weight_fjg", &weight_fjg);
   mini->AddNewBranch("weight_fjg_dn", &weight_fjg_dn);
   mini->AddNewBranch("weight_fjg_up", &weight_fjg_up);
+
+  // Load ff histogram (x: pt, y: eta)
+  TFile *file_ff = new TFile(fake_rate_path);
+  TH2F  *jfake_ff = (TH2F*)file_ff->Get("jfake_ff");
 
   // Loop over all events
   int msg_interval = int(total_events/10);
@@ -112,8 +76,8 @@ void loop(TString input_path, TString output_path)
     if (pheta > 1.37 && pheta < 1.52) // crack region
       continue;
 
-    // only keep events with noniso photons in B region: 5.45 < iso < 29.45
-    if ((*mini->ph_noniso_iso)[0] < 5.45 || (*mini->ph_noniso_iso)[0] > 29.45)
+    // only keep events with noniso photons in B region: 10.45 < iso < 29.45
+    if ((*mini->ph_noniso_iso)[0] < 10.45 || (*mini->ph_noniso_iso)[0] > 29.45)
       continue;
 
     mini->new_ph_n = 1;
@@ -137,40 +101,25 @@ void loop(TString input_path, TString output_path)
     mini->CopyMetBlock();
     mini->CopyOthersBlock();
 
-    // std::cout << "---" << std::endl;
-    // std::cout << "dphi_jetmet mini: " << mini->dphi_jetmet << " copy: " << mini->new_dphi_jetmet << std::endl;
-    // std::cout << "dphi_gammet mini: " << mini->dphi_gammet << " copy: " << mini->new_dphi_gammet << std::endl;
-    // std::cout << "dphi_gamjet mini: " << mini->dphi_gamjet << " copy: " << mini->new_dphi_gamjet << std::endl;
-    // std::cout << "---" << std::endl;
-   
     // Replace some variables with noniso photon instead of photon
     mini->new_dphi_gammet = get_dphi(phphi, mini->met_phi);
     
     if (mini->jet_n > 0) 
       mini->new_dphi_gamjet = get_dphi(phphi, (*mini->jet_phi)[0]);
 
-    // std::cout << "dphi_jetmet mini: " << mini->dphi_jetmet << " copy: " << mini->new_dphi_jetmet << std::endl;
-    // std::cout << "dphi_gammet mini: " << mini->dphi_gammet << " copy: " << mini->new_dphi_gammet << std::endl;
-    // std::cout << "dphi_gamjet mini: " << mini->dphi_gamjet << " copy: " << mini->new_dphi_gamjet << std::endl;
-    // std::cout << "---" << std::endl;
-   
     mini->new_ht = mini->ht + phpt;
     mini->new_meff = mini->new_ht + mini->met_et;
     
     // f(jet->gam) weight
-    unsigned int pt_bin  = get_pt_bin(phpt);
-    unsigned int eta_bin = get_eta_bin(pheta);
+    unsigned int pt_bin   = jfake_ff->GetXaxis()->FindBin(phpt);  
+    unsigned int eta_bin  = jfake_ff->GetYaxis()->FindBin(fabs(pheta)); 
 
-    if (pt_bin < 3 && eta_bin < 2) {
+    if (pt_bin > 3)
+      pt_bin = 3;
 
-      unsigned int bin = eta_bin*3+pt_bin;
-      
-      weight_fjg    = fjg_factor[bin];
-      weight_fjg_dn = fjg_factor[bin] - fjg_syst_dn[bin];
-      weight_fjg_up = fjg_factor[bin] + fjg_syst_up[bin];
-    }
-    else
-      std::cout << "pt = " << (*mini->ph_noniso_pt)[0] << "(" << pt_bin << "), eta = " << (*mini->ph_noniso_eta)[0] <<"(" << eta_bin << ")" << std::endl;
+    weight_fjg = jfake_ff->GetBinContent(pt_bin, eta_bin);
+    //weight_fjg_dn = fjg_factor[bin] - fjg_syst_dn[bin];
+    //weight_fjg_up = fjg_factor[bin] + fjg_syst_up[bin];
 
     mini->Fill();
   }
@@ -180,15 +129,16 @@ void loop(TString input_path, TString output_path)
 
 int main(int argc, char *argv[]) 
 {
-  if (argc < 3) {
-    std::cout << "usage: create_jfake_mini <input_file> <output_file>" << std::endl;
+  if (argc < 4) {
+    std::cout << "usage: create_jfake_mini <fake_rate_file> <input_file> <output_file>" << std::endl;
     return 1;
   }
 
-  TString input_file = argv[1];
-  TString output_file = argv[2];
+  TString fake_rate_file = argv[1];
+  TString input_file = argv[2];
+  TString output_file = argv[3];
 
-  loop(input_file, output_file);
+  loop(fake_rate_file, input_file, output_file);
 
   return 0;
 }
