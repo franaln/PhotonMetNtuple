@@ -23,6 +23,9 @@ def get_grid_name(sample, version):
     splitted_sample = sample.split('.')
 
     short_name = '.'.join(splitted_sample[:3])
+    
+    if short_name.startswith('user.'):
+        short_name = short_name.split('.')[2]
 
     tags = splitted_sample[-1]
     ptag = tags.split('_')[-1] if tags.split('_')[-1].startswith('p') else ''
@@ -127,7 +130,7 @@ def run_job(sample, driver):
     if alg_name in ['xAODAnalysis', 'xAODBaselineAnalysis', 'xAODJfakeSample']:
 
         alg = getattr(ROOT, alg_name)()
-        print alg
+
         alg.mem = [] # use this to prevent ownwership problems
         
         is_data     = ('data15' in sample or 'data16' in sample)
@@ -179,6 +182,9 @@ def run_job(sample, driver):
         if alg_name == 'xAODAnalysis':
             outname = get_grid_name(sample, args.version)
 
+        elif alg_name == 'xAODJfakeSample':
+            outname = get_grid_name(sample, args.version).replace('data15', 'jfake15').replace('data16', 'jfake16')
+
         elif alg_name == 'xAODBaselineAnalysis':
             outname = 'user.' + os.environ['USER'] + '.' + short_name + '.base.v' + args.version
 
@@ -197,7 +203,7 @@ def run_job(sample, driver):
         driver.options().setDouble(ROOT.EL.Job.optRemoveSubmitDir, 1)
 
         # submit 
-        logging.info('submit job: ' + outname)
+        logging.info('submitting job with output name: ' + outname)
         if not args.dry:
             driver.submitOnly(job, args.output)
 
@@ -241,7 +247,7 @@ def main():
     parser.add_argument('-i', dest='input_file')
     parser.add_argument('-d', dest='dids', type=str)
 
-    parser.add_argument('-c', dest='config_file', default='PhotonMetNtuple_20.7_std.conf', help='Config file')
+    parser.add_argument('-c', dest='config_file', default='PhotonMetNtuple_std.conf', help='Config file')
     parser.add_argument('-v', dest='version')
 
     parser.add_argument('--dopdfrw', action='store_true')
