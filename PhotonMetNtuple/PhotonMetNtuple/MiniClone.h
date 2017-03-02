@@ -374,6 +374,7 @@ public:
   void SetJfakeSample() { m_jfake_sample = true; };
 
   void Clear();
+  void CopyAllBlocks();
   void CopyPhotonsBlock();
   void CopyPhotonsNonIsoBlock();
   void CopyElectronsBlock();

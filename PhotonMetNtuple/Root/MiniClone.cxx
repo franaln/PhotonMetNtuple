@@ -169,12 +169,15 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("el_pt", &el_pt, &b_el_pt);
    orig_tree->SetBranchAddress("el_ch", &el_ch, &b_el_ch);
    orig_tree->SetBranchAddress("el_w", &el_w, &b_el_w);
-   orig_tree->SetBranchAddress("el_medium_n", &el_medium_n, &b_el_medium_n);
-   orig_tree->SetBranchAddress("el_medium_eta", &el_medium_eta, &b_el_medium_eta);
-   orig_tree->SetBranchAddress("el_medium_etas2", &el_medium_etas2, &b_el_medium_etas2);
-   orig_tree->SetBranchAddress("el_medium_phi", &el_medium_phi, &b_el_medium_phi);
-   orig_tree->SetBranchAddress("el_medium_pt", &el_medium_pt, &b_el_medium_pt);
-   orig_tree->SetBranchAddress("el_medium_ch", &el_medium_ch, &b_el_medium_ch);
+
+   if (orig_tree->GetListOfBranches()->FindObject("el_medium_n")) {
+     orig_tree->SetBranchAddress("el_medium_n", &el_medium_n, &b_el_medium_n);
+     orig_tree->SetBranchAddress("el_medium_eta", &el_medium_eta, &b_el_medium_eta);
+     orig_tree->SetBranchAddress("el_medium_etas2", &el_medium_etas2, &b_el_medium_etas2);
+     orig_tree->SetBranchAddress("el_medium_phi", &el_medium_phi, &b_el_medium_phi);
+     orig_tree->SetBranchAddress("el_medium_pt", &el_medium_pt, &b_el_medium_pt);
+     orig_tree->SetBranchAddress("el_medium_ch", &el_medium_ch, &b_el_medium_ch);
+   }
 
    orig_tree->SetBranchAddress("mu_n", &mu_n, &b_mu_n);
    orig_tree->SetBranchAddress("mu_eta", &mu_eta, &b_mu_eta);
@@ -462,6 +465,19 @@ void MiniClone::Clear()
   new_mu_ch->clear();
   new_mu_w->clear();
 
+}
+
+void MiniClone::CopyAllBlocks()
+{
+  CopyPhotonsBlock();
+  CopyElectronsBlock();
+  CopyMuonsBlock();
+  CopyJetsBlock();
+  
+  CopyEventBlock();
+  CopyWeightBlock();
+  CopyMetBlock();
+  CopyOthersBlock();
 }
 
 void MiniClone::CopyPhotonsBlock()
