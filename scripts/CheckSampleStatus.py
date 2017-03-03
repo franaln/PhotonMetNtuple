@@ -15,7 +15,8 @@
 defaultRecoTagFilteringPattern = "r7" # this is for the rucio query, which is filtered by the below
 defaultSimTags = ["s2608", "s2726"] # MC15 standard tags
 defaultRecoTags = ["f*", "r*", "r7725", "a818", "a821"] # for AF-II, enable this line
-defaultDerivationTags = ['p2840', 'p2839', 
+defaultDerivationTags = ['p2950', 'p2949',
+                         'p2840', 'p2839', 
                          'p2824', 'p2813', 
                          'p2795', 'p2769', "p2709", "p2689","p2666", "p2667", "p2645", "p2622", "p2623", "p2613", "p2614", ] # in order of priority (in case several are available)
 

@@ -183,7 +183,7 @@ def run_job(sample, driver):
             outname = get_grid_name(sample, args.version)
 
         elif alg_name == 'xAODJfakeSample':
-            outname = get_grid_name(sample, args.version).replace('data15', 'jfake15').replace('data16', 'jfake16')
+            outname = get_grid_name(sample, args.version).replace('.mini.', '.jfake.')
 
         elif alg_name == 'xAODBaselineAnalysis':
             outname = 'user.' + os.environ['USER'] + '.' + short_name + '.base.v' + args.version
