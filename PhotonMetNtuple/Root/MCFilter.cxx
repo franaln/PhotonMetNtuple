@@ -22,7 +22,7 @@ Bool_t MCFilter::accept_event(uint32_t did, xAOD::TEvent& event)
   }
 
   // ttgamma
-  else if (did >= 410082 && did <= 410084) {
+  else if ((did >= 410082 && did <= 410084) || did == 407320) {
     return accept_ttgamma_event(event);
   }
 
