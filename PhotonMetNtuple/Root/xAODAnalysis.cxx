@@ -55,7 +55,6 @@ xAODAnalysis::xAODAnalysis() :
   is_data(false), 
   is_atlfast(false), 
   is_susy(false),
-  is_susy_ewk(false),
   do_syst(false)
 {
   // Here you put any code for the base initialization of variables,
@@ -125,11 +124,15 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow_w->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
   h_cutflow_w->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
 
+  // sum of weights for the differetn SUSY processes
+  h_susy_sumw = new TH1D("susy_sumw", "SUSY ID SumW", 225, 0.5, 225.5);
+
   TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
   h_events->SetDirectory(out_dir);
   h_cutflow->SetDirectory(out_dir);
   h_cutflow_w->SetDirectory(out_dir);
-  
+  h_susy_sumw->SetDirectory(out_dir);
+
   return EL::StatusCode::SUCCESS;
 }
 
@@ -177,9 +180,23 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
       
     int maxCycle = -1;
     for (const auto& cbk :  *completeCBC) {
-      if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
+      
+      std::string name = cbk->name();
+
+      if (cbk->cycle() > maxCycle && name == "AllExecutedEvents" && cbk->inputStream() == "StreamAOD") {
         all_events_cbk = cbk;
         maxCycle = cbk->cycle();
+      }
+      else if (is_susy && name.find("SUSYWeight_ID") != std::string::npos) { 
+          std::size_t pos = name.rfind("_");
+          name = name.substr(pos+1);
+          int proc = std::stoi(name);
+
+          if (cbk->sumOfEventWeights() < 0.1)
+            continue;
+
+          Info(APP_NAME, "Found SUSY process with ID %i and SumW %f", proc, cbk->sumOfEventWeights());
+          h_susy_sumw->Fill(proc, cbk->sumOfEventWeights());
       }
     }
       
@@ -195,6 +212,7 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
     m_initial_sumw2   = (CollectionTree->GetWeight() * CollectionTree->GetWeight()) * CollectionTree->GetEntries();
   }
   
+
   std::cout << "Initial events = " << m_initial_events << ", Sumw = " << m_initial_sumw << std::endl;
   
   h_events->Fill(1, m_initial_events);
@@ -707,7 +725,7 @@ EL::StatusCode xAODAnalysis::execute ()
     susytools->GetTotalJetSF(jets_nominal);
 
   // MC final state
-  if (is_mc && is_susy_ewk) {
+  if (is_mc && is_susy) {
     
     const xAOD::TruthParticleContainer* truth_particles = 0;
     if(!m_event->retrieve(truth_particles, "TruthParticles").isSuccess()) {

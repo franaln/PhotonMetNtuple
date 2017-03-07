@@ -75,7 +75,6 @@ public:
   bool is_data;
   bool is_atlfast;
   bool is_susy;
-  bool is_susy_ewk;
   bool do_syst;
 
   // variables that don't get filled at submission time should be
@@ -89,9 +88,7 @@ public:
   TH1D *h_events; //!
   TH1D *h_cutflow; //!
   TH1D *h_cutflow_w; //!
-
-  TH1D *h_events_subproceses; //!
-  TH1D *h_sumw_subproceses; //!
+  TH1D *h_susy_sumw; //!
 
   xAOD::TEvent *m_event;  //!
 
