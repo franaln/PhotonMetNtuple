@@ -10,10 +10,11 @@
 MiniTree::MiniTree(const std::string& name): 
   asg::AsgMetadataTool(name)
 {
+
   declareProperty("SystematicList", m_sys_list); //pass here the list of systematics
   declareProperty("OutFile", m_outfile); //here we should pass *file = wk()->getOutputFile ("output");
-  declareProperty("IsMC", m_ismc);
-  declareProperty("SaveMediumElectrons", m_save_medium_electrons);
+  declareProperty("IsMC", m_ismc=false);
+  declareProperty("SaveMediumElectrons", m_save_medium_electrons=true);
 
   tree = 0;
 }
@@ -21,9 +22,9 @@ MiniTree::MiniTree(const std::string& name):
 MiniTree::~MiniTree()
 {
   
-  for(const auto& sys : m_sys_list) {
+  for (const auto& sys : m_sys_list) {
     
-    if(sys.affectsKinematics){
+    if (sys.affectsKinematics) {
       const CP::SystematicSet& sysSet = sys.systset;
       std::string sys_name = sysSet.name().c_str();
       

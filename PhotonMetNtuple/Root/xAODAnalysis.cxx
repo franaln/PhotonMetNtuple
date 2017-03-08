@@ -311,6 +311,8 @@ EL::StatusCode xAODAnalysis::initialize()
   CHECK(outtree->setProperty("SystematicList", systInfoList));
   CHECK(outtree->setProperty("OutFile", out_dir));
   CHECK(outtree->setProperty("IsMC", !is_data));
+  CHECK(outtree->setProperty("SaveMediumElectrons", true));
+
   CHECK(outtree->initialize());
 
   mc_filter = new MCFilter;

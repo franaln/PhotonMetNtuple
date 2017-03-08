@@ -189,7 +189,7 @@ protected:
   std::vector<float> *ph_ptcone20;
   std::vector<float> *ph_iso;
   std::vector<float> *ph_trackiso;
-  std::vector<int> *ph_conv;
+  std::vector<int>   *ph_conv;
   std::vector<float> *ph_w;
 
   std::vector<float> *ph_truth_pt; 
