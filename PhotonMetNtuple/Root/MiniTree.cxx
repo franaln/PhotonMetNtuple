@@ -1152,7 +1152,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
     if (ph_itr->auxdata<char>("baseline") == 1  &&
         ph_itr->auxdata<char>("passOR") == 1  &&
         ph_itr->auxdata<char>("signal") == 1  &&
-        ph_itr->pt()*IGEV > 75) {
+        ph_itr->pt()*IGEV > 145) {
       photons_skim += 1;
     }
   }

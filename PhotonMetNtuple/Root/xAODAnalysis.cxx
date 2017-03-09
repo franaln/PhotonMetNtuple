@@ -111,8 +111,8 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow->GetXaxis()->SetBinLabel(4, "Trigger");
   h_cutflow->GetXaxis()->SetBinLabel(5, "Good Vertex");
   h_cutflow->GetXaxis()->SetBinLabel(6, "Cosmic Muon (not applied)");
-  h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
-  h_cutflow->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
+  h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet/Muon veto");
+  h_cutflow->GetXaxis()->SetBinLabel(8, "Skim (1 photon) ");
 
   h_cutflow_w = new TH1D("cutflow_w", "Cutflow_w", 8, 0.5, 8.5);
   h_cutflow_w->GetXaxis()->SetBinLabel(1, "All");
@@ -121,8 +121,8 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow_w->GetXaxis()->SetBinLabel(4, "Trigger");
   h_cutflow_w->GetXaxis()->SetBinLabel(5, "Good Vertex");
   h_cutflow_w->GetXaxis()->SetBinLabel(6, "Cosmic Muon (not applied)");
-  h_cutflow_w->GetXaxis()->SetBinLabel(7, "Bad Jet Cleaning");
-  h_cutflow_w->GetXaxis()->SetBinLabel(8, "Skim (1 baseline photon) ");
+  h_cutflow_w->GetXaxis()->SetBinLabel(7, "Bad Jet/Muon veto");
+  h_cutflow_w->GetXaxis()->SetBinLabel(8, "Skim (1 photon) ");
 
   // sum of weights for the differetn SUSY processes
   h_susy_sumw = new TH1D("susy_sumw", "SUSY ID SumW", 225, 0.5, 225.5);
@@ -192,11 +192,10 @@ EL::StatusCode xAODAnalysis::changeInput(bool firstFile)
           name = name.substr(pos+1);
           int proc = std::stoi(name);
 
-          if (cbk->sumOfEventWeights() < 0.1)
-            continue;
-
-          Info(APP_NAME, "Found SUSY process with ID %i and SumW %f", proc, cbk->sumOfEventWeights());
-          h_susy_sumw->Fill(proc, cbk->sumOfEventWeights());
+          if (cbk->sumOfEventWeights() > 0.1) {
+            Info(APP_NAME, "Found SUSY process with ID %i and SumW %f", proc, cbk->sumOfEventWeights());
+            h_susy_sumw->Fill(proc, cbk->sumOfEventWeights());
+          }
       }
     }
       
