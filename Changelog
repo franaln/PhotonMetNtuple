@@ -1,14 +1,13 @@
 # Changelog and tags
 
 2017-03-10 fran
+	- Update to AB 2.4.29 + ST 08-58
 	- Update to ST 08-57 (preparing for v53)
 	- Update to last 2016 GRL
 	- Update to last p2950 data derivations
 
-
-
 2017-02-22 fran
-	- Update to ST 08-54
+	- Update to ST 08-54 (v52, no tag du to some problems)
 
 2017-02-17 fran
 	- Update to AB 2.4.28 + ST 08-52
