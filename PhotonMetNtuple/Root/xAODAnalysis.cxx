@@ -112,7 +112,7 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow->GetXaxis()->SetBinLabel(5, "Good Vertex");
   h_cutflow->GetXaxis()->SetBinLabel(6, "Cosmic Muon (not applied)");
   h_cutflow->GetXaxis()->SetBinLabel(7, "Bad Jet/Muon veto");
-  h_cutflow->GetXaxis()->SetBinLabel(8, "Skim (1 photon) ");
+  h_cutflow->GetXaxis()->SetBinLabel(8, "Skim");
 
   h_cutflow_w = new TH1D("cutflow_w", "Cutflow_w", 8, 0.5, 8.5);
   h_cutflow_w->GetXaxis()->SetBinLabel(1, "All");
@@ -122,7 +122,7 @@ EL::StatusCode xAODAnalysis::histInitialize()
   h_cutflow_w->GetXaxis()->SetBinLabel(5, "Good Vertex");
   h_cutflow_w->GetXaxis()->SetBinLabel(6, "Cosmic Muon (not applied)");
   h_cutflow_w->GetXaxis()->SetBinLabel(7, "Bad Jet/Muon veto");
-  h_cutflow_w->GetXaxis()->SetBinLabel(8, "Skim (1 photon) ");
+  h_cutflow_w->GetXaxis()->SetBinLabel(8, "Skim");
 
   // sum of weights for the differetn SUSY processes
   h_susy_sumw = new TH1D("susy_sumw", "SUSY ID SumW", 225, 0.5, 225.5);
@@ -699,10 +699,7 @@ EL::StatusCode xAODAnalysis::execute ()
 
     if (is_mc && mu->auxdata<char>("signal") == 1)
       susytools->GetSignalMuonSF(*mu);
-    // if (mu->auxdata<char>("cosmic") == 1) {
-    //   Info(APP_NAME, "cosmic muon %f", mu->pt());
-    //   skip = true;
-    // }
+
     if (mu->auxdata<char>("bad") == 1) {
       skip = true;
     }

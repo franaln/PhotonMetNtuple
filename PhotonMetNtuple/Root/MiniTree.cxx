@@ -947,7 +947,7 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
         ph_itr->auxdata<char>("signal")   == 1 &&
         ph_itr->auxdata<char>("passOR")   == 1 &&
         PassEtaCut(ph_itr, 2.37)) {
-      
+
       // separate iso and noniso photons
       float etcone40 = ph_itr->isolationValue(xAOD::Iso::topoetcone40)*IGEV;
       float ptcone20 = ph_itr->isolationValue(xAOD::Iso::ptcone20)*IGEV;
@@ -1032,6 +1032,8 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   }
   ph_n_map[sysname] = ph_n;
   ph_noniso_n_map[sysname] = ph_noniso_n;
+
+  int ph_skim = ph_n + ph_noniso_n;
 
   // SF weigth
   weight_sf_map[sysname] = total_weight_sf;
@@ -1147,21 +1149,11 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
   dphi_met_trackmet_map[sysname] = get_dphi(met_phi_map[sysname], met_track_phi_map[sysname]);
 
   // Skim: at least one signal photon (no iso cut) with pt>75 (or a medium electron for Nominal)
-  int photons_skim = 0;
-  for (const auto& ph_itr : *collections.photons) {
-    if (ph_itr->auxdata<char>("baseline") == 1  &&
-        ph_itr->auxdata<char>("passOR") == 1  &&
-        ph_itr->auxdata<char>("signal") == 1  &&
-        ph_itr->pt()*IGEV > 145) {
-      photons_skim += 1;
-    }
-  }
-
   bool pass_skim = false;
   if (sysname == "Nominal")
-    pass_skim = (photons_skim > 0 || el_medium_n > 0);
+    pass_skim = (ph_skim > 0 || el_medium_n > 0);
   else
-    pass_skim = (photons_skim > 0);
+    pass_skim = (ph_skim > 0);
 
   return pass_skim;
 }
