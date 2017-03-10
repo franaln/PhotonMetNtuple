@@ -3,7 +3,7 @@ PhotonMetNtuple
 
 ## Current Base and SUSYTools release
 
-    AnalysisBase,2.4.28 (+ SUSYTools-00-08-54)
+    AnalysisBase,2.4.28 (+ SUSYTools-00-08-57)
 
 
 ## Compile
@@ -22,7 +22,7 @@ PhotonMetNtuple
 
 * PRW MC and ilumicalc files used from cvmfs using PathResolver, still configured via configfile
 
-* To run over signal samples copy the PRW file from /afs/cern.ch/user/f/falonso/public/SUSY/PMN_data to PhotonMetNtuple/data/
+* Yo may need to copy the data files from /afs/cern.ch/user/f/falonso/public/SUSY/PMN_data to PhotonMetNtuple/data/
 
 ## Run
 
@@ -41,6 +41,6 @@ PhotonMetNtuple
 * To run the truth analysis (or any other analysis) use the --alg option:
 
     ```
-    run.py -alg xAODTruthAnalysis ....
+    run.py --alg xAODTruthAnalysis ....
     ```
     
