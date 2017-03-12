@@ -11,7 +11,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 logging.basicConfig(level=logging.INFO)
 
-excluded_sites = 'ANALY_RHUL_SL6' #ANALY_CONNECT_SHORT,ANALY_INFN-ROMA1,ANALY_wuppertalprod' #ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,'
+excluded_sites = 'ANALY_RHUL_SL6,ANALY_NCG-INGRID-PT_SL6' #ANALY_CONNECT_SHORT,ANALY_INFN-ROMA1,ANALY_wuppertalprod' #ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,'
 
 import atexit
 @atexit.register
@@ -231,10 +231,9 @@ def main():
     parser.add_argument("--nevents", type=int, help="number of events to process for all the datasets")
 
     parser.add_argument('--alg', default='xAODAnalysis')
-    parser.add_argument("--dosyst", action='store_true', help="Create systematics blocks")
 
     # test
-    parser.add_argument('--test', dest='test')
+    parser.add_argument('--test', help='Test locally with this input')
 
     # run (in the grid)
     parser.add_argument('--grid', action='store_true')    
@@ -248,7 +247,9 @@ def main():
     parser.add_argument('-c', dest='config_file', default='PhotonMetNtuple_std.conf', help='Config file')
     parser.add_argument('-v', dest='version')
 
+    parser.add_argument("--dosyst", action='store_true', help="Create systematics blocks")
     parser.add_argument('--dopdfrw', action='store_true')
+
     # parser.add_argument('--dotar', dest='do_tarball', action='store_true')
     # parser.add_argument('--usetar', dest='use_tarball', action='store_true')
     
@@ -274,19 +275,12 @@ def main():
         return 1
 
     if args.download:
-
         if args.input_file is not None:
             torun = get_samples_from_file(args.input_file, args.dids)
 
-        print 'rucio download \\'
-        for i, sample in enumerate(torun):
-            
-            outname = get_grid_name(sample, args.version) + '_output.root'
-
-            if i == len(torun) - 1:
-                print '    %s' % outname
-            else:
-                print '    %s \\' % outname
+            for sample in torun:
+                outname = get_grid_name(sample, args.version) + '_output.root'
+                print 'rucio download %s' % outname
 
         return 0
 
@@ -294,8 +288,6 @@ def main():
     global alg_name
     alg_name = args.alg
 
-    if alg_name == 'xAODAnalysis' and args.config_file is None:
-        logging.error('you need to provide a configfile!')
 
     ROOT.gROOT.Macro("$ROOTCOREDIR/scripts/load_packages.C")
     ROOT.xAOD.Init().ignore()
