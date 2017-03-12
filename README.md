@@ -3,7 +3,7 @@ PhotonMetNtuple
 
 ## Current Base and SUSYTools release
 
-    AnalysisBase,2.4.28 (+ SUSYTools-00-08-57)
+    AnalysisBase,2.4.29 (+ SUSYTools-00-08-58)
 
 
 ## Compile
@@ -17,12 +17,17 @@ PhotonMetNtuple
     rc clean
     rc compile
 
+## Make a new tag
+
+    git tag -a vXX -m "tagging version XX"
+
 
 ## ROOT Files needed
 
 * PRW MC and ilumicalc files used from cvmfs using PathResolver, still configured via configfile
 
 * Yo may need to copy the data files from /afs/cern.ch/user/f/falonso/public/SUSY/PMN_data to PhotonMetNtuple/data/
+
 
 ## Run
 
