@@ -10,12 +10,8 @@
 #                                                            #
 ##############################################################
 
-# Set the default tags you want to use for your sample status check
-# For MC15c, see https://twiki.cern.ch/twiki/bin/view/AtlasProtected/AtlasProductionGroupMC15c
-defaultRecoTagFilteringPattern = "r7" # this is for the rucio query, which is filtered by the below
-defaultSimTags = ["s2608", "s2726"] # MC15 standard tags
-defaultRecoTags = ["f*", "r*", "r7725", "a818", "a821"] # for AF-II, enable this line
-defaultDerivationTags = ['p2950', 'p2949',
+defaultDerivationTags = ['p3017',
+                         'p2950', 'p2949',
                          'p2840', 'p2839', 
                          'p2824', 'p2813', 
                          'p2795', 'p2769', "p2709", "p2689","p2666", "p2667", "p2645", "p2622", "p2623", "p2613", "p2614", ] # in order of priority (in case several are available)
@@ -29,36 +25,52 @@ def runCommand(cmd, verbose = False):
     cmdResult = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return cmdResult.stdout
 
-def getSamplesFromPattern(dsid,
-                         projectTag = "mc15_13TeV",
-                         simTags = defaultSimTags,
-                         recoTags = defaultRecoTags,
-                         verbose = False,
-                         format = "DAOD_SUSY1",
-                         pTags = [],
-                         derivation = ""):
+
+def getAllSamples(dids,
+                  projectTag = "mc15_13TeV",
+                  verbose = False):
     
-    pattern = projectTag + '.' + dsid +'.physics_Main*AOD*'
+    if 'data' in projectTag:
+        pattern = projectTag + '.*.physics_Main*AOD*/'
+    else:
+        pattern = projectTag + '.*.*AOD*/'
 
     # do the rucio query
     queryPattern = pattern
     cmd = "rucio ls --short --filter type=CONTAINER %s | sort -r " % (queryPattern) # sort -r prioritizes higher e-tags
     queryResult = runCommand(cmd, verbose)
 
-    # preprocess the output
     lines = [line.rstrip().replace(projectTag+":", "") for line in queryResult.readlines()]
 
-    dsPattern = pattern.replace(defaultRecoTagFilteringPattern+"*", "").replace("*", ".*")
-    dsRE = re.compile(dsPattern)
-    datasets = filter(dsRE.match, lines)
+    samples = []
+    for line in lines:
+        did = line.split('.')[1]
+        if did in dids:
+            samples.append(line)
+
+    return samples
+
+
+def getSamplesFromPattern(rucio_output, 
+                          dsid,
+                         projectTag = "mc15_13TeV",
+                          verbose = False,
+                          format = "DAOD_SUSY1",
+                          pTags = [],
+                          derivation = ""):
+    
+    
+    # dsPattern = pattern.replace(defaultRecoTagFilteringPattern+"*", "").replace("*", ".*")
+    # dsRE = re.compile(dsPattern)
+    datasets = rucio_output #filter(dsRE.match, lines)
     if verbose:
-        print "  Dataset regex: %s" % dsPattern
+        #print "  Dataset regex: %s" % dsPattern
         print "  All datasets: "
         for ds in datasets:
             print "    %s" % ds
 
-    aodPattern = dsPattern.replace("AOD.*", "\.merge\.AOD\..*")
-    aodPattern += "("+'|'.join(simTags)+")?.*("+'|'.join(recoTags)+")?.*"
+    aodPattern = 'mc15_13TeV\.%s\..*\.merge\.AOD\.(e[0-9]*|f[0-9]*).?(s.*|a.*)?\_(r[0-9]*)' % dsid
+ 
     aodRE = re.compile(aodPattern)
     aodDatasets = filter(aodRE.match, datasets)
     if verbose:
@@ -71,7 +83,7 @@ def getSamplesFromPattern(dsid,
         aodDatasets.append(" N/A ")
 
     daodPattern = aodPattern.replace("AOD", format)
-    daodPattern += "("+'|'.join(pTags)+")"
+    daodPattern += "\_("+'|'.join(pTags)+")"
     daodRE = re.compile(daodPattern)
     daodDatasets = filter(daodRE.match, datasets)
     if verbose:
@@ -79,6 +91,7 @@ def getSamplesFromPattern(dsid,
         print "  DAOD datasets:"
         for ds in daodDatasets:
             print "    %s" % ds
+
     # if there are several matching the requested tags, pick the one with the tag mentioned first in the list
     if len(daodDatasets) > 1:
         print "Found more than one:"
@@ -95,20 +108,13 @@ def getSamplesFromPattern(dsid,
     if len(daodDatasets) < 1:
         daodDatasets.append(" N/A ")
 
-    # check for non-dataset line in the output - they could be e.g. error messages
-    otherLines = [x for x in lines if x not in datasets] 
-    if len(otherLines) > 0:
-        print "Other lines were found in the query output - there may have been a problem:"
-        for line in otherLines:
-            print line
-
     returnDict = {"AOD": aodDatasets[0], "DAOD": daodDatasets[0]}
+
     return returnDict
 
 def getAmiStatus(ds, verbose):
     cmd = "ami show dataset info %s | grep prodsysStatus" % ds
     amiResult = runCommand(cmd, verbose)
-
 
     # try:
     #     cmd = 'ami show dataset info %s | grep totalEvents' % ds
@@ -169,19 +175,22 @@ def main():
 
     f = open(args.dsids)
 
-    dsids = [line.rstrip('\n') for line in f]
+    dsids = [line.rstrip('\n') for line in f if not line.startswith('#')]
 
     if args.projectTag.startswith('data'):
-        dsids = [ '00%s' % i for i in dsids if i and not i.startswith('#') ]
+        dsids = [ '00%s' % i for i in dsids ]
 
     samples = OrderedDict()
+
+
+    rucio_output = getAllSamples(dsids, args.projectTag, args.verbose)
 
     for dsid in dsids:
         if not dsid or dsid.startswith('#'):
             continue
         #if args.verbose:
         print "Checking DSID %s..." % dsid
-        samples[dsid] = getSamplesFromPattern(dsid, args.projectTag, defaultSimTags, defaultRecoTags, args.verbose, args.format, defaultDerivationTags)
+        samples[dsid] = getSamplesFromPattern(rucio_output, dsid, args.projectTag, args.verbose, args.format, defaultDerivationTags)
 
     if args.verbose:
         print "These samples were found:"
