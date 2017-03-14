@@ -132,6 +132,9 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     mini->new_ht = mini->ht + elpt;
     mini->new_meff = mini->new_ht + mini->met_et;
 
+    Float_t mt2_gam = 2 * mini->met_et * elpt * (1 - TMath::Cos(mini->dphi_gammet));
+    mini->mt_gam = TMath::Sqrt(mt2_gam);
+
     // f(e->gam) weight
     unsigned int eta_bin = efake_ff->GetXaxis()->FindBin(eleta); 
     
