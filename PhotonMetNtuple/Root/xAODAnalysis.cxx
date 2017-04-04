@@ -326,6 +326,10 @@ EL::StatusCode xAODAnalysis::execute ()
   // histograms and trees.  This is where most of your actual analysis
   // code will go.
 
+  if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
+    Error(APP_NAME, "Cannot reset SUSYTools systematics" );
+  }
+
   // clear tree
   outtree->clear();
   
@@ -471,9 +475,9 @@ EL::StatusCode xAODAnalysis::execute ()
 
       const CP::SystematicSet& sys = sysInfo.systset;
 
-      if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
-        Error(APP_NAME, "Cannot reset SUSYTools systematics" );
-      }
+      // if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
+      //   Error(APP_NAME, "Cannot reset SUSYTools systematics" );
+      // }
 
       if (susytools->applySystematicVariation(sys) != CP::SystematicCode::Ok) {
         Error(APP_NAME, "Cannot configure SUSYTools for systematic var. %s", (sys.name()).c_str() );
@@ -604,10 +608,15 @@ EL::StatusCode xAODAnalysis::execute ()
         
         bool skip = false;
         for (const auto& mu : *muons) {
-          if (is_mc && mu->auxdata<char>("baseline") == 1 &&
-              mu->auxdata<char>("passOR") == 1 && 
-              mu->auxdata<char>("signal") == 1)
+          if (mu->auxdata<char>("baseline") == 0 || 
+              mu->auxdata<char>("passOR") == 0)
+            continue;
+
+          if (is_mc && mu->auxdata<char>("signal") == 1)
             susytools->GetSignalMuonSF(*mu);
+
+          if (mu->auxdata<char>("bad") == 1)
+            skip = true;
         }
         
         for (const auto& jet : *jets) {
@@ -619,8 +628,8 @@ EL::StatusCode xAODAnalysis::execute ()
           }
         }
         
-        susytools->GetTotalJetSFsys(jets, sys);
-        
+        if (is_mc)
+          susytools->GetTotalJetSFsys(jets, sys);
 
         if (!skip) {
           AnalysisCollections collections;
@@ -658,7 +667,6 @@ EL::StatusCode xAODAnalysis::execute ()
   if (susytools->resetSystematics() != CP::SystematicCode::Ok) {
     Error(APP_NAME, "Cannot reset SUSYTools systematics" );
   }
-  
 
   // Overlap removal
   CHECK(susytools->OverlapRemoval(electrons_nominal, muons_nominal, jets_nominal, photons_nominal));

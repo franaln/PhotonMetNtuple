@@ -68,8 +68,8 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     unsigned int pt_bin   = jfake_ff->GetXaxis()->FindBin(phpt);  
     unsigned int eta_bin  = jfake_ff->GetYaxis()->FindBin(fabs(pheta)); 
 
-    if (pt_bin > 3)
-      pt_bin = 3;
+    if (pt_bin > 6)
+      pt_bin = 6;
 
     weight_fjg    = jfake_ff->GetBinContent(pt_bin, eta_bin);
     weight_fjg_dn = jfake_ff_dn->GetBinContent(pt_bin, eta_bin);

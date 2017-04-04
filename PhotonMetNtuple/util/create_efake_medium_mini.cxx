@@ -136,11 +136,12 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     mini->mt_gam = TMath::Sqrt(mt2_gam);
 
     // f(e->gam) weight
+    unsigned int pt_bin = efake_ff->GetYaxis()->FindBin(elpt); 
     unsigned int eta_bin = efake_ff->GetXaxis()->FindBin(eleta); 
     
-    weight_feg    = efake_ff   ->GetBinContent(eta_bin); 
-    weight_feg_dn = efake_ff_dn->GetBinContent(eta_bin);
-    weight_feg_up = efake_ff_up->GetBinContent(eta_bin);
+    weight_feg    = efake_ff   ->GetBinContent(eta_bin, pt_bin); 
+    weight_feg_dn = efake_ff_dn->GetBinContent(eta_bin, pt_bin);
+    weight_feg_up = efake_ff_up->GetBinContent(eta_bin, pt_bin);
   
     mini->Fill();
   }

@@ -11,7 +11,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 logging.basicConfig(level=logging.INFO)
 
-excluded_sites = 'ANALY_RHUL_SL6,ANALY_NCG-INGRID-PT_SL6' #ANALY_CONNECT_SHORT,ANALY_INFN-ROMA1,ANALY_wuppertalprod' #ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,'
+excluded_sites = '' #ANALY_RHUL_SL6,ANALY_NCG-INGRID-PT_SL6' #ANALY_CONNECT_SHORT,ANALY_INFN-ROMA1,ANALY_wuppertalprod' #ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,'
 
 import atexit
 @atexit.register
@@ -288,6 +288,11 @@ def main():
     global alg_name
     alg_name = args.alg
 
+    available_algorithms = ['xAODAnalysis', 'xAODBaselineAnalysis', 'xAODJfakeSample', 'xAODCountEwkProcesses', 'xAODTruthAnalysis']
+    if alg_name not in available_algorithms:
+        print 'Available algorithms: %s' % ' '.join(available_algorithms)
+        return 1
+        
 
     ROOT.gROOT.Macro("$ROOTCOREDIR/scripts/load_packages.C")
     ROOT.xAOD.Init().ignore()
