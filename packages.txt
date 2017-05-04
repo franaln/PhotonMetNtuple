@@ -1,1 +1,2 @@
-atlasoff/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-08-60
+atlasoff/PhysicsAnalysis/SUSYPhys/SUSYTools/tags/SUSYTools-00-08-61
+
