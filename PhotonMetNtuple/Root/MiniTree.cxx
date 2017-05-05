@@ -209,8 +209,9 @@ StatusCode MiniTree::initialize()
   }
   tree->Branch("year", &year, "year/i");
 
-  tree->Branch("pass_g120_loose", &pass_g120_loose, "pass_g120_loose/i");
-  tree->Branch("pass_g140_loose", &pass_g140_loose, "pass_g140_loose/i");
+  tree->Branch("pass_g120", &pass_g120, "pass_g120/i");
+  tree->Branch("pass_g140", &pass_g140, "pass_g140/i");
+  tree->Branch("pass_g70_xe70", &pass_g70_xe70, "pass_g0_xe70/i");
 
   // Weights
   tree->Branch("weight_mc", &weight_mc, "weight_mc/F"); // no syst
@@ -709,8 +710,9 @@ void MiniTree::clear()
   final_state = 0;
   year = 0;
 
-  pass_g120_loose = 0;
-  pass_g140_loose = 0;
+  pass_g120 = 0;
+  pass_g140 = 0;
+  pass_g70_xe70 = 0;
 
   weight_mc = 1.;
   weight_pu = 1.;

@@ -69,8 +69,9 @@ class MiniTree : public asg::AsgMetadataTool {
   unsigned int year;
   unsigned int mcveto;
 
-  unsigned int pass_g120_loose;
-  unsigned int pass_g140_loose;
+  unsigned int pass_g120;
+  unsigned int pass_g140;
+  unsigned int pass_g70_xe70;
 
   float weight_mc;
   float weight_pu;

@@ -367,7 +367,7 @@ EL::StatusCode xAODJfakeSample::execute ()
   // Trigger
   bool pass_g140 = susytools->IsTrigPassed("HLT_g140_loose");
 
-  outtree->pass_g140_loose = pass_g140;
+  outtree->pass_g140 = pass_g140;
 
   if (!pass_g140)
     return EL::StatusCode::SUCCESS;
