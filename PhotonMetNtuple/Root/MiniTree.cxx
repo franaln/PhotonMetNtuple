@@ -211,7 +211,7 @@ StatusCode MiniTree::initialize()
 
   tree->Branch("pass_g120", &pass_g120, "pass_g120/i");
   tree->Branch("pass_g140", &pass_g140, "pass_g140/i");
-  tree->Branch("pass_g70_xe70", &pass_g70_xe70, "pass_g0_xe70/i");
+  tree->Branch("pass_g70_xe70", &pass_g70_xe70, "pass_g70_xe70/i");
 
   // Weights
   tree->Branch("weight_mc", &weight_mc, "weight_mc/F"); // no syst
