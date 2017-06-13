@@ -99,8 +99,8 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("avgmu", &avgmu, &b_avgmu);
 
    orig_tree->SetBranchAddress("year", &year, &b_year);
-   orig_tree->SetBranchAddress("pass_g120_loose", &pass_g120, &b_pass_g120);
-   orig_tree->SetBranchAddress("pass_g140_loose", &pass_g140, &b_pass_g140);
+   orig_tree->SetBranchAddress("pass_g120", &pass_g120, &b_pass_g120);
+   orig_tree->SetBranchAddress("pass_g140", &pass_g140, &b_pass_g140);
    if (m_ismc) orig_tree->SetBranchAddress("mcveto", &mcveto, &b_mcveto);
    if (m_ismc) orig_tree->SetBranchAddress("fs", &fs, &b_final_state);
 

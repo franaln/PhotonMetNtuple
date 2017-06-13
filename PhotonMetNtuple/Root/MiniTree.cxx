@@ -974,6 +974,12 @@ bool MiniTree::process(AnalysisCollections collections, std::string sysname)
         ph_iso_map[sysname]      ->push_back(calo_iso);
         ph_trackiso_map[sysname] ->push_back(track_iso);
 
+        // unconverted = 0 : unconverted photon
+        // singleSi = 1 : one track only, with Si hits
+        // singleTRT = 2 : one track only, no Si hits (TRT only)
+        // doubleSi = 3 : two tracks, both with Si hits
+        // doubleTRT = 4 : two tracks, none with Si hits (TRT only)
+        // doubleSiTRT = 5 : two tracks, only one with Si hits
         ph_conv_map[sysname] ->push_back(ph_itr->conversionType());
 
         double sf = 1.;

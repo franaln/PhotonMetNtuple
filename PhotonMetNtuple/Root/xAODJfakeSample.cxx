@@ -267,7 +267,6 @@ EL::StatusCode xAODJfakeSample::initialize()
 
 
   // Photon selector
-
   m_phTightIsEMSel = new AsgPhotonIsEMSelector("Tight");
   CHECK(m_phTightIsEMSel->setProperty("WorkingPoint", "TightPhoton"));
   CHECK(m_phTightIsEMSel->initialize());
