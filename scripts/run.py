@@ -11,7 +11,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 logging.basicConfig(level=logging.INFO)
 
-excluded_sites = '' #ANALY_RHUL_SL6,ANALY_NCG-INGRID-PT_SL6' #ANALY_CONNECT_SHORT,ANALY_INFN-ROMA1,ANALY_wuppertalprod' #ANALY_RHUL_SL6,ANALY_QMUL_SL6,ANALY_QMUL_HIMEM_SL6,ANALY_AGLT2_SL6,ANALY_RAL_SL6,'
+excluded_sites = 'ANALY_RHUL_SL6,ANALY_SLAC'
 
 import atexit
 @atexit.register
@@ -34,6 +34,15 @@ def get_grid_name(sample, version):
         outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.' + ptag + '.v' + args.version
     else:
         outname = 'user.' + os.environ['USER'] + '.' + short_name + '.mini.v' + args.version
+
+    if alg_name == 'xAODJfakeSample':
+        outname = outname.replace('.mini.', '.jfake.')
+    elif alg_name == 'xAODBaselineAnalysis':
+        outname = outname.replace('.mini.',  '.base.')
+    elif alg_name == 'xAODCountEwkProcesses':
+        outname = outname.replace('.mini.', '.ewk.')
+    elif alg_name == 'xAODTruthAnalysis':
+        outname = outname.replace('.mini.', '.truth.')
 
     return outname
 
@@ -75,7 +84,6 @@ def get_samples_from_file(file_, dids_str=None):
             logging.error('bad dids syntax. ignoring...')
 
     samples = []
-
     for line in open(file_).read().split('\n'):
         if not line or line.startswith('#'):
             continue
@@ -136,7 +144,6 @@ def run_job(sample, driver):
         is_data     = ('data15' in sample or 'data16' in sample)
         is_susy     = ('_GGM' in sample)
         is_atlfast  = (is_susy or 'MadGraphPythia8EvtGen_A14NNPDF23LO_ttgamma' in sample)
-        
 
         logging.info('--')
         logging.info('-- Configuration to use. Please check if it is ok!')
@@ -177,20 +184,7 @@ def run_job(sample, driver):
 
         short_name = '.'.join(splitted_sample[0:3])
 
-        if alg_name == 'xAODAnalysis':
-            outname = get_grid_name(sample, args.version)
-
-        elif alg_name == 'xAODJfakeSample':
-            outname = get_grid_name(sample, args.version).replace('.mini.', '.jfake.')
-
-        elif alg_name == 'xAODBaselineAnalysis':
-            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.base.v' + args.version
-
-        elif alg_name == 'xAODCountEwkProcesses':
-            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.ewk.v' + args.version
-
-        elif alg_name == 'xAODTruthAnalysis':
-            outname = 'user.' + os.environ['USER'] + '.' + short_name + '.truth.v' + args.version
+        outname = get_grid_name(sample, args.version)
 
         # driver options
         driver.options().setString('nc_outputSampleName', outname)
@@ -205,13 +199,6 @@ def run_job(sample, driver):
         if not args.dry:
             driver.submitOnly(job, args.output)
 
-    # elif driver == 'batch':
-
-    #     logging.info('running on prooflite')
-    #     driver = ROOT.EL.ProofDriver()
-    #     logging.info('submit job')
-    #     driver.submit(job, args.output)
-        
     elif driver == 'local':
 
         logging.info('running on direct')
@@ -274,6 +261,20 @@ def main():
         parser.print_usage()
         return 1
 
+    global alg_name
+    alg_name = args.alg
+
+    available_algorithms = [
+        'xAODAnalysis', # default
+        'xAODBaselineAnalysis', 
+        'xAODJfakeSample', 
+        'xAODCountEwkProcesses', 
+        'xAODTruthAnalysis'
+        ]
+    if alg_name not in available_algorithms:
+        print 'Available algorithms: %s' % ' '.join(available_algorithms)
+        return 1
+
     if args.download:
         if args.input_file is not None:
             torun = get_samples_from_file(args.input_file, args.dids)
@@ -283,15 +284,6 @@ def main():
                 print 'rucio download %s' % outname
 
         return 0
-
-
-    global alg_name
-    alg_name = args.alg
-
-    available_algorithms = ['xAODAnalysis', 'xAODBaselineAnalysis', 'xAODJfakeSample', 'xAODCountEwkProcesses', 'xAODTruthAnalysis']
-    if alg_name not in available_algorithms:
-        print 'Available algorithms: %s' % ' '.join(available_algorithms)
-        return 1
         
 
     ROOT.gROOT.Macro("$ROOTCOREDIR/scripts/load_packages.C")
