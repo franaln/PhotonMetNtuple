@@ -53,6 +53,7 @@ void MiniClone::InitOriginalTree()
    ph_ptcone20 = 0;
    ph_iso = 0;
    ph_trackiso = 0;
+   ph_conv = 0;
    ph_w = 0;
    ph_truth_pt = 0;
    ph_truth_eta = 0;
@@ -68,6 +69,7 @@ void MiniClone::InitOriginalTree()
    ph_noniso_ptcone20 = 0;
    ph_noniso_iso = 0;
    ph_noniso_trackiso = 0;
+   ph_noniso_conv = 0;
    ph_noniso_w = 0;
    jet_eta = 0;
    jet_phi = 0;
@@ -101,6 +103,12 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("year", &year, &b_year);
    orig_tree->SetBranchAddress("pass_g120", &pass_g120, &b_pass_g120);
    orig_tree->SetBranchAddress("pass_g140", &pass_g140, &b_pass_g140);
+
+   if (orig_tree->GetListOfBranches()->FindObject("pass_g0_xe70"))
+     orig_tree->SetBranchAddress("pass_g0_xe70", &pass_g70_xe70, &b_pass_g70_xe70);
+   else
+     orig_tree->SetBranchAddress("pass_g70_xe70", &pass_g70_xe70, &b_pass_g70_xe70);
+
    if (m_ismc) orig_tree->SetBranchAddress("mcveto", &mcveto, &b_mcveto);
    if (m_ismc) orig_tree->SetBranchAddress("fs", &fs, &b_final_state);
 
@@ -131,6 +139,7 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("ph_ptcone20", &ph_ptcone20, &b_ph_ptcone20);
    orig_tree->SetBranchAddress("ph_iso", &ph_iso, &b_ph_iso);
    orig_tree->SetBranchAddress("ph_trackiso", &ph_trackiso, &b_ph_trackiso);
+   orig_tree->SetBranchAddress("ph_conv", &ph_conv, &b_ph_conv);
    orig_tree->SetBranchAddress("ph_w", &ph_w, &b_ph_w);
 
    if (m_ismc) {
@@ -151,6 +160,7 @@ void MiniClone::InitOriginalTree()
    orig_tree->SetBranchAddress("ph_noniso_ptcone20", &ph_noniso_ptcone20, &b_ph_noniso_ptcone20);
    orig_tree->SetBranchAddress("ph_noniso_iso", &ph_noniso_iso, &b_ph_noniso_iso);
    orig_tree->SetBranchAddress("ph_noniso_trackiso", &ph_noniso_trackiso, &b_ph_noniso_trackiso);
+   orig_tree->SetBranchAddress("ph_noniso_conv", &ph_noniso_conv, &b_ph_noniso_conv);
    orig_tree->SetBranchAddress("ph_noniso_w", &ph_noniso_w, &b_ph_noniso_w);
 
    orig_tree->SetBranchAddress("jet_n", &jet_n, &b_jet_n);
@@ -239,6 +249,7 @@ void MiniClone::CreateCloneTree()
   new_ph_ptcone20 = new std::vector<float>();
   new_ph_iso = new std::vector<float>();
   new_ph_trackiso = new std::vector<float>();
+  new_ph_conv = new std::vector<int>();
   new_ph_w     = new std::vector<float>();
 
   new_ph_truth_pt    = new std::vector<float>(); 
@@ -256,6 +267,7 @@ void MiniClone::CreateCloneTree()
   new_ph_noniso_ptcone20   = new std::vector<float>();
   new_ph_noniso_iso   = new std::vector<float>();
   new_ph_noniso_trackiso   = new std::vector<float>();
+  new_ph_noniso_conv = new std::vector<int>();
   new_ph_noniso_w     = new std::vector<float>();
 
   new_jet_pt  = new std::vector<float>(); 
@@ -288,13 +300,15 @@ void MiniClone::CreateCloneTree()
   clone_tree->Branch("lb", &new_lb, "lb/I");
   clone_tree->Branch("event", &new_event, "event/l");
   clone_tree->Branch("avgmu", &new_avgmu, "avgmu/F");
-  clone_tree->Branch("fs", &new_fs, "fs/i");
+
+  if (m_ismc) clone_tree->Branch("fs", &new_fs, "fs/i");
 
   //clone_tree->Branch("pass_tst_cleaning", &new_pass_tst_cleaning, "pass_tst_cleaning/i");
   clone_tree->Branch("year", &new_year, "year/i");
   if (m_ismc) clone_tree->Branch("mcveto", &new_mcveto, "mcveto/i");
-  clone_tree->Branch("pass_g120_loose", &new_pass_g120, "pass_g120/i");
-  clone_tree->Branch("pass_g140_loose", &new_pass_g140, "pass_g140/i");
+  clone_tree->Branch("pass_g120", &new_pass_g120, "pass_g120/i");
+  clone_tree->Branch("pass_g140", &new_pass_g140, "pass_g140/i");
+  clone_tree->Branch("pass_g70_xe70", &new_pass_g70_xe70, "pass_g70_xe70/i");
 
   clone_tree->Branch("weight_mc", &new_weight_mc, "weight_mc/F");
   clone_tree->Branch("weight_pu", &new_weight_pu, "weight_pu/F");
@@ -324,21 +338,28 @@ void MiniClone::CreateCloneTree()
   clone_tree->Branch("ph_ptcone20", new_ph_ptcone20);
   clone_tree->Branch("ph_iso", new_ph_iso);
   clone_tree->Branch("ph_trackiso", new_ph_trackiso);
+  clone_tree->Branch("ph_conv", new_ph_conv);
   clone_tree->Branch("ph_w",   new_ph_w);
 
-  clone_tree->Branch("ph_truth_pt",  new_ph_truth_pt);
-  clone_tree->Branch("ph_truth_eta", new_ph_truth_eta);
-  clone_tree->Branch("ph_truth_phi", new_ph_truth_phi);
-  clone_tree->Branch("ph_truth_id",  new_ph_truth_id);
-  clone_tree->Branch("ph_truth_type", new_ph_truth_type);
-  clone_tree->Branch("ph_truth_origin", new_ph_truth_origin);
+  if (m_ismc) {
+    clone_tree->Branch("ph_truth_pt",  new_ph_truth_pt);
+    clone_tree->Branch("ph_truth_eta", new_ph_truth_eta);
+    clone_tree->Branch("ph_truth_phi", new_ph_truth_phi);
+    clone_tree->Branch("ph_truth_id",  new_ph_truth_id);
+    clone_tree->Branch("ph_truth_type", new_ph_truth_type);
+    clone_tree->Branch("ph_truth_origin", new_ph_truth_origin);
+  }
 
   clone_tree->Branch("ph_noniso_n", &new_ph_noniso_n, "ph_noniso_n/I");
   clone_tree->Branch("ph_noniso_pt",  new_ph_noniso_pt);
   clone_tree->Branch("ph_noniso_eta", new_ph_noniso_eta);
   clone_tree->Branch("ph_noniso_etas2", new_ph_noniso_etas2);
   clone_tree->Branch("ph_noniso_phi", new_ph_noniso_phi);
+  clone_tree->Branch("ph_noniso_etcone40", new_ph_noniso_etcone40);
+  clone_tree->Branch("ph_noniso_ptcone20", new_ph_noniso_ptcone20);
   clone_tree->Branch("ph_noniso_iso", new_ph_noniso_iso);
+  clone_tree->Branch("ph_noniso_trackiso", new_ph_noniso_trackiso);
+  clone_tree->Branch("ph_noniso_conv", new_ph_noniso_conv);
   clone_tree->Branch("ph_noniso_w",   new_ph_noniso_w);
 
   clone_tree->Branch("jet_n", &new_jet_n, "jet_n/I");
@@ -420,6 +441,7 @@ void MiniClone::Clear()
   new_ph_ptcone20->clear();
   new_ph_iso->clear();
   new_ph_trackiso->clear();
+  new_ph_conv->clear();
   new_ph_w->clear();
   
   new_ph_truth_pt->clear();
@@ -437,6 +459,7 @@ void MiniClone::Clear()
   new_ph_noniso_ptcone20->clear();
   new_ph_noniso_iso->clear();
   new_ph_noniso_trackiso->clear();
+  new_ph_noniso_conv->clear();
   new_ph_noniso_w->clear();
 
   new_jet_pt->clear();
@@ -474,6 +497,9 @@ void MiniClone::CopyAllBlocks()
   CopyMuonsBlock();
   CopyJetsBlock();
   
+  CopyPhotonsNonIsoBlock();
+  CopyElectronsMediumBlock();
+
   CopyEventBlock();
   CopyWeightBlock();
   CopyMetBlock();
@@ -492,6 +518,7 @@ void MiniClone::CopyPhotonsBlock()
     new_ph_ptcone20->push_back((*ph_ptcone20)[i]);
     new_ph_iso->push_back((*ph_iso)[i]);
     new_ph_trackiso->push_back((*ph_trackiso)[i]);
+    new_ph_conv->push_back((*ph_conv)[i]);
     new_ph_w->push_back((*ph_w)[i]);
 
     if (m_ismc) {
@@ -527,6 +554,7 @@ void MiniClone::CopyPhotonsNonIsoBlock()
     new_ph_noniso_ptcone20->push_back((*ph_noniso_ptcone20)[i]);
     new_ph_noniso_iso->push_back((*ph_noniso_iso)[i]);
     new_ph_noniso_trackiso->push_back((*ph_noniso_trackiso)[i]);
+    new_ph_noniso_conv->push_back((*ph_noniso_conv)[i]);
     new_ph_noniso_w->push_back((*ph_noniso_w)[i]);
   }
 
@@ -602,6 +630,7 @@ void MiniClone::CopyEventBlock()
 
   new_pass_g120 = pass_g120;
   new_pass_g140 = pass_g140;
+  new_pass_g70_xe70 = pass_g70_xe70;
 }
 
 void MiniClone::CopyWeightBlock()
@@ -691,11 +720,13 @@ void MiniClone::Save()
   TH1D *events = (TH1D*)orig_file->Get("events");
   TH1D *cutflow = (TH1D*)orig_file->Get("cutflow");
   TH1D *cutflow_w = (TH1D*)orig_file->Get("cutflow_w");
+  TH1D *susy_sumw = (TH1D*)orig_file->Get("susy_sumw");
   
   clone_file->cd();
   if (events) events->Write(); 
   if (cutflow) cutflow->Write(); 
   if (cutflow_w) cutflow_w->Write(); 
+  if (susy_sumw) susy_sumw->Write(); 
 
   clone_tree->Write();
   clone_file->Close();

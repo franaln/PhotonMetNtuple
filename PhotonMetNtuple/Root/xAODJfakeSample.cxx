@@ -365,10 +365,12 @@ EL::StatusCode xAODJfakeSample::execute ()
   
   // Trigger
   bool pass_g140 = susytools->IsTrigPassed("HLT_g140_loose");
+  bool pass_g70_xe70 = susytools->IsTrigPassed("HLT_g70_loose_xe70noL1");
 
   outtree->pass_g140 = pass_g140;
+  outtree->pass_g70_xe70 = pass_g70_xe70;
 
-  if (!pass_g140)
+  if (!pass_g140 && !pass_g70_xe70)
     return EL::StatusCode::SUCCESS;
 
   h_cutflow->Fill(4);

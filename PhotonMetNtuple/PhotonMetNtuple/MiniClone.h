@@ -30,6 +30,7 @@ public:
   UInt_t          mcveto;
   UInt_t          pass_g120;
   UInt_t          pass_g140;
+  UInt_t          pass_g70_xe70;
   Float_t         weight_mc;
   Float_t         weight_pu;
   Float_t         weight_pu_down;
@@ -54,6 +55,7 @@ public:
   vector<float>   *ph_ptcone20;
   vector<float>   *ph_iso;
   vector<float>   *ph_trackiso;
+  vector<int>     *ph_conv;
   vector<float>   *ph_w;
   vector<float>   *ph_truth_pt;
   vector<float>   *ph_truth_eta;
@@ -70,6 +72,7 @@ public:
   vector<float>   *ph_noniso_ptcone20;
   vector<float>   *ph_noniso_iso;
   vector<float>   *ph_noniso_trackiso;
+  vector<int>   *ph_noniso_conv;
   vector<float>   *ph_noniso_w;
   Int_t           jet_n;
   Int_t           bjet_n;
@@ -138,6 +141,7 @@ public:
   UInt_t          new_mcveto;
   UInt_t          new_pass_g120;
   UInt_t          new_pass_g140;
+  UInt_t          new_pass_g70_xe70;
   Float_t         new_weight_mc;
   Float_t         new_weight_pu;
   Float_t         new_weight_pu_down;
@@ -163,6 +167,7 @@ public:
   vector<float>   *new_ph_ptcone20;
   vector<float>   *new_ph_iso;
   vector<float>   *new_ph_trackiso;
+  vector<int>     *new_ph_conv;
   vector<float>   *new_ph_w;
   vector<float>   *new_ph_truth_pt;
   vector<float>   *new_ph_truth_eta;
@@ -180,6 +185,7 @@ public:
   vector<float>   *new_ph_noniso_ptcone20;
   vector<float>   *new_ph_noniso_iso;
   vector<float>   *new_ph_noniso_trackiso;
+  vector<int>     *new_ph_noniso_conv;
   vector<float>   *new_ph_noniso_w;
 
   Int_t           new_jet_n;
@@ -255,6 +261,7 @@ public:
   TBranch        *b_mcveto;   //!
   TBranch        *b_pass_g120;   //!
   TBranch        *b_pass_g140;   //!
+  TBranch        *b_pass_g70_xe70;   //!
   TBranch        *b_weight_mc;   //!
   TBranch        *b_weight_pu;   //!
   TBranch        *b_weight_pu_down;   //!
@@ -276,6 +283,7 @@ public:
   TBranch        *b_ph_ptcone20;   //!
   TBranch        *b_ph_iso;   //!
   TBranch        *b_ph_trackiso;   //!
+  TBranch        *b_ph_conv;   //!
   TBranch        *b_ph_w;   //!
   TBranch        *b_ph_truth_pt;   //!
   TBranch        *b_ph_truth_eta;   //!
@@ -292,6 +300,7 @@ public:
   TBranch        *b_ph_noniso_ptcone20;   //!
   TBranch        *b_ph_noniso_iso;   //!
   TBranch        *b_ph_noniso_trackiso;   //!
+  TBranch        *b_ph_noniso_conv;   //!
   TBranch        *b_ph_noniso_w;   //!
   TBranch        *b_jet_n;   //!
   TBranch        *b_bjet_n;   //!

@@ -56,7 +56,7 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     
 
     // skip event with one signal photon
-    if (mini->ph_n > 0 && (*mini->ph_pt)[0] > 145.)
+    if (mini->ph_n > 0 && (*mini->ph_pt)[0] > 75.)
       continue;
 
     // skip events without electrons (?)

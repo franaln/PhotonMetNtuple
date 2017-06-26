@@ -52,8 +52,8 @@ void loop(TString fake_rate_path, TString input_path, TString output_path)
     if (total_events>10 && jentry%msg_interval == 0) 
       std::cout << "Processing event " << jentry << " of " << total_events << std::endl;
     
-    // skip event without non-tight photons 
-    if (mini->ph_n == 0 || (*mini->ph_pt)[0] < 145.)
+    // skip event without non-tight/iso photons
+    if (mini->ph_n == 0 || (*mini->ph_pt)[0] < 75.)
       continue;
 
     // clear
