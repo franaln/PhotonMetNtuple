@@ -82,9 +82,12 @@ class TruthTree : public asg::AsgMetadataTool {
   std::vector<float> *weight_pdf2;
   std::vector<float> *weight_pdf3;
 
+  std::vector<float> *weight_lhe3;
+
  protected:
   TDirectory *m_outfile;    
   bool m_pdfrw;
+  bool m_lhe3;
 
 };
 #endif

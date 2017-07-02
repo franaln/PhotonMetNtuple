@@ -1,18 +1,21 @@
 #include <PhotonMetNtuple/TruthUtils.h>
 
 TruthParticle::TruthParticle(const xAOD::TruthParticle *ptcl) :
-  TLorentzVector(ptcl->px()*0.001, ptcl->py()*0.001, ptcl->pz()*0.001, ptcl->e()*0.001),
+  //TLorentzVector(ptcl->px()*0.001, ptcl->py()*0.001, ptcl->pz()*0.001, ptcl->e()*0.001),
+  TLorentzVector(),
   index(-1),
   good(true)
 {
+  SetPtEtaPhiE(ptcl->pt()*0.001, ptcl->eta(), ptcl->phi(), ptcl->e()*0.001);
 }
 
 TruthParticle::TruthParticle(const xAOD::Jet *ptcl, Bool_t isbjet) :
-  TLorentzVector(ptcl->px()*0.001, ptcl->py()*0.001, ptcl->pz()*0.001, ptcl->e()*0.001),
+  TLorentzVector(), //ptcl->px()*0.001, ptcl->py()*0.001, ptcl->pz()*0.001, ptcl->e()*0.001),
   index(-1),
   good(true),
   isbjet(isbjet)
 {
+  SetPtEtaPhiE(ptcl->pt()*0.001, ptcl->eta(), ptcl->phi(), ptcl->e()*0.001);
 }
 
 

@@ -1,5 +1,4 @@
 #include <TSystem.h>
-
 #include <iostream>
 
 // ROOT include(s):
@@ -45,11 +44,17 @@
 
 ClassImp(xAODTruthAnalysis)
 
+struct pt_sort {
+  bool operator()(const TruthParticle& v1, const TruthParticle& v2) const {
+    return v1.Pt() > v2.Pt();
+  }
+};
+
 xAODTruthAnalysis::xAODTruthAnalysis() :
-do_pdfrw(false),
+  do_pdfrw(false),
+  do_lhe3(false),
   is_truth3(false)
 {
-
 }
 
 EL::StatusCode xAODTruthAnalysis::setupJob(EL::Job &job)
@@ -137,27 +142,36 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
   //check if file is from a DxAOD
   bool is_derivation = !metadata->GetBranch("StreamAOD");
 
+  std::cout << "is derivation" << is_derivation << std::endl;
+
   ULong64_t m_initial_events = 0;
   Double_t m_initial_sumw = 0.;
   Double_t m_initial_sumw2 = 0.;
 
   if (is_derivation) {
+  
     //Read the CutBookkeeper container
     const xAOD::CutBookkeeperContainer* completeCBC = 0;
     if (!m_event->retrieveMetaInput(completeCBC, "CutBookkeepers").isSuccess()) {
       Error(APP_NAME, "Failed to retrieve CutBookkeepers from MetaData! Exiting.");
       return EL::StatusCode::FAILURE;
     }
-    
+
     // Now, let's actually find the right one that contains all the needed info...
     const xAOD::CutBookkeeper* all_events_cbk = 0;
-      
+    
     int maxCycle = -1;
     for (const auto& cbk :  *completeCBC) {
+      
+      // std::cout << cbk->nameIdentifier() << " : " << cbk->name() << " : desc = " << cbk->description()
+      //           << " : inputStream = " << cbk->inputStream()  << " : outputStreams = " << (cbk->outputStreams().size() ? cbk->outputStreams()[0] : "")
+      //           << " : cycle = " << cbk->cycle() << " :  allEvents = " << cbk->nAcceptedEvents()
+      //           << std::endl;
+      
       if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && (cbk->inputStream() == "StreamAOD" || cbk->inputStream() == "StreamDAOD_TRUTH3" || cbk->inputStream() == "StreamDAOD_TRUTH1")) {
         all_events_cbk = cbk;
         maxCycle = cbk->cycle();
-
+        
         if (cbk->inputStream() == "StreamDAOD_TRUTH3")
           is_truth3 = true;
       }
@@ -193,6 +207,7 @@ EL::StatusCode xAODTruthAnalysis::initialize()
   ntuple = new TruthTree("truthtree");
   CHECK(ntuple->setProperty("OutFile", out_dir));
   CHECK(ntuple->setProperty("SavePDF", do_pdfrw));
+  CHECK(ntuple->setProperty("SaveLHE3", do_lhe3));
   CHECK(ntuple->initialize());
 
   return EL::StatusCode::SUCCESS;
@@ -246,7 +261,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   }
 
   const xAOD::MissingET* met_truth = 0;
-  if( truth_met ) met_truth = (*truth_met)["Int"];
+  if( truth_met ) met_truth = (*truth_met)["NonInt"];
 
   ntuple->Clear();
 
@@ -277,9 +292,9 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   for ( ; ph_itr != ph_end; ++ph_itr) {
       
     if ((*ph_itr)->pt() < 25000. || fabs((*ph_itr)->eta()) > 2.37) 
-        continue;
+      continue;
 
-      b_photons.push_back(TruthParticle(*ph_itr));
+    b_photons.push_back(TruthParticle(*ph_itr));
   }
 
   // Electrons
@@ -298,7 +313,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   xAOD::TruthParticleContainer::const_iterator mu_end(truth_muons->end());
   for ( ; mu_itr != mu_end; ++mu_itr) {
       
-    if ((*mu_itr)->pt() < 10000. || fabs((*mu_itr)->eta()) > 2.4) 
+    if ((*mu_itr)->pt() < 10000. || fabs((*mu_itr)->eta()) > 2.7) 
         continue;
 
       b_muons.push_back(TruthParticle(*mu_itr));
@@ -320,7 +335,11 @@ EL::StatusCode xAODTruthAnalysis::execute ()
 
     b_jets.push_back(TruthParticle(*jet_itr, isb));
   }
-      
+
+  std::sort(b_photons.begin(), b_photons.end(), pt_sort());
+  std::sort(b_electrons.begin(), b_electrons.end(), pt_sort());
+  std::sort(b_muons.begin(), b_muons.end(), pt_sort());
+  std::sort(b_jets.begin(), b_jets.end(), pt_sort());
   
   // itearatos
   std::vector<TruthParticle>::iterator ph_it;
@@ -342,6 +361,9 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   /// Remove jets overlapping with electrons and photons
   for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
     if (TruthUtils::OverlapsOthers((*jet_it), b_electrons, eg_jet_deltaR_cut)) (*jet_it).good=false;
+  }
+  TruthUtils::CleanBads(b_jets);
+  for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
     if (TruthUtils::OverlapsOthers((*jet_it), b_photons,   eg_jet_deltaR_cut)) (*jet_it).good=false;  
   }
   TruthUtils::CleanBads(b_jets);
@@ -350,16 +372,16 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
       if (TruthUtils::OverlapsOthers((*el_it), b_jets, jet_egmu_deltaR_cut)) (*el_it).good = false;
   }
+  TruthUtils::CleanBads(b_electrons);
   for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
     if (TruthUtils::OverlapsOthers((*ph_it), b_jets, jet_egmu_deltaR_cut)) (*ph_it).good = false;
   }
+  TruthUtils::CleanBads(b_photons);
   for(mu_it=b_muons.begin(); mu_it!=b_muons.end(); ++mu_it) {
     if (TruthUtils::OverlapsOthers((*mu_it), b_jets, jet_egmu_deltaR_cut)) (*mu_it).good=false;
   }
-  TruthUtils::CleanBads(b_electrons);
-  TruthUtils::CleanBads(b_photons);
   TruthUtils::CleanBads(b_muons);
-   
+
 
   // Signal objects
   ntuple->ph_n = 0;
@@ -369,10 +391,10 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   ntuple->ph_iso->clear();
   for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
 
-    Float_t ph_eta = (*ph_it).Eta();
+    Float_t ph_eta = fabs((*ph_it).Eta());
 
     if ((*ph_it).Pt() < 75. ||  (ph_eta>1.37 && ph_eta<1.52))
-        continue;
+      continue;
 
     photons.push_back(*ph_it);
       
@@ -383,14 +405,14 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     ntuple->ph_phi->push_back((*ph_it).Phi());
     ntuple->ph_iso->push_back(0.);
   }
-  
+
   ntuple->el_n = 0;
   ntuple->el_pt->clear();
   ntuple->el_eta->clear();
   ntuple->el_phi->clear();
   for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
 
-    Float_t el_eta = (*el_it).Eta();
+    Float_t el_eta = fabs((*el_it).Eta());
 
     if ((*el_it).Pt() < 25. || (el_eta>1.37 && el_eta<1.52))
         continue;
@@ -427,7 +449,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   ntuple->jet_phi->clear();
   for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
 
-    if ((*jet_it).Pt() < 30. || fabs((*jet_it).Eta()) > 2.5)
+    if ((*jet_it).Pt() < 30. || fabs((*jet_it).Eta()) > 2.8)
         continue;
 
     jets.push_back(*jet_it);
@@ -446,28 +468,6 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   /// Met
   Double_t ex = 0.0;
   Double_t ey = 0.0;
-  // for (ph_it=b_photons.begin(); ph_it!=b_photons.end(); ++ph_it) {
-  //   ex -= (*ph_it).Pt() * TMath::Cos((*ph_it).Phi());
-  //   ey -= (*ph_it).Pt() * TMath::Sin((*ph_it).Phi());
-  // }
-  // for (el_it=b_electrons.begin(); el_it!=b_electrons.end(); ++el_it) {
-  //   ex -= (*el_it).Pt() * TMath::Cos((*el_it).Phi());
-  //   ey -= (*el_it).Pt() * TMath::Sin((*el_it).Phi());
-  // }
-  // for (mu_it=b_muons.begin(); mu_it!=b_muons.end(); ++mu_it) {
-  //   ex -= (*mu_it).Pt() * TMath::Cos((*mu_it).Phi());
-  //   ey -= (*mu_it).Pt() * TMath::Sin((*mu_it).Phi());
-  // }
-  // for (jet_it=b_jets.begin(); jet_it!=b_jets.end(); ++jet_it) {
-  //   ex -= (*jet_it).Pt() * TMath::Cos((*jet_it).Phi());
-  //   ey -= (*jet_it).Pt() * TMath::Sin((*jet_it).Phi());
-  // }
-  
-  // Double_t met_et  = TMath::Hypot(ex, ey);
-  // Double_t met_phi = TMath::ATan2(ey, ex);
-  
-  // ntuple->met_et = met_et;
-  // ntuple->met_phi = met_phi;
   
   // Met truth
   ex = met_truth->mpx() * 0.001;
@@ -536,9 +536,20 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     }
   }
 
+  //Get LHE3 weights
+  const xAOD::TruthEventContainer* truth_evt_cont;
+  if ( !m_event->retrieve(truth_evt_cont, "TruthEvents").isSuccess() ) {
+    Error(APP_NAME, "Could not retrieve truth event container with key TruthEvents");
+  }
+  const xAOD::TruthEvent *truth_event = (*truth_evt_cont)[0];
+  const std::vector<float> weights  = truth_event->weights();
+  for (auto w : weights)
+    ntuple->weight_lhe3->push_back(w);
+ 
+
   // fill ntuple only there is at least one photon
-  if (photons.size() > 0)
-    ntuple->Fill();
+  // if (photons.size() > 0)
+  ntuple->Fill();
 
   return EL::StatusCode::SUCCESS;
 }

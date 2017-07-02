@@ -7,6 +7,7 @@ TruthTree::TruthTree(const std::string& name): asg::AsgMetadataTool( name )
 {
   declareProperty("OutFile", m_outfile); 
   declareProperty("SavePDF", m_pdfrw); 
+  declareProperty("SaveLHE3", m_lhe3); 
 
   tree = 0;
 }
@@ -105,6 +106,11 @@ void TruthTree::CreateBranches()
     tree->Branch("weight_pdf3", &weight_pdf3);
   }
 
+  if (m_lhe3) {
+    weight_lhe3 = new std::vector<float>;
+    tree->Branch("weight_lhe3", &weight_lhe3);
+  }
+
   Clear();
 }
 
@@ -152,6 +158,9 @@ void TruthTree::Clear()
     weight_pdf2->clear();
     weight_pdf3->clear();
   }
+
+  if (m_lhe3)
+    weight_lhe3->clear();
 
 }
 
