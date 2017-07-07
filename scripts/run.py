@@ -153,6 +153,10 @@ def run_job(sample, driver):
         logging.info('-- do systematics = %s' % args.dosyst)
         logging.info('--')
 
+
+        if '/' in args.config_file:
+            arg.config_file = args.config_file.split('/')[-1]
+
         alg.config_file = args.config_file
         alg.is_data = is_data
         alg.is_susy = is_susy
@@ -166,7 +170,8 @@ def run_job(sample, driver):
         alg = ROOT.xAODTruthAnalysis()
         if args.dopdfrw:
             alg.do_pdfrw = True
-
+        if args.dolhe3:
+            alg.do_lhe3 = True
 
     logging.info("adding algorithms")
     job.algsAdd(alg)
@@ -231,11 +236,12 @@ def main():
     parser.add_argument('-i', dest='input_file')
     parser.add_argument('-d', dest='dids', type=str)
 
-    parser.add_argument('-c', dest='config_file', default='PhotonMetNtuple_std.conf', help='Config file')
+    parser.add_argument('-c', '--conf', dest='config_file', default='PhotonMetNtuple_std.conf', help='Config file')
     parser.add_argument('-v', dest='version')
 
     parser.add_argument("--dosyst", action='store_true', help="Create systematics blocks")
     parser.add_argument('--dopdfrw', action='store_true')
+    parser.add_argument('--dolhe3', action='store_true')
 
     # parser.add_argument('--dotar', dest='do_tarball', action='store_true')
     # parser.add_argument('--usetar', dest='use_tarball', action='store_true')
