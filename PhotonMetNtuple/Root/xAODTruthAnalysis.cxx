@@ -96,6 +96,13 @@ EL::StatusCode xAODTruthAnalysis::histInitialize()
   TDirectory *out_dir = (TDirectory*) wk()->getOutputFile("output");
   h_events->SetDirectory(out_dir);
 
+
+  // sum of weights for the different LHE3 variations (using 200 bins because we don't know how many are)
+  if (do_lhe3) {
+    h_lhe3_sumw = new TH1D("lhe3_sumw", "LHE3 variations SumW", 200, 0.5, 200.5);
+    h_lhe3_sumw->SetDirectory(out_dir);
+  }
+
   if (do_pdfrw) {
     pdf1 = "CT10";
     pdf2 = "NNPDF30_lo_as_0130"; //# 
@@ -161,12 +168,8 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
     const xAOD::CutBookkeeper* all_events_cbk = 0;
     
     int maxCycle = -1;
+    int cbk_lhe3_idx = 0;
     for (const auto& cbk :  *completeCBC) {
-      
-      // std::cout << cbk->nameIdentifier() << " : " << cbk->name() << " : desc = " << cbk->description()
-      //           << " : inputStream = " << cbk->inputStream()  << " : outputStreams = " << (cbk->outputStreams().size() ? cbk->outputStreams()[0] : "")
-      //           << " : cycle = " << cbk->cycle() << " :  allEvents = " << cbk->nAcceptedEvents()
-      //           << std::endl;
       
       if (cbk->cycle() > maxCycle && cbk->name() == "AllExecutedEvents" && (cbk->inputStream() == "StreamAOD" || cbk->inputStream() == "StreamDAOD_TRUTH3" || cbk->inputStream() == "StreamDAOD_TRUTH1")) {
         all_events_cbk = cbk;
@@ -175,6 +178,30 @@ EL::StatusCode xAODTruthAnalysis::changeInput(bool firstFile)
         if (cbk->inputStream() == "StreamDAOD_TRUTH3")
           is_truth3 = true;
       }
+      else if (do_lhe3 && cbk->name().find("LHE3") != std::string::npos) { 
+        std::string name = cbk->name();
+        std::cout << name << std::endl;
+
+        std::size_t pos = name.rfind("_");
+        std::string wname = name.substr(pos+1);
+        
+        Info(APP_NAME, "Found LHE weight with name %s and SumW %f", wname.c_str(), cbk->sumOfEventWeights());
+        
+        // if not the first file check if index is the same
+        if(map_lhe3.find(wname) != map_lhe3.end()) {
+          int idx = map_lhe3[wname];
+          if (idx != cbk_lhe3_idx) {
+            Info(APP_NAME, "Different index %i / %i", idx, cbk_lhe3_idx);            
+            cbk_lhe3_idx = idx;
+          }
+        }
+        else
+          map_lhe3[wname] = cbk_lhe3_idx; 
+
+        h_lhe3_sumw->Fill(cbk_lhe3_idx, cbk->sumOfEventWeights());
+        cbk_lhe3_idx++;
+      }
+
     }
       
     m_initial_events = all_events_cbk->nAcceptedEvents();
@@ -263,6 +290,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
   const xAOD::MissingET* met_truth = 0;
   if( truth_met ) met_truth = (*truth_met)["NonInt"];
 
+  
   ntuple->Clear();
 
   std::vector<TruthParticle> b_photons;
@@ -462,7 +490,7 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     if ((*jet_it).isbjet)
       ntuple->bjet_n++;
   }
-
+ 
   //-- Construct event variables
   
   /// Met
@@ -536,15 +564,18 @@ EL::StatusCode xAODTruthAnalysis::execute ()
     }
   }
 
-  //Get LHE3 weights
-  const xAOD::TruthEventContainer* truth_evt_cont;
-  if ( !m_event->retrieve(truth_evt_cont, "TruthEvents").isSuccess() ) {
-    Error(APP_NAME, "Could not retrieve truth event container with key TruthEvents");
+  if (do_lhe3) {
+
+    //Get LHE3 weights
+    const xAOD::TruthEventContainer* truth_evt_cont;
+    if ( !m_event->retrieve(truth_evt_cont, "TruthEvents").isSuccess() ) {
+      Error(APP_NAME, "Could not retrieve truth event container with key TruthEvents");
+    }
+    const xAOD::TruthEvent *truth_event = (*truth_evt_cont)[0];
+    const std::vector<float> weights  = truth_event->weights();
+    for (auto w : weights)
+      ntuple->weight_lhe3->push_back(w);
   }
-  const xAOD::TruthEvent *truth_event = (*truth_evt_cont)[0];
-  const std::vector<float> weights  = truth_event->weights();
-  for (auto w : weights)
-    ntuple->weight_lhe3->push_back(w);
  
 
   // fill ntuple only there is at least one photon

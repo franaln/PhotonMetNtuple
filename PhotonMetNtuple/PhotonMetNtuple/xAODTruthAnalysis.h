@@ -33,6 +33,9 @@ public:
 
   TH1D *h_events; //!
 
+  std::map<std::string, int> map_lhe3; //!
+  TH1D *h_lhe3_sumw; //!
+
   xAOD::TEvent *m_event;  //!
 
   // this is a standard constructor
